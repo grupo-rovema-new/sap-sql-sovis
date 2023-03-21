@@ -1,0 +1,8 @@
+CREATE OR REPLACE VIEW moeda AS 
+	SELECT
+		"CurrCode" AS "IDMOEDAERP",
+		"CurrName"  AS "DESCRICAO",
+		"DocCurrCod"  AS "SIMBOLOMONETARIO",
+		1 AS "SITUACAO"
+	FROM
+		OCRN;
