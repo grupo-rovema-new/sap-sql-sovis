@@ -4,7 +4,8 @@ CREATE OR REPLACE VIEW SITUACAO AS
  		empresa.IDEMPRESAERP  AS "IDEMPRESAERP", 
 		'Ativo' AS "DESCRICAO",
  		'' AS "COR",
- 		1  AS "SITUACAO" 
+ 		1  AS "SITUACAO",
+ 		'S'  AS "LIBERAPEDIDO"
  	FROM
  		dummy,
  		empresa
@@ -14,7 +15,8 @@ CREATE OR REPLACE VIEW SITUACAO AS
  		0 AS "IDEMPRESAERP", 
 		'Inativo' AS "DESCRICAO",
  		'' AS "COR",
- 		0  AS "SITUACAO" 
+ 		0  AS "SITUACAO",
+ 		'N'  AS "LIBERAPEDIDO"
  	FROM
  		dummy,
  		empresa
