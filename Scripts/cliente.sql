@@ -2,7 +2,7 @@ CREATE OR REPLACE VIEW CLIENTE AS
 	SELECT
 		OCRD."CardCode" AS "IDCLIENTEERP",
 		0 AS "IDCIDADEERP",
-		'ativo'  AS "IDSITUACAOERP",
+		'Y'  AS "IDSITUACAOERP",
 		0 AS "IDREGIAOERP",
 		0 AS "IDATIVIDADEERP",
 		0 AS "IDRAMOERP",
@@ -63,7 +63,5 @@ CREATE OR REPLACE VIEW CLIENTE AS
 		
 -- esse left join vai ajudar a conectar o cliente com a filial		
 -- LEFT JOIN CRD8 ON (OCRD."CardCode" = CRD8."CardCode" AND CRD8."DisabledBP" = 'N');	
-
-
-
+-- A ideia para ativo e desativo sera nas colunas frozenFor
 
