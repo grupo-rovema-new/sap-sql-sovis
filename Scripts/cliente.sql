@@ -29,6 +29,9 @@ CREATE OR REPLACE VIEW CLIENTE AS
 		"PaymBlock"  AS "IDPRAZOPAGTOERP",
 		0 AS "COEFTABPRECO",
 		0 AS "DESCONTOMAXIMO",
+		'' AS "EXTRA1",
+		'' AS "EXTRA2",
+		'' AS "EXTRA3",
 		"CreateDate"  AS "DATAHORA",
 		1 AS "TIPOCONSUMIDOR",
 		0 AS "CONTRIBUINTEICMS",
@@ -59,7 +62,7 @@ CREATE OR REPLACE VIEW CLIENTE AS
 	FROM
 		OCRD
 		LEFT JOIN CRD2 ON (OCRD."CardCode" = CRD2."CardCode" AND CRD2."LineNum" = 0)
-	WHERE OCRD."CardType" = 'S'
+	WHERE OCRD."CardType" = 'C'
 		
 -- esse left join vai ajudar a conectar o cliente com a filial		
 -- LEFT JOIN CRD8 ON (OCRD."CardCode" = CRD8."CardCode" AND CRD8."DisabledBP" = 'N');	
