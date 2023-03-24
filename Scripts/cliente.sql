@@ -19,7 +19,7 @@ CREATE OR REPLACE VIEW CLIENTE AS
 		"Cellular"  AS "CELULAR",
 		"E_Mail"  AS "EMAIL",
 		"E_Mail"  AS "EMAILNFE",
-		"U_Rov_Data_Nascimento"  AS "DATANASCIMENTO",
+		CASE WHEN "U_Rov_Data_Nascimento" = '' THEN ' ' ELSE "U_Rov_Data_Nascimento" END   AS "DATANASCIMENTO",
 		"Free_Text"  AS "OBSCADASTRAL",
 		'' AS "OBSFINANCEIRA",
 		"ListNum"  AS "IDTABPRECOERP",
@@ -32,7 +32,7 @@ CREATE OR REPLACE VIEW CLIENTE AS
 		'' AS "EXTRA1",
 		'' AS "EXTRA2",
 		'' AS "EXTRA3",
-		"CreateDate"  AS "DATAHORA",
+		TO_VARCHAR("CreateDate", 'YYYY-MM-DD HH:MM:SS')  AS "DATAHORA",
 		1 AS "TIPOCONSUMIDOR",
 		0 AS "CONTRIBUINTEICMS",
 		0 AS "FARMPOPULAR",
@@ -49,7 +49,7 @@ CREATE OR REPLACE VIEW CLIENTE AS
 		0 AS "VALORMINIMOFOB",
 		0 AS "VALORMINIMOCIF",
 		0 AS "DATAULTIMAVENDA",
-		"UpdateDate"  AS "DATAHORAATUALIZACAO",
+		TO_VARCHAR("UpdateDate", 'YYYY-MM-DD HH:MM:SS')  AS "DATAHORAATUALIZACAO",
 		0 AS "CONTRIBUINTE",
 		0 AS "ESTRANGEIRO",
 		0 AS "TIPOCLIENTE",
@@ -67,4 +67,5 @@ CREATE OR REPLACE VIEW CLIENTE AS
 -- esse left join vai ajudar a conectar o cliente com a filial		
 -- LEFT JOIN CRD8 ON (OCRD."CardCode" = CRD8."CardCode" AND CRD8."DisabledBP" = 'N');	
 -- A ideia para ativo e desativo sera nas colunas frozenFor
-
+	
+	
