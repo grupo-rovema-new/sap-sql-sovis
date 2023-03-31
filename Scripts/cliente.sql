@@ -2,7 +2,7 @@ CREATE OR REPLACE VIEW CLIENTE AS
 	SELECT
 		OCRD."CardCode" AS "IDCLIENTEERP",
 		0 AS "IDCIDADEERP",
-		'Y'  AS "IDSITUACAOERP",
+		"validFor" AS "IDSITUACAOERP",
 		0 AS "IDREGIAOERP",
 		0 AS "IDATIVIDADEERP",
 		0 AS "IDRAMOERP",
@@ -62,7 +62,8 @@ CREATE OR REPLACE VIEW CLIENTE AS
 	FROM
 		OCRD
 		LEFT JOIN CRD2 ON (OCRD."CardCode" = CRD2."CardCode" AND CRD2."LineNum" = 0)
-	WHERE OCRD."CardType" = 'C'
+		LEFT JOIN CRD8 ON OCRD."CardCode" = CRD8."CardCode"
+	WHERE OCRD."CardType" = 'C' AND CRD8."BPLId" in(2,4,11)
 		
 -- esse left join vai ajudar a conectar o cliente com a filial		
 -- LEFT JOIN CRD8 ON (OCRD."CardCode" = CRD8."CardCode" AND CRD8."DisabledBP" = 'N');	
