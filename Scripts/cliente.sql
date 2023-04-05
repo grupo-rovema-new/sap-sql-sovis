@@ -13,7 +13,7 @@ CREATE OR REPLACE VIEW CLIENTE AS
 		"Block"  AS "BAIRRO",
 		"ZipCode"  AS "CEP",
 		'' AS "IERG",
-		'' AS "CNPJCPF",f
+		'' AS "CNPJCPF",
 		"Phone1"  AS "TELEFONE",
 		''  AS "FAX",
 		"Cellular"  AS "CELULAR",
@@ -63,13 +63,4 @@ CREATE OR REPLACE VIEW CLIENTE AS
 		OCRD
 		LEFT JOIN CRD2 ON (OCRD."CardCode" = CRD2."CardCode" AND CRD2."LineNum" = 0)
 	WHERE OCRD."CardType" = 'C' AND exists(SELECT 1 FROM CRD8 WHERE OCRD."CardCode" = CRD8."CardCode" AND CRD8."BPLId" in(2,4,11));
-		
--- esse left join vai ajudar a conectar o cliente com a filial		
--- LEFT JOIN CRD8 ON (OCRD."CardCode" = CRD8."CardCode" AND CRD8."DisabledBP" = 'N');	
--- A ideia para ativo e desativo sera nas colunas frozenFor
-;
-
-
-Select * from OCRD WHERE exists(SELECT 1 FROM CRD8 WHERE OCRD."CardCode" = CRD8."CardCode" AND CRD8."BPLId" in(2,4,11))
-	
 	
