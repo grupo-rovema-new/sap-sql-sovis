@@ -13,6 +13,13 @@ CREATE OR REPLACE VIEW CLIENTE AS
 		"Block"  AS "BAIRRO",
 		"ZipCode"  AS "CEP",
 		'' AS "IERG",
+		(SELECT 
+			DISTINCT 
+			CASE
+				WHEN "TaxId0" = '' THEN "TaxId4"
+			WHEN "TaxId4" = '' THEN "TaxId0"
+			END 
+		FROM CRD7 WHERE CRD7."CardCode" = OCRD."CardCode"  AND "Address"  = '' ) AS "CNPJCPF",
 		'' AS "CNPJCPF",
 		"Phone1"  AS "TELEFONE",
 		''  AS "FAX",
