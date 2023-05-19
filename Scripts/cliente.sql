@@ -13,7 +13,10 @@ CREATE OR REPLACE VIEW CLIENTE AS
 		"Block"  AS "BAIRRO",
 		"ZipCode"  AS "CEP",
 		'' AS "IERG",
-		'' AS "CNPJCPF",
+		(SELECT cpfCnpj FROM BpCpfCnpj t 
+		WHERE 
+			OCRD."CardCode" = t."CardCode" 
+			AND (SELECT count(1) FROM BpCpfCnpj t WHERE OCRD."CardCode" = t."CardCode") <= 1) AS "CNPJCPF",
 		"Phone1"  AS "TELEFONE",
 		''  AS "FAX",
 		"Cellular"  AS "CELULAR",
