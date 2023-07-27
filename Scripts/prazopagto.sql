@@ -4,4 +4,5 @@ CREATE OR REPLACE VIEW PRAZOPAGTO AS
 		"PymntGroup" AS "DESCRICAO",
 		 1 AS "SITUACAO"
 	FROM
-		OCTG;
+		OCTG
+WHERE octg."U_Rov_EnviarForca" = 1;
