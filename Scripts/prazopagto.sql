@@ -1,8 +1,18 @@
 CREATE OR REPLACE VIEW PRAZOPAGTO AS 
 	SELECT
-		"GroupNum" AS "IDPRAZOPAGTOERP",
+		"Code" || '_' || "U_prazo" AS "IDPRAZOPAGTOERP",
 		"PymntGroup" AS "DESCRICAO",
-		 1 AS "SITUACAO"
+		1 AS "SITUACAO"
 	FROM
-		OCTG
-WHERE octg."U_Rov_EnviarForca" = 1;
+		"@CONDICOESFV" cond
+		INNER JOIN OCTG ON cond."U_prazo" = OCT"@AAGRI_ACOT1" aa G."GroupNum" 
+	WHERE
+		"Code" in(SELECT "U_tipoComissao" FROM OPLN WHERE "U_tipoComissao" IS  NOT NULL)
+
+
+
+
+
+
+
+
