@@ -12,11 +12,7 @@ SELECT
 		"Price" AS "VALORMAXIMO",
 		"Price" AS "VALORMINIMO",
 		0.00 AS "VALORUNITARIO",
-		CASE 
-		 WHEN ITM1."PriceList" = 27 THEN 0
-				ELSE 12
-		END
-		 AS "DESCMAXIMO1" ,
+		c."U_desconto" AS "DESCMAXIMO1" ,
 		0 AS "DESCMAXIMO2",
 		0 AS "DESCMAXIMO3",
 		0 AS "DESCMAXIMO4" ,
@@ -52,12 +48,15 @@ SELECT
         0 AS "ASSTABPRECOPRODUTO.DESCTRIPLOMAXIMO3",
         0 AS "IDGRUPOCOMISSAOER",
         0 AS "PERCENTUALMARGEMMINIMA"
-	
-	
 	FROM
 		ITM1
+		LEFT JOIN OPLN p on(p."ListNum" = ITM1."PriceList")
+		LEFT JOIN "@COMISSAO" c on(c."Code" = p."U_tipoComissao")
 	WHERE
 		"PriceList" IN (SELECT IDTABPRECOERP FROM TABPRECO t)
 		AND "ItemCode" in(SELECT IDPRODUTOERP FROM produto)
 		AND "Price" > 0
 		AND "ItemCode"  IN (SELECT T0."ItemCode" FROM OITM T0 WHERE T0."validFor"  = 'Y');
+	
+	
+	
