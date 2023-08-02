@@ -5,7 +5,7 @@ CREATE OR REPLACE VIEW PRAZOPAGTO AS
 		1 AS "SITUACAO"
 	FROM
 		"@CONDICOESFV" cond
-		INNER JOIN OCTG ON cond."U_prazo" = OCT"@AAGRI_ACOT1" aa G."GroupNum" 
+		INNER JOIN OCTG ON cond."U_prazo" = OCTG."GroupNum" 
 	WHERE
 		"Code" in(SELECT "U_tipoComissao" FROM OPLN WHERE "U_tipoComissao" IS  NOT NULL)
 
