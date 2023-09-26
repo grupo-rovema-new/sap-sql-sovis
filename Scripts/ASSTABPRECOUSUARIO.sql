@@ -6,8 +6,8 @@ FROM
 	OPLN c
 	INNER JOIN TABPRECO t on(c."ListNum" = t."IDTABPRECOERP")
 	INNER JOIN "@LIBERAPARA" l on(l."Code" = c."U_tipoComissao")
-	LEFT JOIN "ASSUSUARIOEMPRESA" us on(us."IDEMPRESAERP" = l."U_Filial")
-UNION ALL
+	INNER JOIN "ASSUSUARIOEMPRESA" us on(us."IDEMPRESAERP" = l."U_Filial")
+UNION
 SELECT
 	t."IDTABPRECOERP",
 	u."IDUSUARIOERP"
@@ -15,4 +15,4 @@ FROM
 	OPLN c
 	INNER JOIN TABPRECO t on(c."ListNum" = t."IDTABPRECOERP")
 	INNER JOIN "@LIBERAPARA" l on(l."Code" = c."U_tipoComissao")
-	LEFT JOIN "USUARIO" u on(u."IDUSUARIOERP" = l."U_vendedor")
+	INNER JOIN "USUARIO" u on(u."IDUSUARIOERP" = l."U_vendedor")
