@@ -19,7 +19,13 @@ BEGIN
    resultado := REPLACE(resultado,',','');
   
    resultado := REPLACE(resultado,'.','');
-
+   resultado := REPLACE(resultado,'.','');
+   resultado := REPLACE(resultado,'ª','');
+   resultado := REPLACE(resultado,'º','');
+   resultado := REPLACE(resultado,'/','');
+   resultado := REPLACE(resultado,'//','');
+   resultado := UPPER(resultado);
+  
 END;
 
 

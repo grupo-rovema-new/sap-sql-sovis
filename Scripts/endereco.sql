@@ -11,7 +11,7 @@ FROM
 GROUP BY tipo."AdresType";
 	
 
-CREATE OR REPLACE VIEW  ENDERECO AS
+CREATE OR REPLACE VIEW ENDERECO AS
 SELECT 
 	"CardCode"||'-'||"AdresType"||'-'||"Address"  AS "IDENDERECOERP",
 	"AdresType" AS "IDTIPOENDERECOERP",
@@ -20,7 +20,7 @@ SELECT
 	'' AS "NOME",
 	'' AS "RSOCIAL",
 	fncRemove_Acentuacao("Street").resultado AS "ENDERECO",
-	SUBSTRING("StreetNo",0,15)  AS "NUMERO",
+	fncRemove_acentuacao(substring("StreetNo",0,15)).resultado  AS "NUMERO",
 	"Block" AS "BAIRRO",
 	fncRemove_Acentuacao("Building").resultado AS "COMPLEMENTO",
 	SUBSTRING("ZipCode",0,10)  AS "CEP",
@@ -33,4 +33,11 @@ SELECT
 	'' AS "LONGITUDE",
 	'' AS "PRECISAO"
 FROM CRD1
-INNER JOIN cliente ON cliente.IDCLIENTEERP = CRD1."CardCode" ;
+INNER JOIN cliente ON cliente.IDCLIENTEERP = CRD1."CardCode";
+
+
+
+
+
+
+
