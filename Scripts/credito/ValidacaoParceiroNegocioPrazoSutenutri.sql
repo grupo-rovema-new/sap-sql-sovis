@@ -33,3 +33,9 @@ SELECT * FROM
 WHERE
 	LENGTH(MSG) > 2
 )
+
+
+		
+		
+		-- "validFor" 
+		-- telefone e email sao igual ao do vendedor no sap
