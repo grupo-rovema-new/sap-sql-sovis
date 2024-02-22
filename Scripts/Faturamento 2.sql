@@ -2,11 +2,12 @@ ALTER VIEW faturamentoAndrew as
 
 SELECT DISTINCT 
 -- HEADER
-	T0."DocEntry" || T0."ObjType" AS "PK",
+	T0."DocEntry" ||'-'|| T0."ObjType" AS "PK",
 	T0."DocEntry",
 	T0."DocNum",
 	T0."DiscSum" "Desconto Financeiro",
-	T1."LineTotal"*T1."DiscPrcnt"/100 "Desconto Produtos",
+	T1."GTotal",
+	COALESCE((T1."GTotal"*T1."DiscPrcnt"/100)-T1."DiscPrcnt"/100*(SELECT SUM(COALESCE(NULLIF("U_TX_VlDeL", 0),"TaxSum")) FROM "INV4" tax WHERE tax."DocEntry" = T1."DocEntry" AND tax."staType" = 25 AND tax."LineNum" = T1."LineNum"),0) "Desconto Produtos",
 	T0."Serial",
 	T0."CardCode",
 	T0."CardName",
@@ -14,14 +15,15 @@ SELECT DISTINCT
 	cidade."Name",
 	T0."DocDate",
 	filial."BPLName",
+	T0."CANCELED",
 -- HEADER
 
 -- Produtos
 	T1."ItemCode",
 	T1."Dscription",
  	T1."LineTotal",
-	(SELECT sum("TaxSum") FROM "INV4" tax WHERE tax."DocEntry" = T1."DocEntry" AND tax."staType" = 25 AND tax."LineNum" = T1."LineNum") AS "desonerado",
-	T1."LineTotal"-COALESCE((SELECT sum("TaxSum") FROM "INV4" tax WHERE tax."DocEntry" = T1."DocEntry" AND tax."staType" = 25 AND tax."LineNum" = T1."LineNum"),1) AS "faturado",
+	COALESCE((SELECT SUM(COALESCE(NULLIF("U_TX_VlDeL", 0),"TaxSum")) FROM "INV4" tax WHERE tax."DocEntry" = T1."DocEntry" AND tax."staType" = 25 AND tax."LineNum" = T1."LineNum"),0) AS "desonerado",
+	T1."LineTotal"-COALESCE((SELECT SUM(COALESCE(NULLIF("U_TX_VlDeL", 0),"TaxSum")) FROM "INV4" tax WHERE tax."DocEntry" = T1."DocEntry" AND tax."staType" = 25 AND tax."LineNum" = T1."LineNum"),0) AS "faturado",
 	T1."Quantity",
 	T1."UomCode",
 	T1."CFOPCode" CFOP,
@@ -40,7 +42,7 @@ FROM
 	INNER JOIN "Process" sefaz ON (sefaz."DocType" = T0."ObjType" AND T0."DocEntry" = sefaz."DocEntry")
 	LEFT JOIN "INV12"  endereco ON T0."DocEntry" = endereco."DocEntry"
 	LEFT JOIN OCNT cidade ON endereco."CountyS" = cidade."AbsId"
-	INNER JOIN  "OSLP"  T4 ON T0."SlpCode" = T4."SlpCode"
+	LEFT JOIN  "OSLP"  T4 ON T0."SlpCode" = T4."SlpCode"
 	INNER JOIN OCTG T7 ON T0."GroupNum" = T7."GroupNum"
 	LEFT JOIN RIN21 T5 ON T0."DocNum" = T5."RefDocNum"
 	LEFT JOIN INV3 T6 ON T0."DocEntry" = T6."DocEntry" 
@@ -51,7 +53,7 @@ FROM
 	LEFT JOIN "@RO_CORDENADOR" T12 ON T11."U_CodCordenador" = T12."Code"
 	LEFT JOIN "@RO_LOCAIS" T13 ON T13."Code" = T8."U_Localidade"
 	INNER JOIN OITM T14 ON T14."ItemCode"  = T1."ItemCode" 
-	INNER JOIN OITB T15 ON T15."ItmsGrpCod" = T14."ItmsGrpCod"
+	LEFT JOIN OITB T15 ON T15."ItmsGrpCod" = T14."ItmsGrpCod"
 	LEFT JOIN "OUOM" medida ON T1."UomCode" = medida."UomCode"
 	LEFT JOIN "UGP1" grupo ON grupo."UgpEntry" = 4 AND grupo."UomEntry" = medida."UomEntry"
 WHERE
@@ -69,7 +71,8 @@ SELECT DISTINCT
 	T0."DocEntry",
 	T0."DocNum",
 	-1*T0."DiscSum" "Desconto Financeiro",
-	-1*T1."LineTotal"*T1."DiscPrcnt"/100 "Desconto Produtos",
+	T1."GTotal",
+	COALESCE(-(1*T1."GTotal"*T1."DiscPrcnt"/100)-T1."DiscPrcnt"/100*(SELECT SUM(COALESCE(NULLIF("U_TX_VlDeL", 0),"TaxSum")) FROM "RIN4" tax WHERE tax."DocEntry" = T1."DocEntry" AND tax."staType" = 25 AND tax."LineNum" = T1."LineNum"),0) "Desconto Produtos",
 	T0."Serial",
 	T0."CardCode",
 	T0."CardName",
@@ -77,14 +80,15 @@ SELECT DISTINCT
 	cidade."Name",
 	T0."DocDate",
 	filial."BPLName",
+	T0."CANCELED",
 -- HEADER
 
 -- Produtos
 	T1."ItemCode",
 	T1."Dscription",
  	-1*T1."LineTotal",
-	-1*(SELECT sum("TaxSum") FROM "RIN4" tax WHERE tax."DocEntry" = T1."DocEntry" AND tax."staType" = 25 AND tax."LineNum" = T1."LineNum") AS "desonerado",
-	(-1*T1."LineTotal")+COALESCE((SELECT sum("TaxSum") FROM "RIN4" tax WHERE tax."DocEntry" = T1."DocEntry" AND tax."staType" = 25 AND tax."LineNum" = T1."LineNum"),0) AS "faturado",
+	COALESCE(-1*(SELECT SUM(COALESCE(NULLIF("U_TX_VlDeL", 0),"TaxSum")) FROM "RIN4" tax WHERE tax."DocEntry" = T1."DocEntry" AND tax."staType" = 25 AND tax."LineNum" = T1."LineNum"),0) AS "desonerado",
+	(-1*T1."LineTotal")+COALESCE((SELECT SUM(COALESCE(NULLIF("U_TX_VlDeL", 0),"TaxSum")) FROM "RIN4" tax WHERE tax."DocEntry" = T1."DocEntry" AND tax."staType" = 25 AND tax."LineNum" = T1."LineNum"),0) AS "faturado",
 	T1."Quantity",
 	T1."UomCode",
 	T1."CFOPCode" CFOP,
@@ -134,7 +138,8 @@ SELECT DISTINCT
 	T0."DocEntry",
 	T0."DocNum",
 	T0."DiscSum" "Desconto Financeiro",
-	T1."LineTotal"*T1."DiscPrcnt"/100 "Desconto Produtos",
+	T1."GTotal",
+	COALESCE(-(1*T1."GTotal"*T1."DiscPrcnt"/100)-T1."DiscPrcnt"/100*(SELECT SUM(COALESCE(NULLIF("U_TX_VlDeL", 0),"TaxSum")) FROM "DLN4" tax WHERE tax."DocEntry" = T1."DocEntry" AND tax."staType" in(25,28) AND tax."LineNum" = T1."LineNum"),0) "Desconto Produtos",
 	T0."Serial",
 	T0."CardCode",
 	T0."CardName",
@@ -142,14 +147,15 @@ SELECT DISTINCT
 	cidade."Name",
 	T0."DocDate",
 	filial."BPLName",
+	T0."CANCELED",
 -- HEADER
 	
 -- Produtos
 	T1."ItemCode",
 	T1."Dscription",
  	T1."LineTotal",
-	(SELECT sum(COALESCE(tax."U_TX_VlDeL","TaxSum")) FROM "DLN4" tax WHERE tax."DocEntry" = T1."DocEntry" AND tax."staType" in(25,28) AND tax."LineNum" = T1."LineNum") AS "desonerado",
-	T1."LineTotal"-COALESCE((SELECT sum(COALESCE(tax."U_TX_VlDeL","TaxSum")) FROM "DLN4" tax WHERE tax."DocEntry" = T1."DocEntry" AND tax."staType" in(25,28) AND tax."LineNum" = T1."LineNum"),0) AS "faturado",
+	COALESCE((SELECT SUM(COALESCE(NULLIF("U_TX_VlDeL", 0),"TaxSum")) FROM "DLN4" tax WHERE tax."DocEntry" = T1."DocEntry" AND tax."staType" in(25,28) AND tax."LineNum" = T1."LineNum"),0) AS "desonerado",
+	T1."LineTotal"-COALESCE((SELECT SUM(COALESCE(NULLIF("U_TX_VlDeL", 0),"TaxSum")) FROM "DLN4" tax WHERE tax."DocEntry" = T1."DocEntry" AND tax."staType" in(25,28) AND tax."LineNum" = T1."LineNum"),0) AS "faturado",
 	T1."Quantity",
 	T1."UomCode",
 	T1."CFOPCode" CFOP,
@@ -199,7 +205,8 @@ SELECT DISTINCT
 	T0."DocEntry",
 	T0."DocNum",
 	-1*T0."DiscSum" "Desconto Financeiro",
-	-1*T1."LineTotal"*T1."DiscPrcnt"/100 "Desconto Produtos",
+	T1."GTotal",
+	COALESCE(-(1*T1."GTotal"*T1."DiscPrcnt"/100)-T1."DiscPrcnt"/100*(SELECT SUM(COALESCE(NULLIF("U_TX_VlDeL", 0),"TaxSum")) FROM "RDN4" tax WHERE tax."DocEntry" = T1."DocEntry" AND tax."staType" in(25,28) AND tax."LineNum" = T1."LineNum"),0) "Desconto Produtos",
 	T0."Serial",
 	T0."CardCode",
 	T0."CardName",
@@ -207,14 +214,15 @@ SELECT DISTINCT
 	cidade."Name",
 	T0."DocDate",
 	filial."BPLName",
+	T0."CANCELED",
 -- HEADER
 	
 -- Produtos
 	T1."ItemCode",
 	T1."Dscription",
  	-1*T1."LineTotal",
-	-1*(SELECT sum(COALESCE(tax."U_TX_VlDeL","TaxSum")) FROM "RDN4" tax WHERE tax."DocEntry" = T1."DocEntry" AND tax."staType" in(25,28) AND tax."LineNum" = T1."LineNum") AS "desonerado",
-	(-1*T1."LineTotal")+COALESCE((SELECT sum(COALESCE(tax."U_TX_VlDeL","TaxSum")) FROM "RDN4" tax WHERE tax."DocEntry" = T1."DocEntry" AND tax."staType" in(25,28) AND tax."LineNum" = T1."LineNum"),0) AS "faturado",
+	COALESCE(-1*(SELECT SUM(COALESCE(NULLIF("U_TX_VlDeL", 0),"TaxSum")) FROM "RDN4" tax WHERE tax."DocEntry" = T1."DocEntry" AND tax."staType" in(25,28) AND tax."LineNum" = T1."LineNum"),0) AS "desonerado",
+	(-1*T1."LineTotal")+COALESCE((SELECT SUM(COALESCE(NULLIF("U_TX_VlDeL", 0),"TaxSum")) FROM "RDN4" tax WHERE tax."DocEntry" = T1."DocEntry" AND tax."staType" in(25,28) AND tax."LineNum" = T1."LineNum"),0) AS "faturado",
 	T1."Quantity",
 	T1."UomCode",
 	T1."CFOPCode" CFOP,
@@ -253,3 +261,6 @@ WHERE
 	AND T0."DocDate" <= '2023-12-31'
 	AND T0."BPLId" IN(2,4,11,17,18)
 	--AND T1."CFOPCode" in(1201,1202,2201)
+
+	
+	
