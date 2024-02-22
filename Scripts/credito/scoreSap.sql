@@ -1,5 +1,10 @@
 CREATE OR REPLACE VIEW scoreSap AS
 	SELECT
+		pn."CardCode",
+		pn."CardName",
+		cp."CPFCNPJ",
+		CONSULTA."DATA_CONSULTA",
+		CONSULTA."ID",
 		CASE 
 			WHEN EXISTS(SELECT 1 FROM ValidacaoParceiroNegocioPrazoSutenutri AS c WHERE c."CardCode" = pn."CardCode") THEN false
 			ELSE true
@@ -18,4 +23,5 @@ CREATE OR REPLACE VIEW scoreSap AS
 		END AS "PagaEmDia 180 Dias"
 	FROM
 		OCRD pn
-
+		LEFT JOIN BpCpfCnpj cp ON (cp."CardCode" = pn."CardCode")
+		LEFT JOIN "SERASA".CONSULTA on(REPLACE_REGEXPR('[^0-9]' IN cp.CPFCNPJ) = CONSULTA.CPF_CNPJ)

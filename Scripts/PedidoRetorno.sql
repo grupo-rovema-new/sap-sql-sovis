@@ -69,7 +69,7 @@ SELECT DISTINCT
 			(OQUT."DocStatus" = 'C' AND OQUT.CANCELED = 'Y')
 			OR (pedido."DocStatus" = 'C' AND pedido.CANCELED = 'Y')
 			THEN '3'
-		WHEN fatura."DocEntry" IS NOT NULL THEN '1'
+		WHEN fatura."DocEntry" IS NOT NULL THEN '2'
 		WHEN ODRF."WddStatus" = 'N' THEN '7' 
 		ELSE '8'
 		END AS nvarchar ) AS "IDSTATUSWFERP",
