@@ -1,7 +1,11 @@
 SELECT "BPLName", 
 	REPLACE(sum(faturado),'.',',') AS "faturado",
+	REPLACE(sum(faturado)+sum(frete),'.',',') AS "faturado com frete",
+	REPLACE(sum(faturado)+sum(frete)-sum(descFin),'.',',') AS "Fat com frete sem Disct Fim",
+	REPLACE(sum(faturado)-sum(descFin),'.',',') AS "faturado SEM desconto financeiro",
 	REPLACE(sum(faturado)+sum(descFin),'.',',') AS "faturado com desconto financeiro",
-	REPLACE(sum(faturado)-sum(descFin),'.',',') AS "faturado sem desconto produto",
+	REPLACE(sum(faturado)+sum(descProd),'.',',') AS "faturado com desconto produtos",
+	REPLACE(sum(faturado)+sum(descFin)+sum(descProd),'.',',') AS "faturado com desconto",
 	sum(descProd), 
 	sum(descFin), 
 	sum(descProd)+sum(descFin) AS totalDesconto, 
@@ -14,13 +18,14 @@ FROM
 		sum("faturado") faturado,
 		sum("desonerado") desonerado,
 		sum("Desconto Produtos") descProd,
-		max("Desconto Financeiro") descFin
+		max("Desconto Financeiro") descFin,
+		max(COALESCE(frete,0)) frete
 	FROM
 		faturamentoAndrew AS f
 	WHERE 
 		f.CFOP in(5101,5116,5102,6116,6101,6109,5109,6102,6108)
-		AND "DocDate" >= '2023-11-01'
-		AND "DocDate" <= '2023-11-30'
+		AND "DocDate" >= '2023-12-01'
+		AND "DocDate" <= '2023-12-31'
 		AND "faturado" > 0
 	GROUP BY
 		f."BPLName",
@@ -28,14 +33,17 @@ FROM
 GROUP BY
 	"BPLName"
 ORDER BY 
-	sum(faturado)-sum(descFin) DESC
+	sum(faturado) DESC
 
 	
 	
 SELECT 
 	"PK",
 	"Serial",
-	sum(faturado), 
+	sum(faturado),
+	sum(faturado)+COALESCE(sum(frete),0),
+	sum(faturado)+COALESCE(sum(frete),0)-sum(descFin) "fat. com frete sem desc. fim",
+	REPLACE(sum(faturado)+sum(descProd),'.',',') AS "faturado com desconto Produto",
 	REPLACE(sum(faturado)-sum(descFin),'.',',') AS "faturado sem desconto",
 	sum(descProd) AS descProduto, 
 	sum(descFin) AS descFinanceiro, 
@@ -48,13 +56,14 @@ FROM
 		sum("faturado") faturado,
 		sum("desonerado") desonerado,
 		sum("Desconto Produtos") descProd,
-		max("Desconto Financeiro") descFin
+		max("Desconto Financeiro") descFin,
+		max(frete) frete
 	FROM
 		faturamentoAndrew AS f
 	WHERE 
 		f.CFOP in(5101,5116,5102,6116,6101,6109,5109,6102,6108)
-		AND "DocDate" >= '2023-12-01'
-		AND "DocDate" <= '2023-12-31'
+		AND "DocDate" >= '2023-01-01'
+		AND "DocDate" <= '2023-02-28'
 		AND "BPLName" LIKE '%SUSTENNUTRI NUTRICAO ANIMAL LTDA - Filial - RO%'
 		AND "faturado" > 0
 	GROUP BY
@@ -64,10 +73,10 @@ GROUP BY
 	"PK",
 	"Serial"
 ORDER BY 
-	sum(faturado)-sum(descFin) DESC
+	"Serial" ASC
 		
 	
-	
+
 	
 	
 	
@@ -96,28 +105,11 @@ ORDER BY
 	sum("faturado")+sum("Desconto Produtos") DESC
 	
 	
-SELECT
-	f."PK",
-	f."Serial",
-	sum("faturado") faturado,
-	sum("faturado")+sum("Desconto Produtos") AS "fatrado Sem desconto produto",
-	sum("desonerado") desonerado,
-	sum("Desconto Produtos") descProd
-FROM
-	faturamentoAndrew AS f
-WHERE 
-	f."Serial" in(4481)
-	AND "faturado" > 0
-GROUP BY
-	f."Serial",
-	f."PK",
-	f.CFOP
-ORDER BY
-	f."Serial"
-
-
-SELECT * FROM FATURAMENTOANDREW f WHERE PK like '8656-13'
 	
+
+SELECT sum("Price"*"Quantity"*"DiscPrcnt"/100)  FROM INV1 WHERE "DocEntry" = 31154
+-- 31154
+
 
 
 
@@ -140,4 +132,26 @@ GROUP BY
 ORDER BY 
 	sum("faturado")-sum("Desconto Produtos") desc
 	
+	
+	
+SELECT DISTINCT 
+	CASE
+		WHEN "BPLName" = 'SUSTENNUTRI NUTRICAO ANIMAL LTDA - Matriz' THEN '01 - FABRICA'
+		WHEN "BPLName" = 'SUSTENNUTRI NUTRICAO ANIMAL LTDA - Filial - RO' THEN '03 - CD PORTO VELHO' 
+		WHEN "BPLName" = 'SUSTENNUTRI NUTRICAO ANIMAL LTDA - Filial - AC' THEN '02 - CD RIO BRANCO'
+		WHEN "BPLName" = 'SUSTENNUTRI NUTRIÇAO ANIMAL LTDA - Filial Cacoal' THEN '04 - CD CACOAL'
+		WHEN "BPLName" = 'SUSTENNUTRI NUTRICAO ANIMAL LTDA - Filial Roraima' THEN '05 - RORAIMA'
+	END filial,
+	"Serial"
+FROM
+	faturamentoAndrew
+	WHERE
+		"BPLName" = 'SUSTENNUTRI NUTRICAO ANIMAL LTDA - Filial - RO'
+		AND "DocDate" >= '2023-01-01'
+		AND "DocDate" <= '2023-02-28'
+		AND CFOP in(5101,5116,5102,6116,6101,6109,5109,6102,6108)
+	
+
+
+
 	

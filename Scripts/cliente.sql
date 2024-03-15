@@ -1,19 +1,35 @@
 -- SBOGRUPOROVEMA.CLIENTE source
 
-ALTER VIEW SBOGRUPOROVEMA.CLIENTE AS
+CREATE OR REPLACE VIEW SBOGRUPOROVEMA.CLIENTE AS
 SELECT
 		OCRD."CardCode" AS "IDCLIENTEERP",
-		0 AS "IDCIDADEERP",
-		"validFor" AS "IDSITUACAOERP",
-		0 AS "IDREGIAOERP",
+		MAX(CRD1."County") AS "IDCIDADEERP",
+		(SELECT
+			CASE
+				WHEN idade >= 180 THEN '6m'
+				WHEN idade >= 4*30 THEN '4m'
+				WHEN idade >= 60 THEN '60d'
+				WHEN idade >= 30 THEN '30d'
+				WHEN idade < 30 THEN 'dia'
+				ELSE 'sh'
+			END
+		FROM 
+			(SELECT 
+				DAYS_BETWEEN(MAX("data"),CURRENT_DATE) AS idade
+			FROM 
+				FATURAMENTO f 
+			WHERE 
+				"faturado" > 0 AND "CardCode" = OCRD."CardCode"))
+		AS "IDSITUACAOERP",
+		IFNULL(MAX("U_Localidade"),'-1') AS "IDREGIAOERP",
 		0 AS "IDATIVIDADEERP",
 		0 AS "IDRAMOERP",
 		"CardName"  AS "NOME",
 		"CardName"  AS "RSOCIAL",
-		"Address"  AS "ENDERECO",
+		OCRD."Address"  AS "ENDERECO",
 		"Number"  AS "NUMERO",
-		"Block"  AS "BAIRRO",
-		"ZipCode"  AS "CEP",
+		OCRD."Block"  AS "BAIRRO",
+		OCRD."ZipCode"  AS "CEP",
 		'' AS "IERG",
 		(SELECT cpfCnpj FROM BpCpfCnpj t 
 		WHERE 
@@ -25,7 +41,7 @@ SELECT
 		"E_Mail"  AS "EMAIL",
 		"E_Mail"  AS "EMAILNFE",
 		CASE WHEN "U_Rov_Data_Nascimento" = '' THEN ' ' ELSE "U_Rov_Data_Nascimento" END   AS "DATANASCIMENTO",
-		"Free_Text"  AS "OBSCADASTRAL",
+		''  AS "OBSCADASTRAL",
 		'' AS "OBSFINANCEIRA",
 		4  AS "IDTABPRECOERP",
 		4 AS "IDTABPRECOTROCAERP",
@@ -37,7 +53,7 @@ SELECT
 		'' AS "EXTRA1",
 		'' AS "EXTRA2",
 		'' AS "EXTRA3",
-		TO_VARCHAR("CreateDate", 'YYYY-MM-DD HH:MM:SS')  AS "DATAHORA",
+		TO_VARCHAR(OCRD."CreateDate", 'YYYY-MM-DD HH:MM:SS')  AS "DATAHORA",
 		1 AS "TIPOCONSUMIDOR",
 		0 AS "CONTRIBUINTEICMS",
 		0 AS "FARMPOPULAR",
@@ -66,6 +82,25 @@ SELECT
 		0 AS "IDCLI_GRUPOECONOMICOERP"
 	FROM
 		OCRD
+		LEFT JOIN CRD1 on(CRD1."AdresType" = 'S' AND CRD1."CardCode" = OCRD."CardCode")
 		LEFT JOIN CRD2 ON (OCRD."CardCode" = CRD2."CardCode" AND CRD2."LineNum" = 0)
-	WHERE OCRD."CardType" = 'C' AND exists(SELECT 1 FROM CRD8 WHERE OCRD."CardCode" = CRD8."CardCode" AND CRD8."BPLId" in(2,4,11));
+	WHERE OCRD."CardType" = 'C' AND exists(SELECT 1 FROM CRD8 WHERE OCRD."CardCode" = CRD8."CardCode" AND CRD8."BPLId" in(SELECT IDEMPRESAERP FROM EMPRESA))
+GROUP BY
+	OCRD."CardCode",
+	"CardName",
+	"CardName",
+	OCRD."Address",
+	"Number",
+	OCRD."Block",
+	OCRD."ZipCode",
+	"Phone1",
+	"Cellular",
+	"E_Mail",
+	CASE WHEN "U_Rov_Data_Nascimento" = '' THEN ' ' ELSE "U_Rov_Data_Nascimento" END,
+	CRD2."PymCode",
+	TO_VARCHAR(OCRD."CreateDate", 'YYYY-MM-DD HH:MM:SS'),
+	TO_VARCHAR("UpdateDate", 'YYYY-MM-DD HH:MM:SS')
+
+
+
 

@@ -1,22 +1,90 @@
 CREATE OR REPLACE VIEW SITUACAO AS
-	SELECT
-		'Y' AS "IDSITUACAOERP" ,
- 		empresa.IDEMPRESAERP  AS "IDEMPRESAERP", 
-		'Ativo' AS "DESCRICAO",
- 		'008000' AS "COR",
+
+ 	SELECT
+		'6m' AS "IDSITUACAOERP" ,
+		0 AS "IDEMPRESAERP", 
+		'6 Meses' AS "DESCRICAO",
+ 		'BF360C' AS "COR",
  		1  AS "SITUACAO",
  		'S'  AS "LIBERAPEDIDO"
  	FROM
- 		dummy,
- 		empresa
- 	UNION ALL
+ 		dummy
+ 		
+ 	
+	UNION ALL
+ 		
  	SELECT
-		'N' AS "IDSITUACAOERP" ,
- 		0 AS "IDEMPRESAERP", 
+		'4m' AS "IDSITUACAOERP" ,
+		0 AS "IDEMPRESAERP", 
+		'4 Meses' AS "DESCRICAO",
+ 		'FF6F00' AS "COR",
+ 		1  AS "SITUACAO",
+ 		'S'  AS "LIBERAPEDIDO"
+ 	FROM
+ 		dummy
+ 		
+	UNION ALL
+ 		
+ 	SELECT
+		'60d' AS "IDSITUACAOERP" ,
+		0 AS "IDEMPRESAERP", 
+		'60 dias' AS "DESCRICAO",
+ 		'827717' AS "COR",
+ 		1  AS "SITUACAO",
+ 		'S'  AS "LIBERAPEDIDO"
+ 	FROM
+ 		dummy
+ 		
+ 	UNION ALL
+ 		
+ 	SELECT
+		'30d' AS "IDSITUACAOERP",
+		0 AS "IDEMPRESAERP", 
+		'30 dias' AS "DESCRICAO",
+ 		'1B5E20' AS "COR",
+ 		1  AS "SITUACAO",
+ 		'S'  AS "LIBERAPEDIDO"
+ 	FROM
+ 		dummy
+ 		
+	UNION ALL
+ 		
+ 	SELECT
+		'dia' AS "IDSITUACAOERP",
+		0 AS "IDEMPRESAERP", 
+		'Em dia' AS "DESCRICAO",
+ 		'1B5E20' AS "COR",
+ 		1  AS "SITUACAO",
+ 		'S'  AS "LIBERAPEDIDO"
+ 	FROM
+ 		dummy
+ 	
+ 	UNION ALL
+ 		
+ 	SELECT
+		'sh' AS "IDSITUACAOERP",
+		0 AS "IDEMPRESAERP", 
+		'Sem venda' AS "DESCRICAO",
+ 		'1B5E20' AS "COR",
+ 		1  AS "SITUACAO",
+ 		'S'  AS "LIBERAPEDIDO"
+ 	FROM
+ 		dummy
+ 		
+ 		
+	UNION ALL
+	
+	SELECT
+		'N' AS "IDSITUACAOERP",
+		0 AS "IDEMPRESAERP", 
 		'Inativo' AS "DESCRICAO",
- 		'ff0000' AS "COR",
+ 		'827717' AS "COR",
  		0  AS "SITUACAO",
  		'N'  AS "LIBERAPEDIDO"
  	FROM
- 		dummy,
- 		empresa
+ 		dummy
+ 		
+ 		
+ 		
+ 		
+ 		

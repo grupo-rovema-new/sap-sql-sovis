@@ -5,4 +5,3 @@ SELECT
 		CASE WHEN "Active" = 'Y' THEN 1 ELSE 0 END AS "SITUACAO"
 	FROM
 		OPYM
-	WHERE "PayMethCod" = 'BB-RC-BOL-1199' OR "PayMethCod" = 'AVISTA';

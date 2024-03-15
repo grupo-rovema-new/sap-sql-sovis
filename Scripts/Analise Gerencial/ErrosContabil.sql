@@ -1,7 +1,7 @@
 /** TODO
  * [ ] 1 - Identificar os CSTS que sao de venda, e nao esta na tela correta
  * [ ] 2 - Identificar as notas baseado no CST que nao tem conta de contra partida esperada
- * [ ] 3 - Verificar as entregas e que nao tem lancamento contabil relacionado
+ * [x] 3 - Verificar as entregas e que nao tem lancamento contabil relacionado
  * [X] 4 - verificar notas ativas no taxone que estao canceladas no SAP - DocEntry OINV de exemplo 7363
  * [ ] 5 - Verificar conta de estoque? Talvez....
  * [ ] 6 - faser trava no desvio do saldo do estoque!?
