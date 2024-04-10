@@ -31,19 +31,5 @@ jobs:
       - name: Run Deploymenet
         run: |
           python3 execut.py
-  # deployment:
-  #   runs-on: self-hosted
-  #   # needs: create-image
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Set up Python
-  #       uses: actions/setup-python@v5
-  #     - name: Install dependencies
-  #       run: |
-  #         pip install -r requirements.txt
-  #     - name: Display Python version
-  #       run: python3 -c "import sys; print(sys.version)"
-  #     - name: Execute Deployment
-  #       run: python3 execut.py
         
         
