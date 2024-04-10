@@ -14,12 +14,17 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Create Properties
+      - name: debug
+        run: |
+          pwd
+          ls -la
+      - name: Docker build
         run: |
           docker build -t python-hana .
   build:
     # The type of runner that the job will run on
     runs-on: self-hosted
+    needs: create-image
     container:
       image: python-hana
 
