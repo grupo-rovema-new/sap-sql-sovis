@@ -10,25 +10,34 @@ permissions:
   contents: write
 
 jobs:
-  create-image:
-    runs-on: self-hosted
+  # create-image:
+  #   runs-on: self-hosted
 
-    steps:
-      - uses: actions/checkout@v3.5.2
-      - name: debug
-        run: |
-          pwd
-          ls -la
-      - name: Docker build
-        run: |
-          docker build -t python-hana .
-  build:
-    # The type of runner that the job will run on
+  #   steps:
+  #     - uses: actions/checkout@v3.5.2
+  #     - name: debug
+  #       run: |
+  #         pwd
+  #         ls -la
+  #     - name: Docker build
+  #       run: |
+  #         docker build -t python-hana .
+  deployment:
     runs-on: self-hosted
-    needs: create-image
-    container:
-      image: python-hana
-
+    # needs: create-image
     steps:
-      - name: Check filesystem
-        run: ls -la
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+      - name: Execute Deployment
+        run: python execut.py
+        
+        
