@@ -1,0 +1,34 @@
+name: 'Deployment - Production'
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  homologacao:
+    runs-on: self-hosted
+    container:
+      image: python:3.12.3
+      env:
+        ADDRESS: ${{secrets.ADDRESS}}
+        PORT: ${{secrets.PORT}}
+        USER: ${{secrets.USER}}
+        PASSWORD: ${{secrets.PASSWORD}}
+        DATABASENAME: ${{secrets.DATABASENAME}}
+        INSTANCENUMBER: ${{secrets.INSTANCENUMBER}}
+        CURRENTSCHEMA: ${{secrets.CURRENTSCHEMA_PRODUCTION}}
+    steps:
+      - uses: actions/checkout@v3.5.2
+      - name: dependencias
+        run: |
+          pip install hdbcli
+      - name: Run Deploymenet
+        run: |
+          python3 execut.py
+       
+        
