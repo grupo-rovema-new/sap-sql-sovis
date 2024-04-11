@@ -17,7 +17,8 @@ cursor = conn.cursor()
 
 for filename in glob.iglob('src/views/util/**/*.sql', recursive = True): 
     with open(filename, 'r') as file:
-        data = file.read().replace('\n', '')
+        data = file.read()
+        print(filename)
         cursor.execute(data)
 
 cursor.close()
