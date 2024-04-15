@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW METABOVINO as
+CREATE OR REPLACE VIEW METAMILHO AS
 SELECT
 	"SlpName",
 	"SlpCode",
@@ -95,9 +95,9 @@ WHERE p."DocStatus" = 'O' AND p."SlpCode" = T2."SlpCode"  AND l."ItemCode" = T7.
 	WHERE
 		T0.CANCELED = 'N'
 		AND T1."Usage" IN(9, 16)
-		AND T7."U_categoria" IN( 'bov', 'equino')
-		AND T7."U_grupo_sustennutri" NOT IN ('quirela', 'milho', 'fora', 'farelo')
-		AND T7."U_linha_sustennutri" NOT IN ('fora', 'farelado')
+		 AND T7."U_categoria" = 'milho'
+		AND T7."U_grupo_sustennutri" in('quirela', 'milho')
+		AND T7."U_linha_sustennutri" = 'especial'
 		AND T4."RefDocNum" IS NULL
 		AND T0."U_Rov_Refaturamento" = 'NAO'
 		AND T0."CardCode" NOT IN(

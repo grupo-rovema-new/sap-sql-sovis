@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW METABOVINO as
+CREATE OR REPLACE VIEW METAAVESSUINOS AS
 SELECT
 	"SlpName",
 	"SlpCode",
@@ -61,9 +61,18 @@ FROM
 		0) AS "Faturado Bruto",
 		COALESCE(T3."LineTotal",
 		0)AS "Frete",
-		COALESCE((SELECT SUM(l."Quantity") FROM ORDR p
-INNER JOIN RDR1 l ON p."DocEntry" = l."DocEntry" 
-WHERE p."DocStatus" = 'O' AND p."SlpCode" = T2."SlpCode"  AND l."ItemCode" = T7."ItemCode"),0) AS "Falta faturar"
+		COALESCE((
+		SELECT
+			SUM(l."Quantity")
+		FROM
+			ORDR p
+		INNER JOIN RDR1 l ON
+			p."DocEntry" = l."DocEntry"
+		WHERE
+			p."DocStatus" = 'O'
+			AND p."SlpCode" = T2."SlpCode"
+			AND l."ItemCode" = T7."ItemCode"),
+		0) AS "Falta faturar"
 	FROM
 		oinv T0
 	INNER JOIN INV1 T1 ON
@@ -95,9 +104,9 @@ WHERE p."DocStatus" = 'O' AND p."SlpCode" = T2."SlpCode"  AND l."ItemCode" = T7.
 	WHERE
 		T0.CANCELED = 'N'
 		AND T1."Usage" IN(9, 16)
-		AND T7."U_categoria" IN( 'bov', 'equino')
-		AND T7."U_grupo_sustennutri" NOT IN ('quirela', 'milho', 'fora', 'farelo')
-		AND T7."U_linha_sustennutri" NOT IN ('fora', 'farelado')
+		AND T7."U_grupo_sustennutri" IN ('racao', 'nucleo')
+		AND T7."U_linha_sustennutri" = 'farelado'
+		AND T7."U_categoria" IN('aves', 'suino')
 		AND T4."RefDocNum" IS NULL
 		AND T0."U_Rov_Refaturamento" = 'NAO'
 		AND T0."CardCode" NOT IN(
