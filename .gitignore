@@ -1,4 +1,6 @@
 .project
 .settings/
 .dbeaver/
-.Scripts/
+Scripts
+Scripts/*
+Scripts/**
