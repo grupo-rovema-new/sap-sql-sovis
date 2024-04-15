@@ -3,5 +3,6 @@
 .dbeaver/
 Scripts
 Scripts/*
+Scripts/**
 
 

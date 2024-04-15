@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  homologacao:
+  producao:
     runs-on: self-hosted
     container:
       image: python:3.12.3
