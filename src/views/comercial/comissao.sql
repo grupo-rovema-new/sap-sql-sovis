@@ -143,10 +143,11 @@ AND T0."DocDate" >= TO_DATE(20230701,'YYYYMMDD')
 AND T0."U_Rov_Refaturamento" = 'NAO'
  )
 WHERE
-"Nº Nota" = '13215'
+"Data de Pagamento" >= '20240401'
+AND "Data de Pagamento" <= '20240410'
 
-SELECT * FROM OINV WHERE "isIns" = 'Y' ORDER BY "DocNum" desc
 
-SELECT "U_TX_VlDeL", "TaxSum", "staType",*  FROM inv4 WHERE "DocEntry" = 38084 AND "LineNum" = 0
+--SELECT * FROM OINV WHERE "isIns" = 'Y' ORDER BY "DocNum" desc
 
+--SELECT "U_TX_VlDeL", "TaxSum", "staType",*  FROM inv4 WHERE "DocEntry" = 38084 AND "LineNum" = 0
 
