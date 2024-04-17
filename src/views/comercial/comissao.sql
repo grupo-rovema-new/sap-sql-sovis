@@ -253,8 +253,6 @@ UNION
 		AND T0."DocDate" >= TO_DATE(20230701, 'YYYYMMDD')
 		AND T0."U_Rov_Refaturamento" = 'NAO'
  )
-WHERE
-	"Data de Pagamento" >= '20240401'
-	AND "Data de Pagamento" <= '20240410'
+
 
 
