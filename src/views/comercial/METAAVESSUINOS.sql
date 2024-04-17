@@ -5,6 +5,8 @@ SELECT
 	"nomeCordenador",
 	"U_MNO_Municipio",
 	"Ano",
+	-- "Serial",
+	--"ItemCode",
 	"Meta(Kg)",
 	"Meta(Sc)",
 	"Meta(R$)",
@@ -14,7 +16,7 @@ SELECT
 	SUM("Faturado(kg)") AS "Faturado(kg)" ,
 	SUM("Faturado Bruto") AS "Faturado Bruto",
 	sum("Frete") AS "Frete",
-	"Falta faturar"
+	SUM("Falta faturar") AS "Falta Faturar"
 FROM
 	(
 	SELECT
@@ -23,6 +25,7 @@ FROM
 		T2."SlpCode",
 		T0."DocEntry",
 		T1."ItemCode",
+		--T0."Serial",
 		cordena."nomeCordenador",
 		T2."U_MNO_Municipio",
 		T5."U_MNO_ANO" AS "Ano",
@@ -71,7 +74,8 @@ FROM
 		WHERE
 			p."DocStatus" = 'O'
 			AND p."SlpCode" = T2."SlpCode"
-			AND l."ItemCode" = T7."ItemCode"),
+			AND l."ItemCode" = T7."ItemCode"
+),
 		0) AS "Falta faturar"
 	FROM
 		oinv T0
@@ -136,6 +140,7 @@ FROM
 		T6."U_MNO_METASC",
 		T6."U_MNO_METAREAIS",
 		T6."U_MNO_Mes",
+		--T0."Serial",
 		T3."LineTotal",
 		T0."DpmAmnt",
 		cordena."nomeCordenador",
@@ -148,8 +153,9 @@ GROUP BY
 	"U_MNO_Municipio",
 	"Ano",
 	"Meta(Kg)",
+	--"ItemCode",
+	--"Serial",
 	"Meta(Sc)",
 	"Meta(R$)",
 	"U_MNO_Mes",
-	"Mes",
-	"Falta faturar"
+	"Mes"
