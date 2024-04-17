@@ -28,3 +28,4 @@ runPath(cursor,'src/views/util/**/*.sql')
 runPath(cursor,'src/views/comercial/**/*.sql')
 cursor.close()
 
+

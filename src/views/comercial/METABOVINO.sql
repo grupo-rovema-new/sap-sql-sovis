@@ -14,7 +14,7 @@ SELECT
 	SUM("Faturado(kg)") AS "Faturado(kg)" ,
 	SUM("Faturado Bruto") AS "Faturado Bruto",
 	sum("Frete") AS "Frete",
-	"Falta faturar"
+	SUM("Falta faturar") AS "Falta faturar"
 FROM
 	(
 	SELECT
@@ -63,53 +63,56 @@ FROM
 		0)AS "Frete",
 		COALESCE((SELECT SUM(l."Quantity") FROM ORDR p
 INNER JOIN RDR1 l ON p."DocEntry" = l."DocEntry" 
-WHERE p."DocStatus" = 'O' AND p."SlpCode" = T2."SlpCode"  AND l."ItemCode" = T7."ItemCode"),0) AS "Falta faturar"
-	FROM
+WHERE p."DocStatus" = 'O' AND p."SlpCode" = T2."SlpCode"  AND l."ItemCode" = T7."ItemCode"
+),0) AS "Falta faturar"
+
+	
+FROM
 		oinv T0
-	INNER JOIN INV1 T1 ON
+INNER JOIN INV1 T1 ON
 		T0."DocEntry" = T1."DocEntry"
-	INNER JOIN OSLP T2 ON
+INNER JOIN OSLP T2 ON
 		T0."SlpCode" = T2."SlpCode"
-	LEFT JOIN INV3 T3 ON
+LEFT JOIN INV3 T3 ON
 		T0."DocEntry" = T3."DocEntry"
-	LEFT JOIN "RIN21" T4 ON
+LEFT JOIN "RIN21" T4 ON
 		T0."DocNum" = T4."RefDocNum"
-	LEFT JOIN "ORIN" DV ON
+LEFT JOIN "ORIN" DV ON
 		T4."DocEntry" = DV."DocEntry"
-		AND DV."CANCELED" = 'N'
-	LEFT JOIN "@MNO_META" T5 ON
+AND DV."CANCELED" = 'N'
+LEFT JOIN "@MNO_META" T5 ON
 		T0."SlpCode" = T5."U_MNO_Vendedor"
-		AND T5."U_MNO_ANO" = YEAR(T0."DocDate")
-	LEFT JOIN "MNO_META_LINHA" T6 ON
+AND T5."U_MNO_ANO" = YEAR(T0."DocDate")
+LEFT JOIN "MNO_META_LINHA" T6 ON
 		T5."Code" = T6."Code"
-		AND MONTH(T0."DocDate") = "Mes"
-	INNER JOIN oitm T7 ON
+AND MONTH(T0."DocDate") = "Mes"
+INNER JOIN oitm T7 ON
 		T1."ItemCode" = T7."ItemCode"
-	LEFT JOIN "OUOM" medida ON
+LEFT JOIN "OUOM" medida ON
 		T1."UomCode" = medida."UomCode"
-	LEFT JOIN "UGP1" grupo ON
+LEFT JOIN "UGP1" grupo ON
 		grupo."UgpEntry" = 4
-		AND grupo."UomEntry" = medida."UomEntry"
-	LEFT JOIN "CORDENADORESTRUTURA" cordena ON
+AND grupo."UomEntry" = medida."UomEntry"
+LEFT JOIN "CORDENADORESTRUTURA" cordena ON
 		T2."SlpCode" = cordena."codVendedor"
-	WHERE
+WHERE
 		T0.CANCELED = 'N'
-		AND T1."Usage" IN(9, 16)
-		AND T7."U_categoria" IN( 'bov', 'equino')
-		AND T7."U_grupo_sustennutri" NOT IN ('quirela', 'milho', 'fora', 'farelo')
-		AND T7."U_linha_sustennutri" NOT IN ('fora', 'farelado')
-		AND T4."RefDocNum" IS NULL
-		AND T0."U_Rov_Refaturamento" = 'NAO'
-		AND T0."CardCode" NOT IN(
-		SELECT
+AND T1."Usage" IN(9, 16)
+AND T7."U_categoria" IN( 'bov', 'equino')
+AND T7."U_grupo_sustennutri" NOT IN ('quirela', 'milho', 'fora', 'farelo')
+AND T7."U_linha_sustennutri" NOT IN ('fora', 'farelado')
+AND T4."RefDocNum" IS NULL
+AND T0."U_Rov_Refaturamento" = 'NAO'
+AND T0."CardCode" NOT IN(
+SELECT
 			"DflCust"
-		FROM
+FROM
 			OBPL
-		WHERE
+WHERE
 			"DflCust" IS NOT NULL)
-		AND T2."U_Integracao_sovis" = 1
-		AND T2."U_filial" IS NOT NULL
-	GROUP BY
+AND T2."U_Integracao_sovis" = 1
+AND T2."U_filial" IS NOT NULL
+GROUP BY
 		T2."SlpCode",
 		T2."SlpName",
 		T2."U_MNO_Municipio",
@@ -142,5 +145,4 @@ GROUP BY
 	"Meta(Sc)",
 	"Meta(R$)",
 	"U_MNO_Mes",
-	"Mes",
-	"Falta faturar"
+	"Mes"
