@@ -5,6 +5,8 @@ SELECT
 	"nomeCordenador",
 	"U_MNO_Municipio",
 	"Ano",
+	-- "Serial",
+	--"ItemCode",
 	"Meta(Kg)",
 	"Meta(Sc)",
 	"Meta(R$)",
@@ -14,7 +16,7 @@ SELECT
 	SUM("Faturado(kg)") AS "Faturado(kg)" ,
 	SUM("Faturado Bruto") AS "Faturado Bruto",
 	sum("Frete") AS "Frete",
-	"Falta faturar"
+	SUM("Falta faturar") AS "Falta faturar"
 FROM
 	(
 	SELECT
@@ -23,6 +25,7 @@ FROM
 		T2."SlpCode",
 		T0."DocEntry",
 		T1."ItemCode",
+		--T0."Serial",
 		cordena."nomeCordenador",
 		T2."U_MNO_Municipio",
 		T5."U_MNO_ANO" AS "Ano",
@@ -61,9 +64,19 @@ FROM
 		0) AS "Faturado Bruto",
 		COALESCE(T3."LineTotal",
 		0)AS "Frete",
-		COALESCE((SELECT SUM(l."Quantity") FROM ORDR p
-INNER JOIN RDR1 l ON p."DocEntry" = l."DocEntry" 
-WHERE p."DocStatus" = 'O' AND p."SlpCode" = T2."SlpCode"  AND l."ItemCode" = T7."ItemCode"),0) AS "Falta faturar"
+		COALESCE((
+		SELECT
+			SUM(l."Quantity")
+		FROM
+			ORDR p
+		INNER JOIN RDR1 l ON
+			p."DocEntry" = l."DocEntry"
+		WHERE
+			p."DocStatus" = 'O'
+			AND p."SlpCode" = T2."SlpCode"
+			AND l."ItemCode" = T7."ItemCode"
+),
+		0) AS "Falta faturar"
 	FROM
 		oinv T0
 	INNER JOIN INV1 T1 ON
@@ -95,8 +108,8 @@ WHERE p."DocStatus" = 'O' AND p."SlpCode" = T2."SlpCode"  AND l."ItemCode" = T7.
 	WHERE
 		T0.CANCELED = 'N'
 		AND T1."Usage" IN(9, 16)
-		 AND T7."U_categoria" = 'milho'
-		AND T7."U_grupo_sustennutri" in('quirela', 'milho')
+		AND T7."U_categoria" = 'milho'
+		AND T7."U_grupo_sustennutri" IN('quirela', 'milho')
 		AND T7."U_linha_sustennutri" = 'especial'
 		AND T4."RefDocNum" IS NULL
 		AND T0."U_Rov_Refaturamento" = 'NAO'
@@ -127,6 +140,7 @@ WHERE p."DocStatus" = 'O' AND p."SlpCode" = T2."SlpCode"  AND l."ItemCode" = T7.
 		T6."U_MNO_METASC",
 		T6."U_MNO_METAREAIS",
 		T6."U_MNO_Mes",
+		--T0."Serial",
 		T3."LineTotal",
 		T0."DpmAmnt",
 		cordena."nomeCordenador",
@@ -139,8 +153,11 @@ GROUP BY
 	"U_MNO_Municipio",
 	"Ano",
 	"Meta(Kg)",
+	--"ItemCode",
+	--"Serial",
 	"Meta(Sc)",
 	"Meta(R$)",
 	"U_MNO_Mes",
-	"Mes",
-	"Falta faturar"
+	"Mes"
+	
+
