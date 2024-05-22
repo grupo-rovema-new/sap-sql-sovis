@@ -1,5 +1,4 @@
-
-
+CREATE OR REPLACE VIEW SimplesFaturamentoTelaErrada AS
 SELECT
 	nf."DocEntry",
 	nf."DocNum",

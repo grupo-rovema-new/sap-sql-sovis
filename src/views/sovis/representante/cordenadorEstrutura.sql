@@ -1,20 +1,5 @@
-CREATE OR REPLACE VIEW representanteEstrutura AS
-	SELECT
-		v."SlpCode"  AS "vendedorSubordinado",
-		v."SlpName"  AS "nomeVendedor",
-		r."U_CodVendedor" AS "representante",
-		r."U_NomeCompleto" AS "nomeRepresentante"
-	FROM
-		"@RO_REPRESENTANTE" AS r
-		LEFT JOIN "OSLP" v ON  v."U_CodRepresentante" = r."Code" 
-	WHERE
-		r."U_CodVendedor" IS NOT NULL
-		AND v."SlpCode" != r."U_CodVendedor";
-
-
-	
 -- Estrutura cordenador falta adicionar vendedores dos cordenadores
-CREATE OR REPLACE VIEW cordenadorEstrutura AS
+CREATE OR REPLACE VIEW CORDENADORESTRUTURA AS
 	SELECT DISTINCT 
 		cord."U_NomeCompleto" AS "nomeCordenador",
 		cord."U_vendedor" AS "codCordenador",
@@ -45,7 +30,3 @@ CREATE OR REPLACE VIEW cordenadorEstrutura AS
 		INNER JOIN OSLP vendedor ON vendedor."U_CodRepresentante" = REPRESENTANTE."Code" AND vendedor."SlpCode" !=  representante."U_CodVendedor"
 	WHERE
 		REPRESENTANTE."U_CodVendedor" IS NOT NULL AND cord."U_vendedor" IS NOT NULL;
-
-
-
-
