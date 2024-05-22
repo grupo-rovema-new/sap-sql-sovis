@@ -1,4 +1,4 @@
-ALTER VIEW freteFaturamento as
+CREATE OR REPLACE VIEW freteFaturamento as
 SELECT
 	"PK",	
 	"BPLName",

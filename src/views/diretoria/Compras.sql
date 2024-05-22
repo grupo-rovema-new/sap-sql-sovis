@@ -11,6 +11,7 @@
  * - 
  * - 
  */
+CREATE OR REPLACE VIEW ComprasDiretoria AS
 
 SELECT DISTINCT 
 -- HEADER

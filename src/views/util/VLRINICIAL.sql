@@ -1,4 +1,0 @@
-CREATE OR REPLACE VIEW "VALORINICIAL" AS 
-SELECT "TransNum", SUM("TransValue") AS "VlrIni" 
-FROM OINM 
-GROUP BY "TransNum"; 

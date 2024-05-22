@@ -1,3 +1,5 @@
+-- SBOGRUPOROVEMA.METAMILHO source
+
 CREATE OR REPLACE VIEW METAMILHO AS
 SELECT
 	"SlpName",
@@ -158,6 +160,4 @@ GROUP BY
 	"Meta(Sc)",
 	"Meta(R$)",
 	"U_MNO_Mes",
-	"Mes"
-	
-
+	"Mes";
