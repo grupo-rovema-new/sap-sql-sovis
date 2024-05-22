@@ -1,6 +1,4 @@
--- SBOGRUPOROVEMA.TITULO source
-
-CREATE OR REPLACE VIEW SBOGRUPOROVEMA.TITULO AS
+CREATE OR REPLACE VIEW TITULO AS
 SELECT DISTINCT 
 	(titulo."DocNum" || '-' || titulo."ObjType"  || '-' ||parcela."InstlmntID") AS "IDTITULOERP", 
 	titulo."CardCode" AS "IDCLIENTEERP", 
@@ -31,8 +29,4 @@ WHERE
 	titulo."DocStatus" = 'O'
 	AND (T2."DocNum" IS NULL)
 	AND parcela."InsTotal" <> '0'
-	AND titulo."BPLId" IN (SELECT IDEMPRESAERP FROM EMPRESA e)
-
-
--- 2477
-
+	AND titulo."BPLId" IN (SELECT IDEMPRESAERP FROM EMPRESA e);

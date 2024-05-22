@@ -1,3 +1,4 @@
+CREATE OR REPLACE VIEW deBugFaturamento AS
 SELECT "BPLName", 
 	REPLACE(sum(faturado),'.',',') AS "faturado",
 	REPLACE(sum(faturado)+sum(frete),'.',',') AS "faturado com frete",

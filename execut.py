@@ -12,14 +12,17 @@ def createConnection():
         instanceNumber=os.environ["INSTANCENUMBER"],
         currentSchema=os.environ["CURRENTSCHEMA"])
   
+
+
+
+def runPath(cursor,path): 
+    for filename in glob.iglob(path, recursive = True): 
+        with open(filename, 'r') as file:
+            data = file.read()
+            print(filename)
+            cursor.execute(data)
+
 conn = createConnection()
 cursor = conn.cursor()
-
-for filename in glob.iglob('src/views/util/**/*.sql', recursive = True): 
-    with open(filename, 'r') as file:
-        data = file.read()
-        print(filename)
-        cursor.execute(data)
-
+runPath(cursor,'src/**/*.sql')
 cursor.close()
-
