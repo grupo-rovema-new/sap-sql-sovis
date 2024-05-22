@@ -1,13 +1,13 @@
 CREATE OR REPLACE VIEW freteFaturamento as
 SELECT
 	"PK",	
-	"BPLName",
+	"FILIAL",
 	"numeroNota",
 	"data",
 	SUM(frete)
 FROM 
 	(SELECT
-		f."BPLName",
+		f."FILIAL",
 		f."PK",
 		f."numeroNota",
 		"data",
@@ -15,7 +15,7 @@ FROM
 	FROM
 		faturamentoAndrew AS f
 	GROUP BY
-		f."BPLName",
+		f."FILIAL",
 		f."PK",
 		"data",
 		f."numeroNota")
@@ -23,6 +23,6 @@ WHERE
 	frete > 0
 GROUP BY
 	"PK",	
-	"BPLName",
+	"FILIAL",
 	"data",
 	"numeroNota"
