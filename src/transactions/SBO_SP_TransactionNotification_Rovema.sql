@@ -624,24 +624,24 @@ SELECT
          	error_message := 'Nota de serviço não precisa de chave de acesso';  
 	End If;
 
-IF EXISTS(
-SELECT
-		1
-		From "OPCH" T0	
-		INNER JOIN PCH1 T1 ON T0."DocEntry" = T1."DocEntry"
-		Where 
-			T0."DocType" <> 'S' AND 
-			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39) AND 
-			T0."Model" <> 39 AND 
-			T0."CANCELED" = 'N' and
-			T0."DocEntry" = :list_of_cols_val_tab_del
-			
-) 
-
-       	 Then       
-			error := 7;
-         	error_message := 'Coloque modelo como NFE 55';  
-	End If;
+--IF EXISTS(
+--SELECT
+--		1
+--		From "OPCH" T0	
+--		INNER JOIN PCH1 T1 ON T0."DocEntry" = T1."DocEntry"
+--		Where 
+--			T0."DocType" <> 'S' AND 
+--			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39) AND 
+--			T0."Model" <> 39 AND 
+--			T0."CANCELED" = 'N' and
+--			T0."DocEntry" = :list_of_cols_val_tab_del
+--			
+--) 
+--
+--       	 Then       
+--			error := 7;
+--         	error_message := 'Coloque modelo como NFE 55';  
+--	End If;
 
 IF EXISTS(
 SELECT
