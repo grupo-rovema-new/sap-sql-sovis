@@ -1,16 +1,14 @@
-name: 'Deployment - Production'
+name: 'Deployment - Homologacao'
 
 on:
-  push:
-    # tags:
-    #   - "v*.*.*"
-  workflow_dispatch:
+  repository_dispatch:
+    types: [create-pull-request]
 
 permissions:
   contents: write
 
 jobs:
-  container:
+  homologacao:
     runs-on: self-hosted
     container:
       image: python:3.12.3
@@ -31,5 +29,3 @@ jobs:
       - name: Run Deploymenet
         run: |
           python3 execut.py
-        
-        

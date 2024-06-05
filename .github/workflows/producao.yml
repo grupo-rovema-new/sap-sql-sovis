@@ -1,0 +1,61 @@
+name: 'Deployment - Production'
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  producao:
+    runs-on: self-hosted
+    container:
+      image: python:3.12.3
+      env:
+        ADDRESS: ${{secrets.ADDRESS}}
+        PORT: ${{secrets.PORT}}
+        USER: ${{secrets.USER}}
+        PASSWORD: ${{secrets.PASSWORD}}
+        DATABASENAME: ${{secrets.DATABASENAME}}
+        INSTANCENUMBER: ${{secrets.INSTANCENUMBER}}
+        CURRENTSCHEMA: ${{secrets.CURRENTSCHEMA_PRODUCTION}}
+    steps:
+      - uses: actions/checkout@v3.5.2
+      - name: dependencias
+        run: |
+          pip install hdbcli
+      - name: Run Deploymenet
+        run: |
+          python3 execut.py
+
+  notification:
+    needs: [producao]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Get release
+        id: get_release
+        uses: bruceadams/get-release@v1.3.2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Send mail
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{secrets.MAIL_SMTP_ADDRESS}}
+          server_port: ${{secrets.MAIL_PORT}}
+          username: ${{secrets.MAIL_USERNAME}}
+          password: ${{secrets.MAIL_PASSWORD}}
+          subject: "Novas Funcionalidades e Melhorias no SAP: Versão ${{ steps.get_release.outputs.tag_name }} – Confira as Últimas Atualizações"
+          to: ${{vars.MAIL_TO_LIST}}
+          bcc: ${{vars.MAIL_TO_LIST_CCO}}
+          from: ${{secrets.MAIL_USERNAME}}
+          html_body: ${{ steps.get_release.outputs.body }}
+          reply_to: ${{secrets.MAIL_USERNAME}}
+          convert_markdown: true
+          priority: low

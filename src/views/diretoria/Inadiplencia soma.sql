@@ -1,3 +1,4 @@
+CREATE OR REPLACE VIEW inadimplenciaSoma as
 SELECT
 	pn."CardCode",
 	pn."CardName",

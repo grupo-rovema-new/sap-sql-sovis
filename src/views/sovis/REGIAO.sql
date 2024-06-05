@@ -1,5 +1,5 @@
-ALTER VIEW REGIAO as -- TODO adicionar regiao em cliente
-SELECT
+CREATE OR REPLACE VIEW REGIAO as -- TODO adicionar regiao em cliente
+((SELECT
 	r."Code",
 	0 AS "IDEMPRESAERP",
 	r."Name" "DESCRICAO",
@@ -10,12 +10,7 @@ SELECT
 	0 "VALORMINIMOCIF",
 	0 "TICKETMEDIO"
 FROM
-	"@RO_LOCAIS" r
-
-	
-UNION ALL
-
-	SELECT
+	"@RO_LOCAIS" r) UNION ALL (SELECT
 		'-1',
 		0 AS "IDEMPRESAERP",
 		'Sem Regiao' "DESCRICAO",
@@ -26,7 +21,4 @@ UNION ALL
 		0 "VALORMINIMOCIF",
 		0 "TICKETMEDIO"
 	FROM
-		DUMMY
-
-
-
+		DUMMY));
