@@ -87,8 +87,8 @@ if  :object_type = '203' and (:transaction_type = 'A'or :transaction_type = 'U')
     	error_message := 'Documento de adiantamento já existe';  
 	END if;
 END if;
---------------------------------------------------------------------------------------------------------------------------------
----- Nota Fiscal de Saida -- Andrew Ramires May 06/03/2023
+--------------------------------------------------------------------------------------------------------------
+-- Nota Fiscal de Saida -- Andrew Ramires May 06/03/2023
 IF :object_type = '13' and (:transaction_type = 'A'or :transaction_type = 'U') then 
 	SELECT
 		count (1) into error
@@ -788,7 +788,7 @@ AND NF."DocEntry" = :list_of_cols_val_tab_del
 )
 
 Then       
-			error := 7;
+			error := 3;
          	error_message := 'Campos CFOP / CST ICMS / CST PIS / CST COFINS é obrigatório!';
          
 END IF;
@@ -806,7 +806,7 @@ SELECT
 		    T0."DocEntry" = :list_of_cols_val_tab_del
 )
        	 Then       
-			error := 7;
+			error := 3;
          	error_message := 'Para utilização - CARTÃO VISA BRADESCO e CARTÃO ELO BRASIL recomenda-se usar modelo de NF - OUTRA';  
 End If;
 
@@ -824,7 +824,7 @@ SELECT
         AND ne."DocEntry" = :list_of_cols_val_tab_del
 )
 	Then       
-			error := 7;
+			error := 3;
          	error_message := 'A Nota de Entrada contém desoneração, verificar no cadastro do item as informações SUJEITO A RETENÇÃO DE IMPOSTO e CONVENIO 100';  
 	End If;
 
@@ -842,7 +842,7 @@ SELECT
     
 )
     Then       
-			error := 7;
+			error := 3;
          	error_message := 'A Nota de Entrada não contém desoneração, verificar no cadastro do item as informações SUJEITO A RETENÇÃO DE IMPOSTO e CONVENIO 100';  
 	End If;
 -----------------------------------------------------------------------------------------------
@@ -1508,7 +1508,7 @@ HAVING
 end if;
 
 
--------------------------------LANC CONTABIL BANCO DIF. FILIAL-------------------------------
+-------------------------------LANC CONTABIL BANCO DIF. FILIAL----------------------------
 IF :object_type = '30' and (:transaction_type = 'A' or :transaction_type = 'U') THEN
 IF EXISTS(
 SELECT 1
@@ -1527,7 +1527,7 @@ END IF;
 END IF;
 
 
--------------------------TRAVA BAIXA FINANCEIRA SOMENTE NF AUTORIZADA CR --------------------
+-------------------------TRAVA BAIXA FINANCEIRA SOMENTE NF AUTORIZADA CR ----------------
 IF :object_type = '24' and (:transaction_type = 'A' or :transaction_type = 'U') THEN
 IF EXISTS (SELECT 1 
 FROM ORCT T0
@@ -1549,7 +1549,7 @@ THEN
 END IF;
 end if;
 
-------------------------TRAVA BAIXA FINANCEIRA SOMENTE NF AUTORIZADA CP ---------------------
+------------------------TRAVA BAIXA FINANCEIRA SOMENTE NF AUTORIZADA CP -----------------
 IF :object_type = '46' and (:transaction_type = 'A' or :transaction_type = 'U') THEN
 IF EXISTS (SELECT 1 
 FROM OVPM T0
@@ -1571,7 +1571,111 @@ THEN
 END IF;
 end if;
 
-------------------TRAVA PEDIDO - NOTA SAÍDA - QUANTIDADE PENDENTES -------------------
+----------------------------------------------------------------------------------------
+----------------------NOTA DE SAÍDA E NF DE ENTREGA FUTURA------------------------------
+IF :object_type = '13' and (:transaction_type = 'C' OR :transaction_type = 'A') THEN
+IF EXISTS 
+(SELECT 1 
+FROM INV1 LNS 
+INNER JOIN OINV NS ON NS."DocNum" = LNS."BaseRef" AND NS."DocEntry" = LNS."BaseEntry"
+LEFT JOIN "Process" ST ON NS."ObjType" = ST."DocType" AND NS."DocEntry" = ST."DocEntry"
+WHERE ST."StatusId" = 4 AND LNS."DocEntry" = :list_of_cols_val_tab_del AND (LNS."BaseRef" IS NULL OR LNS."BaseRef" <> ''))
+THEN 
+	error := 3;
+	error_message := 'CANCELAMENTO NÃO PERMITIDO, NF-E AINDA ESTÁ AUTORIZADA!'; 
+END IF;
+end if;
+
+
+-------------------------------DEV. NOTA FISCAL SAIDA-------------------------------------
+IF :object_type = '14' and (:transaction_type = 'C' OR :transaction_type = 'A') THEN
+IF EXISTS 
+(SELECT 1 
+FROM RIN1 DNS 
+INNER JOIN ORIN DV ON DV."DocNum" = DNS."BaseRef" AND DV."DocEntry" = DNS."BaseEntry"
+LEFT JOIN "Process" ST ON DV."ObjType" = ST."DocType" AND DV."DocEntry" = ST."DocEntry"
+WHERE ST."StatusId" = 4 AND DNS."DocEntry" = :list_of_cols_val_tab_del AND (DNS."BaseRef" IS NULL OR DNS."BaseRef" <> ''))
+THEN 
+	error := 3;
+	error_message := 'CANCELAMENTO NÃO PERMITIDO, NF-E AINDA ESTÁ AUTORIZADA!'; 
+END IF;
+end if;
+
+-------------------------------------ENTREGA--------------------------------------------
+IF :object_type = '15' and (:transaction_type = 'C' OR :transaction_type = 'A') THEN
+IF EXISTS 
+(SELECT 1 
+FROM DLN1 LEN 
+INNER JOIN ODLN EN ON EN."DocNum" = LEN."BaseRef" AND EN."DocEntry" = LEN."BaseEntry"
+LEFT JOIN "Process" ST ON EN."ObjType" = ST."DocType" AND EN."DocEntry" = ST."DocEntry"
+WHERE ST."StatusId" = 4 AND LEN."DocEntry" = :list_of_cols_val_tab_del AND (LEN."BaseRef" IS NULL OR LEN."BaseRef" <> ''))
+THEN 
+	error := 3;
+	error_message := 'CANCELAMENTO NÃO PERMITIDO, NF-E AINDA ESTÁ AUTORIZADA!'; 
+END IF;
+end if;
+
+-----------------------------------------------------------------------------------------
+----------------------NOTA DE ENTRADA  E NF RECEBIMENTO FUTURO---------------------------
+IF :object_type = '18' and (:transaction_type = 'C' OR :transaction_type = 'A') THEN
+IF EXISTS 
+(SELECT 1 
+FROM PCH1 LNE 
+INNER JOIN OPCH NE ON NE."DocNum" = LNE."BaseRef" AND NE."DocEntry" = LNE."BaseEntry"
+LEFT JOIN "Process" ST ON NE."ObjType" = ST."DocType" AND NE."DocEntry" = ST."DocEntry"
+WHERE ST."StatusId" = 4 AND LNE."DocEntry" = :list_of_cols_val_tab_del AND (LNE."BaseRef" IS NULL OR LNE."BaseRef" <> ''))
+THEN 
+	error := 3;
+	error_message := 'CANCELAMENTO NÃO PERMITIDO, NF-E AINDA ESTÁ AUTORIZADA!'; 
+END IF;
+end if;
+
+
+----------------------RECEBIMENTO DE MERCADORIA------------------------------------------ 
+IF :object_type = '20' and (:transaction_type = 'C' OR :transaction_type = 'A') THEN
+IF EXISTS 
+(SELECT 1 
+FROM PDN1 LRM 
+INNER JOIN OPDN RM ON RM."DocNum" = LRM."BaseRef" AND RM."DocEntry" = LRM."BaseEntry"
+LEFT JOIN "Process" ST ON RM."ObjType" = ST."DocType" AND RM."DocEntry" = ST."DocEntry"
+WHERE ST."StatusId" = 4 AND LRM."DocEntry" = :list_of_cols_val_tab_del AND (LRM."BaseRef" IS NULL OR LRM."BaseRef" <> ''))
+THEN 
+	error := 3;
+	error_message := 'CANCELAMENTO NÃO PERMITIDO, NF-E AINDA ESTÁ AUTORIZADA!'; 
+END IF;
+end if;
+
+
+----------------------DEVOLUÇÃO DE MERCADORIA---------------------------------------------- 
+IF :object_type = '21' and (:transaction_type = 'C' OR :transaction_type = 'A') THEN
+IF EXISTS 
+(SELECT 1 
+FROM RPD1 LDM 
+INNER JOIN ORPD DM ON DM."DocNum" = LDM."BaseRef" AND DM."DocEntry" = LDM."BaseEntry"
+LEFT JOIN "Process" ST ON DM."ObjType" = ST."DocType" AND DM."DocEntry" = ST."DocEntry"
+WHERE ST."StatusId" = 4 AND LDM."DocEntry" = :list_of_cols_val_tab_del AND (LDM."BaseRef" IS NULL OR LDM."BaseRef" <> ''))
+THEN 
+	error := 3;
+	error_message := 'CANCELAMENTO NÃO PERMITIDO, NF-E AINDA ESTÁ AUTORIZADA!'; 
+END IF;
+end if;
+
+
+----------------------DEV. NOTA FISCAL ENTRADA--------------------------------------------- 
+IF :object_type = '19' and (:transaction_type = 'C' OR :transaction_type = 'A') THEN
+IF EXISTS 
+(SELECT 1 
+FROM RPC1 LDE 
+INNER JOIN ORPC DNE ON DNE."DocNum" = LDE."BaseRef" AND DNE."DocEntry" = LDE."BaseEntry"
+LEFT JOIN "Process" ST ON DNE."ObjType" = ST."DocType" AND DNE."DocEntry" = ST."DocEntry"
+WHERE ST."StatusId" = 4 AND LDE."DocEntry" = :list_of_cols_val_tab_del AND (LDE."BaseRef" IS NULL OR LDE."BaseRef" <> ''))
+THEN 
+	error := 3;
+	error_message := 'CANCELAMENTO NÃO PERMITIDO, NF-E AINDA ESTÁ AUTORIZADA!'; 
+END IF;
+end if;
+
+------------------TRAVA PEDIDO - NOTA SAÍDA - QUANTIDADE PENDENTES ------------------------
 IF :object_type = '13' and (:transaction_type = 'A')then
 IF EXISTS 
 (
@@ -1591,16 +1695,6 @@ WHERE
     END IF;
 END IF;
 
------------------------TRAVA CANCELAMENTO DE DOCUMENTO DE SAIDA ------------------------
-IF :object_type = '13' and (:transaction_type = 'C') THEN
-IF EXISTS 
-(SELECT 1 FROM OINV NS LEFT JOIN "Process" ST ON NS."ObjType" = ST."DocType" AND NS."DocEntry" = ST."DocEntry"
-WHERE ST."StatusId" = 4)
-THEN 
-	error := 3;
-	error_message := 'CANCELAMENTO NÃO PERMITIDO, NF-E AINDA ESTÁ AUTORIZADA!'; 
-END IF;
-end if;
 
 ----------------------------------------------------------------------------------------------
 /*Documento de marketing*/

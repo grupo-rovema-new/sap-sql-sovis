@@ -14,3 +14,11 @@ WHERE
 	T0."ItemCode"  Like 'PAC%%'
   AND	
  	t0."validFor" = 'Y'; 
+	produto."IDPRODUTOERP",
+	produto."IDEMPRESAERP",
+	produto."DESCRICAO",
+	10 AS "ESTOQUE",
+	0 AS "CODBARRAS",
+	NULL AS "QTDEDECIMAL"
+FROM produto
+
