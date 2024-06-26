@@ -37,12 +37,13 @@ CREATE OR REPLACE VIEW ASSCLIENTEUSUARIO AS
 		representante."vendedorSubordinado" AS "IDUSUARIOERP"
 	FROM
 		BASE_ASSCLIENTEUSUARIO base
-		INNER JOIN representanteEstrutura representante ON base.IDUSUARIOERP = representante."vendedorSubordinado" 
+		INNER JOIN representanteEstrutura representante ON base.IDUSUARIOERP = representante."vendedorSubordinado";
 
 
 	
 
-	
+CREATE OR REPLACE VIEW "ClientesVendedorB1SLQuery" AS 
+SELECT * FROM ASSCLIENTEUSUARIO;
 	
 	
 	
