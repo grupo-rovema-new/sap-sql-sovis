@@ -1,3 +1,5 @@
+CREATE OR REPLACE VIEW notasCanceladasAtivasNaSefaz as
+
 SELECT 
 	doc."DocEntry",
 	doc."DocNum",

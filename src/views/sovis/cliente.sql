@@ -1,6 +1,5 @@
--- SBOGRUPOROVEMA.CLIENTE source
 
-CREATE OR REPLACE VIEW SBOGRUPOROVEMA.CLIENTE AS
+CREATE OR REPLACE VIEW CLIENTE AS
 SELECT
 		OCRD."CardCode" AS "IDCLIENTEERP",
 		MAX(CRD1."County") AS "IDCIDADEERP",
@@ -26,11 +25,14 @@ SELECT
 		0 AS "IDRAMOERP",
 		"CardName"  AS "NOME",
 		"CardName"  AS "RSOCIAL",
-		OCRD."Address"  AS "ENDERECO",
+		LEFT(OCRD."Address",50)  AS "ENDERECO",
 		"Number"  AS "NUMERO",
 		OCRD."Block"  AS "BAIRRO",
 		OCRD."ZipCode"  AS "CEP",
-		'' AS "IERG",
+		(SELECT iestadual FROM BpCpfCnpj t 
+		WHERE 
+			OCRD."CardCode" = t."CardCode" 
+			AND (SELECT count(1) FROM BpCpfCnpj t WHERE OCRD."CardCode" = t."CardCode") <= 1) AS "IERG",
 		(SELECT cpfCnpj FROM BpCpfCnpj t 
 		WHERE 
 			OCRD."CardCode" = t."CardCode" 
@@ -99,8 +101,4 @@ GROUP BY
 	CASE WHEN "U_Rov_Data_Nascimento" = '' THEN ' ' ELSE "U_Rov_Data_Nascimento" END,
 	CRD2."PymCode",
 	TO_VARCHAR(OCRD."CreateDate", 'YYYY-MM-DD HH:MM:SS'),
-	TO_VARCHAR("UpdateDate", 'YYYY-MM-DD HH:MM:SS')
-
-
-
-
+	TO_VARCHAR("UpdateDate", 'YYYY-MM-DD HH:MM:SS');

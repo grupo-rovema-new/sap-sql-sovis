@@ -1,0 +1,14 @@
+CREATE OR REPLACE VIEW TIPOPEDIDO_VA AS 
+SELECT
+			"ID" AS "IDTIPOPEDIDOERP",
+			CASE 
+				WHEN "ID" = 9 THEN 'Venda'
+				WHEN "ID" = 16 THEN 'Venda Futura'
+				WHEN "ID" = 129 THEN 'Bonificação Venda'
+				ELSE "Usage"
+			END
+			AS "DESCRICAO"
+		FROM
+			OUSG
+		WHERE 
+			OUSG.ID IN (9,16,129);

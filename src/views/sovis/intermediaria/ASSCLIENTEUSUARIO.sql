@@ -1,14 +1,3 @@
-CREATE OR REPLACE VIEW BASE_ASSCLIENTEUSUARIO AS 
-SELECT
-	 OCRD."CardCode"  AS "IDCLIENTEERP",
-	 "IDUSUARIOERP" AS "IDUSUARIOERP" 
-FROM
-	OCRD INNER JOIN USUARIO ON  OCRD."SlpCode" = USUARIO."IDUSUARIOERP"
-	INNER JOIN CLIENTE c on(c.IDCLIENTEERP = OCRD."CardCode")
-WHERE
-	OCRD."CardType" = 'C';
-	
-
 CREATE OR REPLACE VIEW ASSCLIENTEUSUARIO AS 
 
 	SELECT
@@ -48,12 +37,4 @@ CREATE OR REPLACE VIEW ASSCLIENTEUSUARIO AS
 		representante."vendedorSubordinado" AS "IDUSUARIOERP"
 	FROM
 		BASE_ASSCLIENTEUSUARIO base
-		INNER JOIN representanteEstrutura representante ON base.IDUSUARIOERP = representante."vendedorSubordinado" 
-
-
-	
-
-	
-	
-	
-	
+		INNER JOIN representanteEstrutura representante ON base.IDUSUARIOERP = representante."vendedorSubordinado";

@@ -24,8 +24,6 @@ def runPath(cursor,path):
 
 conn = createConnection()
 cursor = conn.cursor()
-runPath(cursor,'src/views/util/**/*.sql')
-runPath(cursor,'src/views/comercial/**/*.sql')
+runPath(cursor,'src/**/*.sql')
 cursor.close()
-
 

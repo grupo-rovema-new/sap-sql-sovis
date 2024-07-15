@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW METABOVINO as
+CREATE OR REPLACE VIEW METABOVINO AS
 SELECT
 	"SlpName",
 	"SlpCode",
@@ -145,4 +145,5 @@ GROUP BY
 	"Meta(Sc)",
 	"Meta(R$)",
 	"U_MNO_Mes",
-	"Mes"
+	"Mes";
+

@@ -1,6 +1,4 @@
--- SBOGRUPOROVEMA.PEDIDORETORNO source
-
-CREATE OR REPLACE VIEW SBOGRUPOROVEMA.PEDIDORETORNO AS
+CREATE OR REPLACE VIEW PEDIDORETORNO AS
 SELECT DISTINCT
 	OQUT."DocNum" AS "IDPEDIDORETORNOERP",
 	OQUT."U_id_pedido_forca" AS "IDPEDIDOSOVIS",
@@ -85,5 +83,4 @@ FROM
 	LEFT JOIN ORDR pedido ON OQUT."U_id_pedido_forca" = pedido."U_id_pedido_forca"
 	LEFT JOIN OINV fatura ON OQUT."U_id_pedido_forca" = fatura."U_id_pedido_forca" AND fatura.CANCELED = 'N'
 WHERE
-	OQUT."U_id_pedido_forca" > '0'
-
+	OQUT."U_id_pedido_forca" > '0';

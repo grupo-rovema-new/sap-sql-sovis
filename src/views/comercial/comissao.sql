@@ -1,5 +1,8 @@
 CREATE OR REPLACE VIEW RELATORIOCOMISSAO AS
-SELECT "CardCode" , "DocEntry nota" , "Cliente" , "Nº Pagamento#" , "DocEntryPagamento" , "Price" , "Nº Nota" , "InstId" , "Nº Parcelas" , "Data de lançamento" , "Total Nota" , "Data de Pagamento" , "Total pago" , "BPLId" , "BPLName" , "SlpCode" , "Vendedor" , "Desconto" , "U_preco_base" , "CodProduto" , "Produto" , "U_ROV_PREBASE" , "U_preco_negociado" , "isIns" , "desonerado" , "faturado" , "Quantity" , "PymntGroup" , "U_regressiva" , "U_porcentagem" , "ListName" , "Frete" FROM
+SELECT 
+*
+ FROM
+
 	(
 	SELECT
 		T0."CardCode",
@@ -274,4 +277,6 @@ UNION
 			OR T5."Usage" = 16)
 		AND T0."DocDate" >= TO_DATE(20230701, 'YYYYMMDD')
 		AND T0."U_Rov_Refaturamento" = 'NAO'
- )
+
+ );
+
