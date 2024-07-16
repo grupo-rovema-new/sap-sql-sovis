@@ -241,6 +241,19 @@ AND OINV."DocEntry"  = :list_of_cols_val_tab_del
 
 end IF;
 
+IF EXISTS(
+	SELECT 1 FROM INV1 
+	INNER JOIN OINV ON INV1."DocEntry" = OINV."DocEntry"
+	WHERE 
+	INV1."Usage" = 75
+	AND OINV."SeqCode" <> 118
+AND OINV."DocEntry"  = :list_of_cols_val_tab_del
+) THEN 
+		error := 3;
+    	error_message :='SÓ É PERMITIDO O MODELO (FAT) NA UTILIZAÇÃO (VENDA ALOCAÇÃO)'; 
+
+end IF;
+
 End If;
 -----------------------------------------------------------------------------------------------
 IF :object_type = '15' and ( :transaction_type = 'A') then
