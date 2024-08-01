@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-CREATE OR REPLACE  PROCEDURE SBO_SP_TransactionNotification_Rovema
-=======
 CREATE OR REPLACE PROCEDURE SBO_SP_TransactionNotification_Rovema
->>>>>>> 58e9bdb (Ajustando travas do sistema)
 (
 	in object_type nvarchar(30), 				-- SBO Object Type
 	in transaction_type nchar(1),			-- [A]dd, [U]pdate, [D]elete, [C]ancel, C[L]ose
@@ -1583,11 +1579,7 @@ IF EXISTS
 FROM INV1 LNS 
 INNER JOIN OINV NS ON NS."DocNum" = LNS."BaseRef" AND NS."DocEntry" = LNS."BaseEntry"
 LEFT JOIN "Process" ST ON NS."ObjType" = ST."DocType" AND NS."DocEntry" = ST."DocEntry"
-<<<<<<< HEAD
-WHERE ST."StatusId" = 4 AND LNS."DocEntry" = :list_of_cols_val_tab_del AND (LNS."BaseRef" IS NULL OR LNS."BaseRef" <> ''))
-=======
 WHERE ST."StatusId" NOT IN (28,25,24,17,10) AND LNS."DocEntry" = :list_of_cols_val_tab_del AND (LNS."BaseRef" IS NULL OR LNS."BaseRef" <> ''))
->>>>>>> 58e9bdb (Ajustando travas do sistema)
 THEN 
 	error := 3;
 	error_message := 'CANCELAMENTO NÃO PERMITIDO, NF-E AINDA ESTÁ AUTORIZADA!'; 
@@ -1602,11 +1594,7 @@ IF EXISTS
 FROM RIN1 DNS 
 INNER JOIN ORIN DV ON DV."DocNum" = DNS."BaseRef" AND DV."DocEntry" = DNS."BaseEntry"
 LEFT JOIN "Process" ST ON DV."ObjType" = ST."DocType" AND DV."DocEntry" = ST."DocEntry"
-<<<<<<< HEAD
-WHERE ST."StatusId" = 4 AND DNS."DocEntry" = :list_of_cols_val_tab_del AND (DNS."BaseRef" IS NULL OR DNS."BaseRef" <> ''))
-=======
 WHERE ST."StatusId" NOT IN (28,25,24,17,10) AND DNS."DocEntry" = :list_of_cols_val_tab_del AND (DNS."BaseRef" IS NULL OR DNS."BaseRef" <> ''))
->>>>>>> 58e9bdb (Ajustando travas do sistema)
 THEN 
 	error := 3;
 	error_message := 'CANCELAMENTO NÃO PERMITIDO, NF-E AINDA ESTÁ AUTORIZADA!'; 
@@ -1620,11 +1608,7 @@ IF EXISTS
 FROM DLN1 LEN 
 INNER JOIN ODLN EN ON EN."DocNum" = LEN."BaseRef" AND EN."DocEntry" = LEN."BaseEntry"
 LEFT JOIN "Process" ST ON EN."ObjType" = ST."DocType" AND EN."DocEntry" = ST."DocEntry"
-<<<<<<< HEAD
-WHERE ST."StatusId" = 4 AND LEN."DocEntry" = :list_of_cols_val_tab_del AND (LEN."BaseRef" IS NULL OR LEN."BaseRef" <> ''))
-=======
 WHERE ST."StatusId" NOT IN (28,25,24,17,10) AND LEN."DocEntry" = :list_of_cols_val_tab_del AND (LEN."BaseRef" IS NULL OR LEN."BaseRef" <> ''))
->>>>>>> 58e9bdb (Ajustando travas do sistema)
 THEN 
 	error := 3;
 	error_message := 'CANCELAMENTO NÃO PERMITIDO, NF-E AINDA ESTÁ AUTORIZADA!'; 
@@ -1639,11 +1623,7 @@ IF EXISTS
 FROM PCH1 LNE 
 INNER JOIN OPCH NE ON NE."DocNum" = LNE."BaseRef" AND NE."DocEntry" = LNE."BaseEntry"
 LEFT JOIN "Process" ST ON NE."ObjType" = ST."DocType" AND NE."DocEntry" = ST."DocEntry"
-<<<<<<< HEAD
-WHERE ST."StatusId" = 4 AND LNE."DocEntry" = :list_of_cols_val_tab_del AND (LNE."BaseRef" IS NULL OR LNE."BaseRef" <> ''))
-=======
 WHERE ST."StatusId" NOT IN (28,25,24,17,10) AND LNE."DocEntry" = :list_of_cols_val_tab_del AND (LNE."BaseRef" IS NULL OR LNE."BaseRef" <> ''))
->>>>>>> 58e9bdb (Ajustando travas do sistema)
 THEN 
 	error := 3;
 	error_message := 'CANCELAMENTO NÃO PERMITIDO, NF-E AINDA ESTÁ AUTORIZADA!'; 
@@ -1658,11 +1638,7 @@ IF EXISTS
 FROM PDN1 LRM 
 INNER JOIN OPDN RM ON RM."DocNum" = LRM."BaseRef" AND RM."DocEntry" = LRM."BaseEntry"
 LEFT JOIN "Process" ST ON RM."ObjType" = ST."DocType" AND RM."DocEntry" = ST."DocEntry"
-<<<<<<< HEAD
-WHERE ST."StatusId" = 4 AND LRM."DocEntry" = :list_of_cols_val_tab_del AND (LRM."BaseRef" IS NULL OR LRM."BaseRef" <> ''))
-=======
 WHERE ST."StatusId" NOT IN (28,25,24,17,10) AND LRM."DocEntry" = :list_of_cols_val_tab_del AND (LRM."BaseRef" IS NULL OR LRM."BaseRef" <> ''))
->>>>>>> 58e9bdb (Ajustando travas do sistema)
 THEN 
 	error := 3;
 	error_message := 'CANCELAMENTO NÃO PERMITIDO, NF-E AINDA ESTÁ AUTORIZADA!'; 
@@ -1677,11 +1653,7 @@ IF EXISTS
 FROM RPD1 LDM 
 INNER JOIN ORPD DM ON DM."DocNum" = LDM."BaseRef" AND DM."DocEntry" = LDM."BaseEntry"
 LEFT JOIN "Process" ST ON DM."ObjType" = ST."DocType" AND DM."DocEntry" = ST."DocEntry"
-<<<<<<< HEAD
-WHERE ST."StatusId" = 4 AND LDM."DocEntry" = :list_of_cols_val_tab_del AND (LDM."BaseRef" IS NULL OR LDM."BaseRef" <> ''))
-=======
 WHERE ST."StatusId" NOT IN (28,25,24,17,10) AND LDM."DocEntry" = :list_of_cols_val_tab_del AND (LDM."BaseRef" IS NULL OR LDM."BaseRef" <> ''))
->>>>>>> 58e9bdb (Ajustando travas do sistema)
 THEN 
 	error := 3;
 	error_message := 'CANCELAMENTO NÃO PERMITIDO, NF-E AINDA ESTÁ AUTORIZADA!'; 
@@ -1696,11 +1668,7 @@ IF EXISTS
 FROM RPC1 LDE 
 INNER JOIN ORPC DNE ON DNE."DocNum" = LDE."BaseRef" AND DNE."DocEntry" = LDE."BaseEntry"
 LEFT JOIN "Process" ST ON DNE."ObjType" = ST."DocType" AND DNE."DocEntry" = ST."DocEntry"
-<<<<<<< HEAD
-WHERE ST."StatusId" = 4 AND LDE."DocEntry" = :list_of_cols_val_tab_del AND (LDE."BaseRef" IS NULL OR LDE."BaseRef" <> ''))
-=======
 WHERE ST."StatusId" NOT IN (28,25,24,17,10) AND LDE."DocEntry" = :list_of_cols_val_tab_del AND (LDE."BaseRef" IS NULL OR LDE."BaseRef" <> ''))
->>>>>>> 58e9bdb (Ajustando travas do sistema)
 THEN 
 	error := 3;
 	error_message := 'CANCELAMENTO NÃO PERMITIDO, NF-E AINDA ESTÁ AUTORIZADA!'; 
