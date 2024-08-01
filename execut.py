@@ -26,3 +26,4 @@ conn = createConnection()
 cursor = conn.cursor()
 runPath(cursor,'src/**/*.sql')
 cursor.close()
+

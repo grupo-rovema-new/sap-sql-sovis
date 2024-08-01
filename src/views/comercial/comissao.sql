@@ -2,6 +2,7 @@ CREATE OR REPLACE VIEW RELATORIOCOMISSAO AS
 SELECT 
 *
  FROM
+
 	(
 	SELECT
 		T0."CardCode",
@@ -276,4 +277,6 @@ UNION
 			OR T5."Usage" = 16)
 		AND T0."DocDate" >= TO_DATE(20230701, 'YYYYMMDD')
 		AND T0."U_Rov_Refaturamento" = 'NAO'
+
  );
+
