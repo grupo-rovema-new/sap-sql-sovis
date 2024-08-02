@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE SBO_SP_Validacao_Bloqueio_POR_UTILIZACAO
+CREATE OR REPLACE PROCEDURE SBO_SP_VALIDACAO_POR_UTILIZACAO
 (
     in object_type nvarchar(30),                 -- SBO Object Type
     in transaction_type nchar(1),                -- [A]dd, [U]pdate, [D]elete, [C]ancel, C[L]ose
@@ -17,7 +17,8 @@ filial int;
 pTblSuffix nvarchar(4);
 pTblPrefix nvarchar(4);
 query nvarchar(255);
-futura nvarchar(4); --Verificar se a nota é futura
+tipoDoc nvarchar(4);
+futura nvarchar(4);--Verificar se a nota é futura
 xcount int;
 
 BEGIN
@@ -56,61 +57,64 @@ BEGIN
     END IF;
 
     IF pTblSuffix <> '-1' THEN
-        query := 'SELECT OBJETO."BPLId", LINHA."Usage", OBJETO."isIns" FROM ' || pTblSuffix || ' OBJETO INNER JOIN ' || pTblPrefix || ' LINHA ON OBJETO."DocEntry" = LINHA."DocEntry" WHERE OBJETO."DocEntry" = ' || :list_of_cols_val_tab_del;
+        query := 'SELECT TOP 1 OBJETO."BPLId", LINHA."Usage", OBJETO."isIns",OBJETO."DocType" FROM ' || pTblSuffix || ' OBJETO INNER JOIN ' || pTblPrefix || ' LINHA ON OBJETO."DocEntry" = LINHA."DocEntry" WHERE  OBJETO."DocEntry" = ' || :list_of_cols_val_tab_del;
 
-        EXECUTE IMMEDIATE query INTO filial, utilizacao, futura;
+        EXECUTE IMMEDIATE query INTO filial, utilizacao, futura, tipoDoc;
 
-        IF futura = 'N' THEN
-            IF NOT EXISTS (
-                SELECT 
-                    1
-                FROM 
-                    "@BLOQUEIOUTILIZACAO" b 
-                INNER JOIN 
-                    "@FILIAISBLOQUEIO" FB 
-                ON 
-                    b."DocEntry" = FB."DocEntry"
-                INNER JOIN 
-                    "@UTILIZACOES" U 
-                ON 
-                    b."DocEntry" = U."DocEntry"
-                WHERE 
-                    SUBSTRING(b."U_TipoDocumento", 1, INSTR(b."U_TipoDocumento", '-') - 1) = object_type 
-                    AND SUBSTRING(FB."U_Filial", 1, INSTR(FB."U_Filial", '-') - 1) = filial
-                    AND SUBSTRING(U."U_Utilizacao", 1, INSTR(U."U_Utilizacao", '-') - 1) = utilizacao
-                    AND (SUBSTRING(b."U_TipoDocumento", 
+        IF futura = 'N' AND tipoDoc = 'I' THEN
+            SELECT 
+                COUNT(*)
+            INTO xcount
+            FROM 
+                "@BLOQUEIOUTILIZACAO" b 
+            INNER JOIN 
+                "@FILIAISBLOQUEIO" FB 
+            ON 
+                b."DocEntry" = FB."DocEntry"
+            INNER JOIN 
+                "@UTILIZACOES" U 
+            ON 
+                b."DocEntry" = U."DocEntry"
+            WHERE 
+                SUBSTRING(b."U_TipoDocumento", 1, INSTR(b."U_TipoDocumento", '-') - 1) = object_type 
+                AND SUBSTRING(FB."U_Filial", 1, INSTR(FB."U_Filial", '-') - 1) = filial
+                AND SUBSTRING(U."U_Utilizacao", 1, INSTR(U."U_Utilizacao", '-') - 1) = utilizacao
+                AND (
+                    SUBSTRING(b."U_TipoDocumento", 
                         INSTR(b."U_TipoDocumento", '-') + 1, 
                         INSTR(b."U_TipoDocumento", '-', INSTR(b."U_TipoDocumento", '-') + 1) - INSTR(b."U_TipoDocumento", '-') - 1) = 'A'
                     OR SUBSTRING(b."U_TipoDocumento", 
                         INSTR(b."U_TipoDocumento", '-') + 1, 
                         INSTR(b."U_TipoDocumento", '-', INSTR(b."U_TipoDocumento", '-') + 1) - INSTR(b."U_TipoDocumento", '-') - 1) = ''
-                    )
-            ) THEN
+                );
+
+            IF xcount = 0 THEN
                 error_message := 'Essa utilização não é permitida neste módulo. Favor procurar o setor fiscal!';
                 error := 7;    
             END IF;
-        ELSEIF futura = 'Y' THEN
-            IF NOT EXISTS (
-                SELECT 
-                    1
-                FROM 
-                    "@BLOQUEIOUTILIZACAO" b 
-                INNER JOIN 
-                    "@FILIAISBLOQUEIO" FB 
-                ON 
-                    b."DocEntry" = FB."DocEntry"
-                INNER JOIN 
-                    "@UTILIZACOES" U 
-                ON 
-                    b."DocEntry" = U."DocEntry"
-                WHERE 
-                    SUBSTRING(b."U_TipoDocumento", 1, INSTR(b."U_TipoDocumento", '-') - 1) = object_type 
-                    AND SUBSTRING(FB."U_Filial", 1, INSTR(FB."U_Filial", '-') - 1) = filial
-                    AND SUBSTRING(U."U_Utilizacao", 1, INSTR(U."U_Utilizacao", '-') - 1) = utilizacao
-                    AND SUBSTRING(b."U_TipoDocumento", 
-                        INSTR(b."U_TipoDocumento", '-') + 1, 
-                        INSTR(b."U_TipoDocumento", '-', INSTR(b."U_TipoDocumento", '-') + 1) - INSTR(b."U_TipoDocumento", '-') - 1) = 'B'
-            ) THEN
+        ELSEIF futura = 'Y' AND tipoDoc = 'I' THEN
+            SELECT 
+                COUNT(*)
+            INTO xcount
+            FROM 
+                "@BLOQUEIOUTILIZACAO" b 
+            INNER JOIN 
+                "@FILIAISBLOQUEIO" FB 
+            ON 
+                b."DocEntry" = FB."DocEntry"
+            INNER JOIN 
+                "@UTILIZACOES" U 
+            ON 
+                b."DocEntry" = U."DocEntry"
+            WHERE 
+                SUBSTRING(b."U_TipoDocumento", 1, INSTR(b."U_TipoDocumento", '-') - 1) = object_type 
+                AND SUBSTRING(FB."U_Filial", 1, INSTR(FB."U_Filial", '-') - 1) = filial
+                AND SUBSTRING(U."U_Utilizacao", 1, INSTR(U."U_Utilizacao", '-') - 1) = utilizacao
+                AND SUBSTRING(b."U_TipoDocumento", 
+                    INSTR(b."U_TipoDocumento", '-') + 1, 
+                    INSTR(b."U_TipoDocumento", '-', INSTR(b."U_TipoDocumento", '-') + 1) - INSTR(b."U_TipoDocumento", '-') - 1) = 'B';
+
+            IF xcount = 0 THEN
                 error_message := 'Essa utilização não é permitida neste módulo. Favor procurar o setor fiscal!';
                 error := 7;    
             END IF;
