@@ -215,4 +215,3 @@ IF (:transaction_type = 'A' or :transaction_type = 'U') THEN
 	END IF;
 END IF;
 end;
-  
