@@ -89,7 +89,7 @@ IF (:transaction_type = 'A' or :transaction_type = 'U') THEN
 			);
 	
 	-- NF DE SAIDA
-	ELSEIF((:object_type = '13') ) THEN
+	ELSEIF((:object_type = '13')) THEN
 		INSERT INTO
 			"@KATRID_INTE" (
 				"U_Object_Name",
@@ -114,7 +114,7 @@ IF (:transaction_type = 'A' or :transaction_type = 'U') THEN
 			);
 	
 	-- NF DE ENTRADA
-	ELSEIF((:object_type = '18') ) THEN
+	ELSEIF((:object_type = '18')) THEN
 		INSERT INTO
 			"@KATRID_INTE" (
 				"U_Object_Name",
@@ -139,7 +139,7 @@ IF (:transaction_type = 'A' or :transaction_type = 'U') THEN
 			);
 		
 	-- DEV DE SAIDA
-	ELSEIF((:object_type = '14') ) THEN
+	ELSEIF((:object_type = '14')) THEN
 		INSERT INTO
 			"@KATRID_INTE" (
 				"U_Object_Name",
@@ -164,7 +164,7 @@ IF (:transaction_type = 'A' or :transaction_type = 'U') THEN
 			);
 	
 	-- DEV DE ENTRADA
-	ELSEIF((object_type = '19') THEN
+	ELSEIF((object_type = '19')) THEN
 		INSERT INTO
 			"@KATRID_INTE" (
 				"U_Object_Name",
@@ -215,4 +215,3 @@ IF (:transaction_type = 'A' or :transaction_type = 'U') THEN
 	END IF;
 END IF;
 end;
-  
