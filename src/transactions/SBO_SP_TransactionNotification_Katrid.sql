@@ -60,9 +60,9 @@ IF (:transaction_type = 'A' or :transaction_type = 'U') THEN
 					),
 					1
 				),
-				list_of_cols_val_tab_del,
+				'''' || TO_VARCHAR(list_of_cols_val_tab_del) || '''',
 				transaction_type,
-				'''item'''
+				'item'
 			);
 
 	-- UTILIZAÇÕES
@@ -91,7 +91,7 @@ IF (:transaction_type = 'A' or :transaction_type = 'U') THEN
 			);
 	
 	-- NF DE SAIDA
-	ELSEIF((:object_type = '13')) THEN
+	ELSEIF(:object_type = '13') THEN
 		INSERT INTO
 			"@KATRID_INTE" (
 				"U_Object_Name",
@@ -116,7 +116,7 @@ IF (:transaction_type = 'A' or :transaction_type = 'U') THEN
 			);
 	
 	-- NF DE ENTRADA
-	ELSEIF((:object_type = '18')) THEN
+	ELSEIF(:object_type = '18') THEN
 		INSERT INTO
 			"@KATRID_INTE" (
 				"U_Object_Name",
@@ -141,7 +141,7 @@ IF (:transaction_type = 'A' or :transaction_type = 'U') THEN
 			);
 		
 	-- DEV DE SAIDA
-	ELSEIF((:object_type = '14')) THEN
+	ELSEIF(:object_type = '14') THEN
 		INSERT INTO
 			"@KATRID_INTE" (
 				"U_Object_Name",
@@ -166,7 +166,7 @@ IF (:transaction_type = 'A' or :transaction_type = 'U') THEN
 			);
 	
 	-- DEV DE ENTRADA
-	ELSEIF((object_type = '19')) THEN
+	ELSEIF(object_type = '19') THEN
 		INSERT INTO
 			"@KATRID_INTE" (
 				"U_Object_Name",
