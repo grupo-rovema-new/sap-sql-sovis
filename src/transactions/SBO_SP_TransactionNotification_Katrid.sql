@@ -45,11 +45,12 @@ IF (:transaction_type = 'A' or :transaction_type = 'U') THEN
 				"U_Object_Name",
 				"DocEntry",
 				"Object",
-				"RequestStatus"
+				"RequestStatus",
+				"Remark"
 			)
 		values
 			(
-				'Items',
+				'SQLQueries(''Sql_Items'')/List',
 				coalesce(
 					(
 						select
@@ -60,7 +61,8 @@ IF (:transaction_type = 'A' or :transaction_type = 'U') THEN
 					1
 				),
 				list_of_cols_val_tab_del,
-				transaction_type
+				transaction_type,
+				'''item'''
 			);
 
 	-- UTILIZAÇÕES
