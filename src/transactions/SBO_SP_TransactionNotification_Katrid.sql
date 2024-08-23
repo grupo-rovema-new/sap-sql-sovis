@@ -191,7 +191,7 @@ IF (:transaction_type = 'A' or :transaction_type = 'U') THEN
 			);
 	
 	-- ENTREGA
-	ELSEIF(:object_type = '15') THEN
+	ELSEIF(:object_type = '106') THEN
 		INSERT INTO
 			"@KATRID_INTE" (
 				"U_Object_Name",
@@ -213,6 +213,58 @@ IF (:transaction_type = 'A' or :transaction_type = 'U') THEN
 				),
 				list_of_cols_val_tab_del,
 				transaction_type
+			);
+	-- LOTES
+	ELSEIF (:object_type = '106') THEN
+	INSERT INTO
+			"@KATRID_INTE" (
+				"U_Object_Name",
+				"DocEntry",
+				"Object",
+				"RequestStatus",
+				"Remark"
+			)
+		values
+			(
+				'SQLQueries(''Sql_Lotes'')/List',
+				coalesce(
+					(
+						select
+							max("DocEntry") + 1
+						from
+							"@KATRID_INTE"
+					),
+					1
+				),
+				'''' || TO_VARCHAR(list_of_cols_val_tab_del) || '''',
+				transaction_type,
+				'batchnum'
+			);
+	-- ALTERAÇÃO DE CUSTO
+	ELSEIF (:object_type = '58') THEN
+	INSERT INTO
+			"@KATRID_INTE" (
+				"U_Object_Name",
+				"DocEntry",
+				"Object",
+				"RequestStatus",
+				"Remark"
+			)
+		values
+			(
+				'SQLQueries(''Sql_Items_Custo'')/List',
+				coalesce(
+					(
+						select
+							max("DocEntry") + 1
+						from
+							"@KATRID_INTE"
+					),
+					1
+				),
+				'''' || TO_VARCHAR(list_of_cols_val_tab_del) || '''',
+				transaction_type,
+				'transnum'
 			);
 	END IF;
 END IF;
