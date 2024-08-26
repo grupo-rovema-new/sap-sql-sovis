@@ -241,6 +241,25 @@ AND OINV."DocEntry"  = :list_of_cols_val_tab_del
 
 end IF;
 
+IF EXISTS (
+    SELECT 1
+    FROM OINV
+    WHERE "SeqCode" = -2
+      AND "Model" = 57
+      AND "DocEntry" = :list_of_cols_val_tab_del
+      AND "Serial" IN (
+        SELECT "Serial"
+        FROM OINV
+        WHERE "SeqCode" = -2
+          AND "Model" = 57
+        GROUP BY "Serial"
+        HAVING COUNT(*) > 1
+      )
+) THEN
+    error := 3;
+    error_message := 'NUMERAÇÃO CT-E JÁ UTILIZADA!';
+END IF;
+
 End If;
 -----------------------------------------------------------------------------------------------
 IF :object_type = '15' and ( :transaction_type = 'A') then
