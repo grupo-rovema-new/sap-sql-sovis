@@ -819,14 +819,14 @@ SELECT
 		From "OPCH" T0		
 		INNER JOIN PCH1 T1 ON T0."DocEntry" = T1."DocEntry" 
 		Where 
-			T1."Usage" IN (122,64) AND
+			T1."Usage" IN (122,64,136) AND
 			T0."Model" <> 37 AND
 			T0."CANCELED" = 'N' AND
 		    T0."DocEntry" = :list_of_cols_val_tab_del
 )
        	 Then       
 			error := 3;
-         	error_message := 'Para utilização - CARTÃO VISA BRADESCO e CARTÃO ELO BRASIL recomenda-se usar modelo de NF - OUTRA';  
+         	error_message := 'Para utilização - CARTÃO VISA BRADESCO, CARTÃO VISA BRASIL e CARTÃO ELO BRASIL recomenda-se usar modelo de NF - OUTRA';  
 End If;
 
 ---TRAVA QUANDO A NOTA DE ENTRADA CONTER DESONERAÇÃO OBRIGAR O ITEM ESTÁ SELECIONADO A FLAG SUJEITO A RETENÇÃO E NO CAMPO CONVENIO 100 ESTÁ SIM.
