@@ -650,7 +650,7 @@ SELECT
 		INNER JOIN PCH1 T1 ON T0."DocEntry" = T1."DocEntry"
 		Where 
 			T0."DocType" <> 'S' AND 
-			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39) AND 
+			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136) AND 
 			T0."Model" <> 39 AND 
 			T0."CANCELED" = 'N' and
 			T0."DocEntry" = :list_of_cols_val_tab_del
@@ -668,7 +668,7 @@ SELECT
 		From "OPCH" T0	
 		INNER JOIN PCH1 T1 ON T0."DocEntry" = T1."DocEntry"
 		Where 
-			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39) AND 
+			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136) AND 
 			T0."Model" <> 39 AND 
 			T0."SeqCode" = '-2' AND
 			T0."CANCELED" = 'N' AND
@@ -1244,6 +1244,7 @@ IF  :object_type = '23' AND (:transaction_type = 'U' OR :transaction_type = 'A')
 	error_message := 'O preço base não pode ser 0, favor veficiar o preço na tabela'; 
 	END IF;
  END IF;
+-------------------------PEDIDO DE VENDA------------------------------------------
 IF  :object_type = '17' and (:transaction_type = 'A' OR :transaction_type = 'U') then
 	
  IF  EXISTS(
@@ -1713,7 +1714,36 @@ WHERE
         error_message := 'A QUANTIDADE DOS ITENS ESTÁ MAIOR QUE A DO PEDIDO!';
     END IF;
 END IF;
-
+------------------TRAVA PEDIDO DE COMPRA - CAMPO CONTA DO RAZAO ------------------------
+if  :object_type = '22' and (:transaction_type = 'A' OR :transaction_type = 'U') THEN
+IF EXISTS(
+SELECT 1 
+FROM OPOR
+INNER JOIN POR1 ON OPOR."DocEntry" = POR1."DocEntry"
+WHERE 
+OPOR."DocEntry" = :list_of_cols_val_tab_del
+AND (POR1."AcctCode" IS NULL OR TRIM(POR1."AcctCode") = '')
+)
+THEN 
+        error := 3;
+        error_message := 'Campo do Conta do Razão sem preenchimento! Procurar Contabilidade.';
+    END IF;
+END IF;
+------------------ TRAVA PEDIDO DE VENDA - CAMPO CONTA DO RAZAO ------------------------
+if  :object_type = '17' and (:transaction_type = 'A' OR :transaction_type = 'U') THEN
+IF EXISTS(
+SELECT 1 
+FROM ORDR
+INNER JOIN RDR1 ON ORDR."DocEntry" = RDR1."DocEntry"
+WHERE 
+ORDR."DocEntry" = :list_of_cols_val_tab_del
+AND (RDR1."AcctCode" IS NULL OR TRIM(RDR1."AcctCode") = '')
+)
+THEN 
+        error := 3;
+        error_message := 'Campo do Conta do Razão sem preenchimento! Procurar Contabilidade.';
+END IF;
+END IF;
 
 ----------------------------------------------------------------------------------------------
 /*Documento de marketing*/
