@@ -244,16 +244,24 @@ end IF;
 IF EXISTS (
     SELECT 1
     FROM OINV
-    WHERE "SeqCode" = -2
-      AND "Model" = 57
-      AND "DocEntry" = :list_of_cols_val_tab_del
-      AND "Serial" IN (
-        SELECT "Serial"
-        FROM OINV
-        WHERE "SeqCode" = -2
-          AND "Model" = 57
-        GROUP BY "Serial"
-        HAVING COUNT(*) > 1
+    WHERE
+    "SeqCode" = -2
+    AND "Model" = 57
+    AND "DocEntry" = :list_of_cols_val_tab_del
+    AND "CANCELED" <> 'Y'
+    AND "Serial" IN (
+    SELECT
+        "Serial"
+    FROM
+        OINV
+    WHERE
+        "SeqCode" = -2
+        AND "Model" = 57
+        AND "CANCELED" <> 'Y'
+    GROUP BY
+        "Serial"
+    HAVING
+        COUNT(*) > 1
       )
 ) THEN
     error := 3;
