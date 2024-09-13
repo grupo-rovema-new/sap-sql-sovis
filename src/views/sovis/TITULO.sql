@@ -26,7 +26,7 @@ FROM
 	LEFT JOIN ORCT T2 ON T1."DocNum" = T2."DocEntry" AND T2."Canceled" = 'N'
 	LEFT JOIN OSLP V ON V."SlpCode" = titulo."SlpCode"
 WHERE
-	titulo."DocStatus" = 'O'
+	titulo."DocStatus" IN ('O','D')
 	AND (T2."DocNum" IS NULL)
 	AND parcela."InsTotal" <> '0'
 	AND titulo."BPLId" IN (SELECT IDEMPRESAERP FROM EMPRESA e);
