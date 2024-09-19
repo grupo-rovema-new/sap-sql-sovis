@@ -1826,11 +1826,13 @@ SELECT
     1
 FROM
     PCH1
-INNER JOIN CRD11 ON    CRD11."CardCode" = PCH1."BaseCard"
+INNER JOIN CRD11 ON CRD11."CardCode" = PCH1."BaseCard"
+INNER JOIN OPCH ON OPCH."DocEntry" = PCH1."DocEntry" 
 WHERE
     PCH1."DocEntry" = :list_of_cols_val_tab_del
     AND CRD11."TributType" = 11
     AND PCH1."WtLiable" <> 'Y'
+    AND OPCH."Model" = 54
     ) THEN
         error := 3;
         error_message := 'O parceiro é um Produtor Rural, portanto é necessário que o campo "Sujeito IRF" esteja marcado como SIM';
