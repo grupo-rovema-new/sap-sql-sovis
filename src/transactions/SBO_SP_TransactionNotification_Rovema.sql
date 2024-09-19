@@ -1817,6 +1817,25 @@ THEN
 error_message := 'CANCELAMENTO NÃO PERMITIDO, NF-E AINDA ESTÁ AUTORIZADA!';
 END IF;
 END IF;
+------------------ TRAVA NOTA DE ENTRADA - CAMPO "Sujeito IRF"  ------------------------
+IF :object_type = '18'
+AND (:transaction_type = 'A'
+    OR :transaction_type = 'U') THEN
+IF EXISTS (
+SELECT
+    1
+FROM
+    PCH1
+INNER JOIN CRD11 ON    CRD11."CardCode" = PCH1."BaseCard"
+WHERE
+    PCH1."DocEntry" = :list_of_cols_val_tab_del
+    AND CRD11."TributType" = 11
+    AND PCH1."WtLiable" <> 'Y'
+    ) THEN
+        error := 3;
+        error_message := 'O parceiro é um Produtor Rural, portanto é necessário que o campo "Sujeito IRF" esteja marcado como SIM';
+END IF;
+END IF;
 ------------------TRAVA PEDIDO - NOTA SAÍDA - QUANTIDADE PENDENTES ------------------------
 IF :object_type = '13'
 AND (:transaction_type = 'A')THEN
