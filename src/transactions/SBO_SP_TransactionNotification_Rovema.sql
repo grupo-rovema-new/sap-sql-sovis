@@ -113,6 +113,7 @@ IF :object_type = '13' and (:transaction_type = 'A'or :transaction_type = 'U') t
 	
 	WHERE 
 	T1."Price" <= 0
+	AND T0."U_venda_futura" IS null
 	AND
 	T0."DocEntry" = :list_of_cols_val_tab_del
 	AND T0."CANCELED" = 'N'
@@ -1199,11 +1200,13 @@ IF  :object_type = '23' AND (:transaction_type = 'U' OR :transaction_type = 'A')
 		1
 	FROM 
 		QUT1 C
-	LEFT JOIN OPLN LP ON C."U_idTabela" = LP."ListNum"
-	WHERE 
-	("U_preco_negociado" = 0 
+		INNER JOIN OQUT o ON C."DocEntry" = o."DocEntry"
+		LEFT JOIN OPLN LP ON C."U_idTabela" = LP."ListNum"
+	WHERE
+	o."U_venda_futura" IS null
+	AND ("U_preco_negociado" = 0 
 	OR C."U_idTabela" IS NULL OR LP."U_publica_forca" = 0 OR LP."U_tipoComissao" IS NULL )
-	AND "DocEntry"  = :list_of_cols_val_tab_del
+	AND c."DocEntry"  = :list_of_cols_val_tab_del
 	)
 	THEN 
 	error := 7;
@@ -1257,7 +1260,8 @@ IF  :object_type = '17' and (:transaction_type = 'A' OR :transaction_type = 'U')
 		FROM ORDR T0
 		INNER JOIN RDR1 T1 ON T0."DocEntry" = T1."DocEntry"
  		WHERE 
- 		T1."Usage" <> 16 AND
+ 		T0."U_venda_futura" IS null
+ 		AND T1."Usage" <> 16 AND
  		T0."DiscPrcnt" <> 0 AND 
  		T0."CANCELED" = 'N'
  		AND T0."DocEntry" = :list_of_cols_val_tab_del
@@ -1307,7 +1311,8 @@ IF :object_type = '13' and (:transaction_type = 'A') then
 		FROM OINV T0
 		INNER JOIN INV1 T1 ON T0."DocEntry" = T1."DocEntry"
  		WHERE 
- 		T1."Usage" <> 16 AND
+ 		T0."U_venda_futura" IS null
+ 		AND T1."Usage" <> 16 AND
  		T0."DiscPrcnt" <> 0 AND 
  		T0."CANCELED" = 'N'
  		AND T0."DocEntry" = :list_of_cols_val_tab_del
