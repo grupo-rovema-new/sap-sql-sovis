@@ -1,28 +1,56 @@
 CREATE OR REPLACE VIEW ITEMPEDIDORETORNO AS
-SELECT DISTINCT
-		P."IDPEDIDORETORNOERP" || '-'|| QUT1."LineNum"  AS "IDITEMPEDIDORETORNOERP", --ALTERADO A TABELA QUE EXIBIA O NUMERO SEQUENCIAL DO ITEM DE INV1 PARA QUT1
-		COALESCE(QUT1."U_id_item_forca",0) AS "IDITEMPEDIDOSOVIS",
-		(SELECT "ListNum"   FROM OPLN WHERE "ListNum" = 4) AS "IDTABPRECOERP",
+SELECT
+	DISTINCT
+		P."IDPEDIDORETORNOERP" || '-' || QUT1."LineNum" AS "IDITEMPEDIDORETORNOERP",
+	--ALTERADO A TABELA QUE EXIBIA O NUMERO SEQUENCIAL DO ITEM DE INV1 PARA QUT1
+		COALESCE(QUT1."U_id_item_forca",
+	0) AS "IDITEMPEDIDOSOVIS",
+		(
+	SELECT
+		"ListNum"
+	FROM
+		OPLN
+	WHERE
+		"ListNum" = 4) AS "IDTABPRECOERP",
 		OQUT."DocNum" AS "IDPEDIDORETORNOERP",
 		QUT1."ItemCode" AS "IDPRODUTOERP",
 		QUT1."ItemCode" AS "IDPRODUTOREFERENCIA",
 		QUT1."Quantity" AS "QTDE",
-		(CASE WHEN NT."Quantity" IS NULL THEN QUT1."Quantity" ELSE NT."Quantity" END ) AS "QTDEFATURADO",
+		(CASE
+		WHEN NT."Quantity" IS NULL THEN QUT1."Quantity"
+		ELSE NT."Quantity"
+	END ) AS "QTDEFATURADO",
 		12 AS "DESCONTOPERMITIDO",
-		QUT1."DiscPrcnt" AS "DESCONTOPRATICADO",
-		(SELECT "Price"  FROM ITM1 WHERE "PriceList" = 4 AND "ItemCode" = QUT1."ItemCode" ) AS "VALORTABPRECO",
+		COALESCE(QUT1."DiscPrcnt",
+	0) AS "DESCONTOPRATICADO",
+		(
+	SELECT
+		"Price"
+	FROM
+		ITM1
+	WHERE
+		"PriceList" = 4
+		AND "ItemCode" = QUT1."ItemCode" ) AS "VALORTABPRECO",
 		QUT1."PriceBefDi" AS "VALORUNITARIO",
-		COALESCE(NT."PriceBefDi",0) AS "VALORUNFAT",
+		COALESCE(NT."PriceBefDi",
+	0) AS "VALORUNFAT",
 		QUT1."LineTotal" AS "VALORTOTAL",
 		CASE
 			WHEN NT."DocEntry" IS NOT NULL THEN
-				 NT."LineTotal"-COALESCE((SELECT SUM(COALESCE(NULLIF("U_TX_VlDeL", 0),"TaxSum")) 
-						 FROM "INV4" tax 
-						 WHERE tax."DocEntry" = NT."DocEntry" 
-						 AND (tax."staType" = 25 OR tax."staType" = 28 OR tax."staType" = 10) 
-						 AND tax."LineNum" = NT."LineNum"),0)
-			ELSE 0
-		END  "VALORTOTALFAT",	 
+				 NT."LineTotal"-COALESCE((
+		SELECT
+			SUM(COALESCE(NULLIF("U_TX_VlDeL", 0), "TaxSum"))
+		FROM
+			"INV4" tax
+		WHERE
+			tax."DocEntry" = NT."DocEntry"
+			AND (tax."staType" = 25
+				OR tax."staType" = 28
+				OR tax."staType" = 10)
+			AND tax."LineNum" = NT."LineNum"),
+		0)
+		ELSE 0
+	END "VALORTOTALFAT",	 
 		0 AS "SALDOGERADO",
 		0 AS "VALORDIFERENCA",
 		QUT1."Usage" AS "TIPO",
@@ -36,14 +64,19 @@ SELECT DISTINCT
 		0 AS "IDUNIDADEMEDIDAERP",
 		0 AS "PERCENTUALREAJUST",
 		0 AS "FATORCONVERSAOESTOQUE",
-		0 AS"IDTIPOCULTURA",
+		0 AS "IDTIPOCULTURA",
 		0 AS "PESO",
 		0 AS "COMISSAO",
 		0 AS "INDICERENTABILIDADE"
-	FROM
+FROM
 		PEDIDORETORNO p
-		INNER JOIN OQUT ON OQUT."DocNum"  = p.IDPEDIDORETORNOERP 
-		LEFT JOIN QUT1 ON (OQUT."DocEntry" = QUT1."DocEntry")
-		LEFT JOIN INV1 NT ON p.faturaId = NT."DocEntry" AND QUT1."U_id_item_forca" = nt."U_id_item_forca" 
-	WHERE
-		OQUT."U_id_pedido_forca" > '0' AND QUT1."U_id_item_forca" IS NOT NULL;
+INNER JOIN OQUT ON
+	OQUT."DocNum" = p.IDPEDIDORETORNOERP
+LEFT JOIN QUT1 ON
+	(OQUT."DocEntry" = QUT1."DocEntry")
+LEFT JOIN INV1 NT ON
+	p.faturaId = NT."DocEntry"
+	AND QUT1."U_id_item_forca" = nt."U_id_item_forca"
+WHERE
+		OQUT."U_id_pedido_forca" > '0'
+	AND QUT1."U_id_item_forca" IS NOT NULL;
