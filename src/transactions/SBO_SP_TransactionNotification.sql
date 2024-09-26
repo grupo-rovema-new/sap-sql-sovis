@@ -248,6 +248,7 @@ Call SBO_SP_Validacao_Bloqueio_Periodo_Contabil(object_type,transaction_type,num
 Call SBO_SP_VALIDACAO_POR_UTILIZACAO(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 Call SBO_SP_TransactionNotification_Katrid(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 
+
 -- LANÇAMENTO CONTABIL MANUAL
 IF :object_type = '30' and (:transaction_type = 'A' OR :transaction_type = 'U') then 
 	Select 
@@ -279,9 +280,14 @@ IF :object_type = '59' and (:transaction_type = 'A' OR :transaction_type = 'U') 
 
 		END IF;
 END IF;
+/*
+-- NOTA FISCAL DE SAÍDA
+IF :object_type = '13' and (:transaction_type = 'A' OR :transaction_type = 'U') then 
+=======
 
 -- NOTA FISCAL DE SAÍDA
 /*IF :object_type = '13' and (:transaction_type = 'A' OR :transaction_type = 'U') then 
+>>>>>>> 004cfe47d42effb8bd579867f62ac11bcb88b8d8
 	
 	Select 
 		count(1) 
@@ -313,6 +319,10 @@ END IF;
          		error_message := XITEM;  
 
 		END IF;
+<<<<<<< HEAD
+END IF;
+*/
+
 END IF;*/
 
 
