@@ -796,7 +796,7 @@ WHERE
 	)
 	THEN 
 		error := 7;
-        error_message := 'Favor preencher campos da REINF na nota ou no parceiro ou no item'; 
+        error_message := 'Favor preencher campos da Reinf na nota ou no parceiro ou no item ou no modelo.'; 
    END IF;
   
 ----TRAVA CAMPOS Codigo de imposto /  CFOP / CST ICMS / CST PIS / CST COFINS
