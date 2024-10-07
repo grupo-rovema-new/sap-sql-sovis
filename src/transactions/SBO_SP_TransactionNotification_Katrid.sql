@@ -15,12 +15,14 @@ BEGIN
                 "U_Object_Name",
                 "DocEntry",
                 "Object",
-                "RequestStatus"
+                "RequestStatus",
+                "DocNum"
             ) VALUES (
                 'BusinessPartners',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
                 list_of_cols_val_tab_del,
-                transaction_type
+                transaction_type,
+                '2'
             );
 
         -- ITEM
@@ -30,30 +32,34 @@ BEGIN
                 "DocEntry",
                 "Object",
                 "RequestStatus",
-                "Remark"
+                "Remark",
+                "DocNum"
             ) VALUES (
                 'SQLQueries(''Sql_Items'')/List',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
                 '''' || TO_VARCHAR(list_of_cols_val_tab_del) || '''',
                 transaction_type,
-                'item'
+                'item',
+                '4'
             );
 
-        -- DEP ITEM
+ /*       -- DEP ITEM
         ELSEIF (object_type = '31') THEN
             INSERT INTO "@KATRID_INTE" (
                 "U_Object_Name",
                 "DocEntry",
                 "Object",
                 "RequestStatus",
-                "Remark"
+                "Remark",
+                "DocNum"
             ) VALUES (
                 'SQLQueries(''Sql_Items'')/List',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
                 '''' || SUBSTRING(TO_VARCHAR(list_of_cols_val_tab_del), 1, 11) || '''',
                 transaction_type,
-                'item'
-            );
+                'item',
+                '31'
+            );*/
 
         -- UTILIZAÇÕES
         ELSEIF (object_type = '260') THEN
@@ -61,12 +67,14 @@ BEGIN
                 "U_Object_Name",
                 "DocEntry",
                 "Object",
-                "RequestStatus"
+                "RequestStatus",
+                "DocNum"
             ) VALUES (
                 'NotaFiscalUsage',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
                 list_of_cols_val_tab_del,
-                transaction_type
+                transaction_type,
+                '260'
             );
 
         -- NF DE SAIDA
@@ -75,12 +83,14 @@ BEGIN
                 "U_Object_Name",
                 "DocEntry",
                 "Object",
-                "RequestStatus"
+                "RequestStatus",
+                "DocNum"
             ) VALUES (
                 'Invoices',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
                 list_of_cols_val_tab_del,
-                transaction_type
+                transaction_type,
+                '13'
             );
 
         -- NF DE ENTRADA
@@ -89,12 +99,14 @@ BEGIN
                 "U_Object_Name",
                 "DocEntry",
                 "Object",
-                "RequestStatus"
+                "RequestStatus",
+                "DocNum"
             ) VALUES (
                 'PurchaseInvoices',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
                 list_of_cols_val_tab_del,
-                transaction_type
+                transaction_type,
+                '18'
             );
 
         -- DEV DE SAIDA
@@ -103,12 +115,14 @@ BEGIN
                 "U_Object_Name",
                 "DocEntry",
                 "Object",
-                "RequestStatus"
+                "RequestStatus",
+                "DocNum"
             ) VALUES (
                 'CreditNotes',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
                 list_of_cols_val_tab_del,
-                transaction_type
+                transaction_type,
+                '14'
             );
 
         -- DEV DE ENTRADA
@@ -117,12 +131,14 @@ BEGIN
                 "U_Object_Name",
                 "DocEntry",
                 "Object",
-                "RequestStatus"
+                "RequestStatus",
+                "DocNum"
             ) VALUES (
                 'PurchaseCreditNotes',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
                 list_of_cols_val_tab_del,
-                transaction_type
+                transaction_type,
+                '19'
             );
 
         -- ENTREGA
@@ -131,12 +147,14 @@ BEGIN
                 "U_Object_Name",
                 "DocEntry",
                 "Object",
-                "RequestStatus"
+                "RequestStatus",
+                "DocNum"
             ) VALUES (
                 'DeliveryNotes',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
                 list_of_cols_val_tab_del,
-                transaction_type
+                transaction_type,
+                '15'
             );
            
            -- RECEBIMENTO
@@ -145,12 +163,14 @@ BEGIN
                 "U_Object_Name",
                 "DocEntry",
                 "Object",
-                "RequestStatus"
+                "RequestStatus",
+                "DocNum"
             ) VALUES (
                 'DeliveryNotes',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
                 list_of_cols_val_tab_del,
-                transaction_type
+                transaction_type,
+                '20'
             );
 
         -- LOTES
@@ -160,13 +180,15 @@ BEGIN
                 "DocEntry",
                 "Object",
                 "RequestStatus",
-                "Remark"
+                "Remark",
+                "DocNum"
             ) VALUES (
                 'SQLQueries(''Sql_Lotes'')/List',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
                 '''' || TO_VARCHAR(list_of_cols_val_tab_del) || '''',
                 transaction_type,
-                'batchnum'
+                'batchnum',
+                '106'
             );
 
         -- ALTERAÇÃO DE CUSTO
@@ -176,13 +198,15 @@ BEGIN
                 "DocEntry",
                 "Object",
                 "RequestStatus",
-                "Remark"
+                "Remark",
+                "DocNum"
             ) VALUES (
                 'SQLQueries(''Sql_Items_Custo'')/List',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
                 '''' || TO_VARCHAR(list_of_cols_val_tab_del) || '''',
                 transaction_type,
-                'transnum'
+                'transnum',
+                '58'
             );
 
         -- TRANSFERENCIA DE DEPOSITO
@@ -192,14 +216,16 @@ BEGIN
                 "DocEntry",
                 "Object",
                 "RequestStatus",
-                "Remark"
+                "Remark",
+                "DocNum"
             )
             SELECT 
                 'SQLQueries(''Sql_Items'')/List',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
                 '''' || TO_VARCHAR("ItemCode") || '''',
                 transaction_type,
-                'item'
+                'item',
+                '67'
             FROM WTR1
             WHERE "DocEntry" = list_of_cols_val_tab_del;
 

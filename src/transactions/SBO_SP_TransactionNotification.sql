@@ -320,4 +320,3 @@ END IF;
 select :error, SUBSTRING (:error_message,0,255) AS error_message FROM dummy;
 
 end;
-
