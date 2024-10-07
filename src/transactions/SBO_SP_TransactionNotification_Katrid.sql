@@ -16,7 +16,7 @@ BEGIN
                 "DocEntry",
                 "Object",
                 "RequestStatus",
-                "DocNum "
+                "DocNum"
             ) VALUES (
                 'BusinessPartners',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
@@ -33,7 +33,7 @@ BEGIN
                 "Object",
                 "RequestStatus",
                 "Remark",
-                "DocNum "
+                "DocNum"
             ) VALUES (
                 'SQLQueries(''Sql_Items'')/List',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
@@ -51,7 +51,7 @@ BEGIN
                 "Object",
                 "RequestStatus",
                 "Remark",
-                "DocNum "
+                "DocNum"
             ) VALUES (
                 'SQLQueries(''Sql_Items'')/List',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
@@ -68,7 +68,7 @@ BEGIN
                 "DocEntry",
                 "Object",
                 "RequestStatus",
-                "DocNum "
+                "DocNum"
             ) VALUES (
                 'NotaFiscalUsage',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
@@ -84,7 +84,7 @@ BEGIN
                 "DocEntry",
                 "Object",
                 "RequestStatus",
-                "DocNum "
+                "DocNum"
             ) VALUES (
                 'Invoices',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
@@ -100,7 +100,7 @@ BEGIN
                 "DocEntry",
                 "Object",
                 "RequestStatus",
-                "DocNum "
+                "DocNum"
             ) VALUES (
                 'PurchaseInvoices',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
@@ -116,7 +116,7 @@ BEGIN
                 "DocEntry",
                 "Object",
                 "RequestStatus",
-                "DocNum "
+                "DocNum"
             ) VALUES (
                 'CreditNotes',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
@@ -132,7 +132,7 @@ BEGIN
                 "DocEntry",
                 "Object",
                 "RequestStatus",
-                "DocNum "
+                "DocNum"
             ) VALUES (
                 'PurchaseCreditNotes',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
@@ -148,7 +148,7 @@ BEGIN
                 "DocEntry",
                 "Object",
                 "RequestStatus",
-                "DocNum "
+                "DocNum"
             ) VALUES (
                 'DeliveryNotes',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
@@ -164,7 +164,7 @@ BEGIN
                 "DocEntry",
                 "Object",
                 "RequestStatus",
-                "DocNum "
+                "DocNum"
             ) VALUES (
                 'DeliveryNotes',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
@@ -181,7 +181,7 @@ BEGIN
                 "Object",
                 "RequestStatus",
                 "Remark",
-                "DocNum "
+                "DocNum"
             ) VALUES (
                 'SQLQueries(''Sql_Lotes'')/List',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
@@ -199,7 +199,7 @@ BEGIN
                 "Object",
                 "RequestStatus",
                 "Remark",
-                "DocNum "
+                "DocNum"
             ) VALUES (
                 'SQLQueries(''Sql_Items_Custo'')/List',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
@@ -217,7 +217,7 @@ BEGIN
                 "Object",
                 "RequestStatus",
                 "Remark",
-                "DocNum "
+                "DocNum"
             )
             SELECT 
                 'SQLQueries(''Sql_Items'')/List',
