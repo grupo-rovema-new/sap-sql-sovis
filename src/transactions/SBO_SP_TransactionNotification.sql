@@ -285,3 +285,37 @@ END IF;
 select :error, SUBSTRING (:error_message,0,255) AS error_message FROM dummy;
 
 end;
+-- NOTA FISCAL DE SAÍDA
+IF :object_type = '13' and (:transaction_type = 'A' OR :transaction_type = 'U') then 
+    
+    Select 
+        count(1) 
+        into error1
+        From 
+            INV1 T0 
+            INNER JOIN OINV T1 ON T1."DocEntry" = T0."DocEntry"
+        Where 
+            T0."DocEntry"  = :list_of_cols_val_tab_del AND
+            T0."BaseType" = '17' AND
+            T1."CANCELED"  = 'N' AND
+            "Get_Pedido_Venda_Permissao_Faturamento"(T0."BaseEntry", T0."BaseLine", T0."Quantity" ) <> 'Ok';
+
+        IF(:error1 > 0) THEN
+            SELECT 
+                MIN("Get_Pedido_Venda_Permissao_Faturamento"(T0."BaseEntry", T0."BaseLine", T0."Quantity" )) 
+                INTO
+                XITEM
+            From 
+                INV1 T0 
+                INNER JOIN OINV T1 ON T1."DocEntry" = T0."DocEntry"
+            Where 
+                T0."DocEntry"  = :list_of_cols_val_tab_del AND
+                T0."BaseType" = '17' AND
+                T1."CANCELED"  = 'N' AND
+                "Get_Pedido_Venda_Permissao_Faturamento"(T0."BaseEntry", T0."BaseLine", T0."Quantity" ) <> 'Ok';
+                   
+                error := 1;
+                 error_message := XITEM;  
+
+        END IF;
+END IF;
