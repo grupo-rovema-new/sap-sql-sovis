@@ -1,4 +1,4 @@
-alter PROCEDURE SBO_SP_TransactionNotification_Rovema
+CREATE OR REPLACE PROCEDURE SBO_SP_TransactionNotification_Rovema
 (
 	in object_type nvarchar(30), 				-- SBO Object Type
 	in transaction_type nchar(1),			-- [A]dd, [U]pdate, [D]elete, [C]ancel, C[L]ose
@@ -235,6 +235,7 @@ SELECT 1 FROM OINV WHERE
 "SlpCode" = -1 
 AND "BPLName" LIKE '%SUSTE%'
 AND OINV."DocEntry"  = :list_of_cols_val_tab_del
+AND OINV."Model" IN ('54','39')
 ) THEN 
 		error := 7;
     	error_message :='Não pode venda sem vendedor!'; 
