@@ -315,7 +315,7 @@ END IF;
 		INNER JOIN DLN1 T1 ON T0."DocEntry" = T1."DocEntry"
  		WHERE 
  		T1."Usage" <> 17 AND
- 		T0."DiscPrcnt" <> 0  AND 
+ 		T0."DiscSumSy" BETWEEN -0.05 AND 0.05 AND 
  		T0."CANCELED" = 'N'
  		AND T0."DocEntry" = :list_of_cols_val_tab_del
    )
@@ -797,7 +797,7 @@ WHERE
 	)
 	THEN 
 		error := 7;
-        error_message := 'Favor preencher campos da REINF na nota ou no parceiro ou no item'; 
+        error_message := 'Favor preencher campos da Reinf na nota ou no parceiro ou no item ou no modelo.'; 
    END IF;
   
 ----TRAVA CAMPOS Codigo de imposto /  CFOP / CST ICMS / CST PIS / CST COFINS
@@ -1291,7 +1291,7 @@ IF  :object_type = '17' and (:transaction_type = 'A' OR :transaction_type = 'U')
  		WHERE 
  		T0."U_venda_futura" IS null
  		AND T1."Usage" <> 16 AND
- 		T0."DiscPrcnt" <> 0 AND 
+ 		T0."DiscSumSy" BETWEEN -0.05 AND 0.05 AND  
  		T0."CANCELED" = 'N'
  		AND T0."DocEntry" = :list_of_cols_val_tab_del
  		
@@ -1342,7 +1342,7 @@ IF :object_type = '13' and (:transaction_type = 'A') then
  		WHERE 
  		T0."U_venda_futura" IS null
  		AND T1."Usage" <> 16 AND
- 		T0."DiscPrcnt" <> 0 AND 
+ 	    T0."DiscSumSy" BETWEEN -0.05 AND 0.05 AND  
  		T0."CANCELED" = 'N'
  		AND T0."DocEntry" = :list_of_cols_val_tab_del
  		
