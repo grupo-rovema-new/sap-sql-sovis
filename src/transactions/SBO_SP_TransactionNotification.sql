@@ -315,7 +315,7 @@ IF :object_type = '13' and (:transaction_type = 'A' OR :transaction_type = 'U') 
                  error_message := XITEM;  
 
         END IF;
-END IF;
+
 
 --PAULO 09-09-2024.
     --VERIFICAÇÃO SE A NOTA É ENTREGA FUTURA. CASO POSITIVO, SO PERMITIR DESPESA ADICIONAL DE FRETE SIMPLES FATURAMENTO.
@@ -368,8 +368,7 @@ END IF;
     END IF;
 
 END IF;
-
-
+   
 -- VENDAS -> ENTREGA
 IF :object_type = '15' and (:transaction_type = 'A') then 
 
