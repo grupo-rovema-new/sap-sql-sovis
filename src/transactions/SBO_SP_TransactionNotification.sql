@@ -284,7 +284,6 @@ IF :object_type = '59' and (:transaction_type = 'A' OR :transaction_type = 'U') 
 END IF;
 
 -- NOTA FISCAL DE SAÍDA
--- NOTA FISCAL DE SAÍDA
 IF :object_type = '13' and (:transaction_type = 'A' OR :transaction_type = 'U') then 
    Select 
         count(1) 
@@ -402,3 +401,4 @@ END IF;
 select :error, SUBSTRING (:error_message,0,255) AS error_message FROM dummy;
 
 end;
+
