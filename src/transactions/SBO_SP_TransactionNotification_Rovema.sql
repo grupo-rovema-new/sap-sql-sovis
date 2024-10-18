@@ -1,4 +1,4 @@
-alter PROCEDURE SBO_SP_TransactionNotification_Rovema
+CREATE OR REPLACE PROCEDURE SBO_SP_TransactionNotification_Rovema
 (
 	in object_type nvarchar(30), 				-- SBO Object Type
 	in transaction_type nchar(1),			-- [A]dd, [U]pdate, [D]elete, [C]ancel, C[L]ose
@@ -235,6 +235,7 @@ SELECT 1 FROM OINV WHERE
 "SlpCode" = -1 
 AND "BPLName" LIKE '%SUSTE%'
 AND OINV."DocEntry"  = :list_of_cols_val_tab_del
+AND OINV."Model" IN ('54','39')
 ) THEN 
 		error := 7;
     	error_message :='Não pode venda sem vendedor!'; 
@@ -314,7 +315,7 @@ END IF;
 		INNER JOIN DLN1 T1 ON T0."DocEntry" = T1."DocEntry"
  		WHERE 
  		T1."Usage" <> 17 AND
- 		T0."DiscPrcnt" <> 0  AND 
+ 		NOT T0."DiscSumSy" BETWEEN -0.05 AND 0.05 AND 
  		T0."CANCELED" = 'N'
  		AND T0."DocEntry" = :list_of_cols_val_tab_del
    )
@@ -1290,7 +1291,7 @@ IF  :object_type = '17' and (:transaction_type = 'A' OR :transaction_type = 'U')
  		WHERE 
  		T0."U_venda_futura" IS null
  		AND T1."Usage" <> 16 AND
- 		T0."DiscPrcnt" <> 0 AND 
+ 		NOT T0."DiscSumSy" BETWEEN -0.05 AND 0.05 AND  
  		T0."CANCELED" = 'N'
  		AND T0."DocEntry" = :list_of_cols_val_tab_del
  		
@@ -1341,7 +1342,7 @@ IF :object_type = '13' and (:transaction_type = 'A') then
  		WHERE 
  		T0."U_venda_futura" IS null
  		AND T1."Usage" <> 16 AND
- 		T0."DiscPrcnt" <> 0 AND 
+ 	    NOT T0."DiscSumSy" BETWEEN -0.05 AND 0.05 AND  
  		T0."CANCELED" = 'N'
  		AND T0."DocEntry" = :list_of_cols_val_tab_del
  		
