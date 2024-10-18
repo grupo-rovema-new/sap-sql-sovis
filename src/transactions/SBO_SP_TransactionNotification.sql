@@ -15,7 +15,8 @@ error2 int;
 error3 int;
 error4 int;
 erroAdiantamento int;
-XITEM nvarchar (255); 		-- Error string to be displayed
+XITEM nvarchar (255);
+XCOUNT int;	-- Error string to be displayed
 error_message nvarchar (255); 		-- Error string to be displayed
 currDbNameForTaxOne nvarchar(128);
 companyDbIntBank nvarchar(128);
