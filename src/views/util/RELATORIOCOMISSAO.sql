@@ -181,7 +181,7 @@ T1."DocTransId" = T0."TransId"
 		AND (T5."Usage" = 9
 			OR T5."Usage" = 16)
 		AND T0."DocDate" >= TO_DATE(20230701, 'YYYYMMDD')
-		--AND T9."RefDocNum" IS NULL
+		AND T6."DocEntry" IS NULL
 		AND T0."U_Rov_Refaturamento" = 'NAO'
 UNION
 	SELECT
@@ -328,6 +328,7 @@ UNION
 (T5."Usage" = 9
 			OR T5."Usage" = 16)
 		AND T0."DocDate" >= TO_DATE(20230701, 'YYYYMMDD')
+		AND T6."DocEntry" IS NULL
 		AND T0."U_Rov_Refaturamento" = 'NAO'
 
  );
