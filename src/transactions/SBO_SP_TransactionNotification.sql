@@ -359,6 +359,61 @@ IF :object_type = '13' and (:transaction_type = 'A' OR :transaction_type = 'U') 
 	END IF;
 END IF;
 
+
+--PAULO 09-09-2024.
+    --VERIFICAÇÃO SE A NOTA É ENTREGA FUTURA. CASO POSITIVO, SO PERMITIR DESPESA ADICIONAL DE FRETE SIMPLES FATURAMENTO.
+    -- SE NÃO, NÃO PERMITIR USO DA DESPESA DE SIMPLES FATURAMENTO.
+    SELECT
+        COUNT(A."DocEntry") 
+        into XCOUNT
+    FROM
+        OINV A
+    WHERE
+        A."DocEntry" = :list_of_cols_val_tab_del AND A."CANCELED" = 'N' AND A."isIns" = 'Y';
+
+    IF XCOUNT > 0 THEN
+        SELECT COUNT(1) into error1 FROM INV3 T0 WHERE T0."DocEntry" = :list_of_cols_val_tab_del AND  T0."ExpnsCode" <> 5;
+        
+        IF error1 > 0 THEN
+            error := 1;
+               error_message := 'Despesa Adicional permitido somente Frete Simples Fatura para essa operação.';              
+        END IF;
+    
+    END IF;
+    IF XCOUNT = 0 THEN
+        SELECT COUNT(1) into error1 FROM INV3 T0 WHERE T0."DocEntry" = :list_of_cols_val_tab_del AND  T0."ExpnsCode" = 5;
+        
+        IF error1 > 0 THEN
+            error := 1;
+               error_message := 'Frete Simples Fatura somente Nota Mãe.';              
+        END IF;
+
+    END IF;
+
+    --PAULO 15-09-2024.
+    --VERIFICAÇÃO SE A NOTA TEM DESPESA ADICIONAL. SE SIM, VERIFICAR SE TEM IMPOSTO PREENCHIDO
+    SELECT
+        COUNT(A."DocEntry") 
+        into XCOUNT
+    FROM
+        INV3 A
+    WHERE
+        A."DocEntry" = :list_of_cols_val_tab_del;
+    
+    IF XCOUNT > 0 THEN
+        SELECT COUNT(1) into error1 FROM INV13 T0 WHERE T0."DocEntry" = :list_of_cols_val_tab_del AND T0."TaxCode" IS NULL;
+        
+        IF error1 > 0 THEN
+            error := 1;
+               error_message := 'Despesa Adicional é necessario ter imposto.';              
+        END IF;
+    
+    END IF;
+
+END IF;
+
+
+
 -- VENDAS -> ENTREGA
 IF :object_type = '15' and (:transaction_type = 'A') then 
 	--PAULO 09-09-2024.
