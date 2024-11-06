@@ -381,10 +381,17 @@ if  :object_type = '14' and (:transaction_type = 'A'or :transaction_type = 'U') 
 		END if;
 
 	IF NOT EXISTS (
-	SELECT 1 FROM orin 
-     INNER JOIN RIN21 ON orin."DocEntry" = RIN21."DocEntry"
-     WHERE 
-     RIN21."DocEntry" = :list_of_cols_val_tab_del
+	SELECT 1
+    FROM orin
+    WHERE 
+	    ORIN."CANCELED" = 'N'
+	    AND NOT EXISTS (
+	        SELECT 1 
+	        FROM RIN1 
+	        WHERE RIN1."DocEntry" = ORIN."DocEntry"
+	          AND RIN1."BaseEntry" IS NULL
+    )
+    AND "DocEntry" = :list_of_cols_val_tab_del
 	)
 	THEN
 		error := 7;
