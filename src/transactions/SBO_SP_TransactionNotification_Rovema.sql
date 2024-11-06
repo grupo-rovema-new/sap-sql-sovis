@@ -1314,7 +1314,8 @@ IF  :object_type = '17' and (:transaction_type = 'A' OR :transaction_type = 'U')
 		INNER JOIN RDR1 T1 ON T0."DocEntry" = T1."DocEntry" 
 		LEFT JOIN OPLN LP ON T1."U_idTabela" = LP."ListNum"
 	WHERE 
-	(T1."U_preco_negociado" = 0 
+	T0."U_venda_futura" IS null
+	AND (T1."U_preco_negociado" = 0 
 	OR T1."U_idTabela" IS NULL OR LP."U_publica_forca" = 0 OR 	LP."U_tipoComissao" IS NULL )
 	AND T0."BPLName" LIKE 'SUSTENNUTRI%'
 	AND T0."DocEntry"  = :list_of_cols_val_tab_del
