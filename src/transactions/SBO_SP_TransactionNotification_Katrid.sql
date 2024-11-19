@@ -166,7 +166,7 @@ BEGIN
                 "RequestStatus",
                 "DocNum"
             ) VALUES (
-                'DeliveryNotes',
+                'PurchaseDeliveryNotes',
                 COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
                 list_of_cols_val_tab_del,
                 transaction_type,
