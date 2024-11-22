@@ -228,7 +228,33 @@ BEGIN
                 '67'
             FROM WTR1
             WHERE "DocEntry" = list_of_cols_val_tab_del;
-
+           
+		-- COLABORADORES
+        ELSEIF (object_type = '171') THEN
+            INSERT INTO
+                "@KATRID_INTE" (
+                    "U_Object_Name",
+                    "DocEntry",
+                    "Object",
+                    "RequestStatus",
+                    "DocNum"
+                )
+            VALUES
+                (
+                    'EmployeesInfo',
+                    COALESCE(
+                        (
+                            SELECT
+                                MAX("DocEntry") + 1
+                            FROM
+                                "@KATRID_INTE"
+                        ),
+                        1
+                    ),
+                    list_of_cols_val_tab_del,
+                    transaction_type,
+                    '171'
+                );
         END IF; 
     END IF;
 END;
