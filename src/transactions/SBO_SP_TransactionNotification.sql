@@ -1,4 +1,4 @@
-CREATE PROCEDURE SBO_SP_TransactionNotification
+CREATE OR REPLACE PROCEDURE SBO_SP_TransactionNotification
 (
 	in object_type nvarchar(30), 				-- SBO Object Type
 	in transaction_type nchar(1),			-- [A]dd, [U]pdate, [D]elete, [C]ancel, C[L]ose
