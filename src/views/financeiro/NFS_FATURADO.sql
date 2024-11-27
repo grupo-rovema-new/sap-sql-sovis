@@ -4,6 +4,7 @@ SELECT
     T0."DocEntry" AS "EntryNota",
 	T0."DocNum" AS "DocNum",
 	COALESCE(T5."BaseLine",0) AS "BaseLine",
+	T0."Serial" AS "NotaFiscal",
 	CASE
 			WHEN T0."isIns" = 'Y' THEN  
 	T5."LineTotal"-COALESCE((

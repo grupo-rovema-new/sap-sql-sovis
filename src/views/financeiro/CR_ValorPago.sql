@@ -4,6 +4,7 @@ SELECT
 	T0."DocEntry" AS "EntryNota",
 	T2."DocNum" AS "N.Pag",
 	T2."DocEntry" AS "EntryPag",
+	T0."Serial" AS "NotaFiscal",
 	CASE
 		WHEN T1."PaidSum" = 0 THEN T1."AppliedSys"
 		ELSE T1."PaidSum"
