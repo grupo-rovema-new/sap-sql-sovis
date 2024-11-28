@@ -2,6 +2,7 @@ CREATE OR REPLACE VIEW NFS_FRETE AS
 SELECT
 	T0."DocEntry" AS "EntryNota",
 	T0."DocNum" AS "DocNum",
+	T2."DocNum" AS "N.Pag",
 	T5."BaseLine",
 	COALESCE(T12."LineTotal",0) AS "Frete",
 	(VP."Total pago" / NULLIF(T0."DocTotal",0)) * 100 AS "Percentual",
