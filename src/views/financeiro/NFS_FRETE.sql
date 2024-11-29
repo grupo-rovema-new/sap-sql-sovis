@@ -9,7 +9,7 @@ SELECT
 	FA."faturado",
 	VP."Total pago",
 	t5."LineTotal" AS "TotalItem",
-	COALESCE(T12."LineTotal",0) AS "Frete",
+	COALESCE(T12."LineTotal",0) AS "Frete2",
 	VP."Total pago"-COALESCE(T12."LineTotal",0) AS "PagoSemFrete",
 	(round((t5."LineTotal" / NULLIF(NV."TotalBruto",0)),2))*100 AS "Percentual",
 	round(((t5."LineTotal" / NULLIF(NV."TotalBruto",0)) * 100)*(T0."DiscPrcnt"/100),2) AS "%DescLinha",
