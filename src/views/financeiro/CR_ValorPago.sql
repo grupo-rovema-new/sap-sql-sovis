@@ -1,7 +1,9 @@
 CREATE OR REPLACE VIEW CR_VALORPAGO AS
 SELECT
-	DISTINCT 
+	T1."PaidSum",
+	T1."AppliedSys",
 	T0."DocEntry" AS "EntryNota",
+	T0."DocNum",
 	T2."DocNum" AS "N.Pag",
 	T2."DocEntry" AS "EntryPag",
 	T0."Serial" AS "NotaFiscal",
@@ -23,4 +25,5 @@ INNER JOIN "ORCT" T2 ON
 WHERE 
 	T0."CANCELED" = 'N'
 	AND T0."DocDate" >= TO_DATE(20230701, 'YYYYMMDD')
-	AND T0."U_Rov_Refaturamento" = 'NAO';
+	AND T0."U_Rov_Refaturamento" = 'NAO'
+	ORDER BY T0."DocEntry";

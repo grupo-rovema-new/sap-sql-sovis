@@ -4,17 +4,29 @@ SELECT
 	T0."DocNum" AS "DocNum",
 	T2."DocNum" AS "N.Pag",
 	T5."BaseLine",
-	COALESCE(T8."LineTotal",0) AS "Frete", 
+	COALESCE(T8."LineTotal",0) AS "FreteGeral", 
 	T0."DocTotal",
 	FA."faturado",
 	VP."Total pago",
+	CT."NumDesdobr",
+	T0."Installmnt",
 	t5."LineTotal" AS "TotalItem",
 	COALESCE(T12."LineTotal",0) AS "Frete2",
 	COALESCE(T12."LineTotal",0) AS "Frete",
+	COALESCE(T12."LineTotal",0) AS "FreteLinha",
+	COALESCE(T12."LineTotal",0) * (VP."Total pago" / NULLIF(T0."DocTotal",0)) AS "FreteLinha2",
 	VP."Total pago"-COALESCE(T12."LineTotal",0) AS "PagoSemFrete",
 	(round((t5."LineTotal" / NULLIF(NV."TotalBruto",0)),2))*100 AS "Percentual",
+	(VP."Total pago" / NULLIF(T0."DocTotal",0)) AS "Percentual2",
 	round(((t5."LineTotal" / NULLIF(NV."TotalBruto",0)) * 100)*(T0."DiscPrcnt"/100),2) AS "%DescLinha",
-	(ROUND((t5."LineTotal" / NULLIF(NV."TotalBruto",0)),2)*VP."Total pago")-COALESCE(T12."LineTotal",0) AS "TotPgSFrete"
+	CASE 
+		WHEN CT."NumDesdobr" > T0."Installmnt" THEN (ROUND((t5."LineTotal" / NULLIF(NV."TotalBruto",0)),2)*VP."Total pago")-COALESCE(T12."LineTotal",0) * (VP."Total pago" / NULLIF(T0."DocTotal",0))
+		WHEN CT."NumDesdobr" = T0."Installmnt" THEN (ROUND((t5."LineTotal" / NULLIF(NV."TotalBruto",0)),2)*VP."Total pago")-COALESCE(T12."LineTotal",0) * (VP."Total pago" / NULLIF(T0."DocTotal",0))
+		WHEN (COALESCE(T12."LineTotal",0) * (VP."Total pago" / NULLIF(T0."DocTotal",0))) < 1 THEN (ROUND((VP."Total pago" / NULLIF(T0."DocTotal",0)),2)*VP."Total pago")-COALESCE(T12."LineTotal",0)
+		ELSE (ROUND((VP."Total pago" / NULLIF(T0."DocTotal",0)),2)*VP."Total pago")-COALESCE(T12."LineTotal",0)
+	END AS "PagoLiq",
+	(ROUND((VP."Total pago" / NULLIF(T0."DocTotal",0)),2)*VP."Total pago")-COALESCE(T12."LineTotal",0) AS "TotPgSFrete",
+	(ROUND((t5."LineTotal" / NULLIF(NV."TotalBruto",0)),2)*VP."Total pago")-COALESCE(T12."LineTotal",0) * (VP."Total pago" / NULLIF(T0."DocTotal",0)) AS "TotPgSFrete2"
 FROM
 	OINV T0
 INNER JOIN "INV6" T3 ON
@@ -42,6 +54,9 @@ INNER JOIN "NFS_FATURADO" FA ON
 		T0."DocEntry" = FA."EntryNota"
 	AND T0."DocNum" = FA."DocNum"
 	AND T5."BaseLine" = FA."BaseLine"
+LEFT JOIN CR_TITULOSDESDOBRADO ct ON 
+		T0."DocEntry" = CT."DocEntry"
+	AND	T0."DocNum" = CT."DocNum"
 LEFT JOIN NFS_VALORBRUTO NV ON
 		T0."DocEntry" = NV."DocEntry"
 WHERE 
