@@ -4,6 +4,7 @@ T0."DocEntry",
 t0."DocNum",
 T11."U_regressiva",
 T11."U_porcentagem",
+COALESCE (T5."BaseLine",0) AS "BaseLine",
 CASE 
     WHEN (COALESCE(T11."U_regressiva", '') = '' OR T11."U_regressiva" = '0') THEN
         CASE 
@@ -38,7 +39,5 @@ LEFT JOIN "INV1" T5 ON
 LEFT JOIN "OPLN" T10 ON
 		T5."U_idTabela" = T10."ListNum"
 LEFT JOIN "@COMISSAO" T11 ON
-		T10."U_tipoComissao" = T11."Code"
-WHERE 
-	t0."DocEntry" = 60615;
+		T10."U_tipoComissao" = T11."Code";
 		
