@@ -14,5 +14,4 @@ INNER JOIN "RCT2" T1 ON
 INNER JOIN "ORCT" T2 ON
 		T2."DocEntry" = T1."DocNum"
 	AND T2."Canceled" = 'N'
-WHERE 
 GROUP BY T0."DocEntry",T0."DocNum";
