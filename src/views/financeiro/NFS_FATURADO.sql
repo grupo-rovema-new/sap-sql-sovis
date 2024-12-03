@@ -46,8 +46,8 @@ FROM
 INNER JOIN "INV1" T5 ON
 		T0."DocEntry" = T5."DocEntry"
 		
-UNION		
-		
+UNION	
+
 SELECT --Fatura de Adiantamento de clientes
 	DISTINCT 
     T0."DocEntry" AS "EntryNota",
@@ -103,8 +103,5 @@ LEFT JOIN
 LEFT JOIN 
     OINV INV
     ON INV."DocEntry" = PAYMENTS."DocEntry"
-LEFT JOIN 
-    OINV INV
-    ON INV."DocEntry" = PAYMENTS."DocEntry"
 WHERE 
-    DPI.CANCELED = 'N'; -- Apenas pagamentos ativos
+    T0.CANCELED = 'N'; -- Apenas pagamentos ativos
