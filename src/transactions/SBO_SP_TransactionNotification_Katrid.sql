@@ -255,7 +255,6 @@ BEGIN
                     transaction_type,
                     '171'
                 );
-        END IF; 
        
         -- CENTRO DE CUSTO
         ELSEIF (object_type = '61') THEN
