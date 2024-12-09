@@ -1923,7 +1923,23 @@ THEN
 error_message := 'Campo do Conta do Razão sem preenchimento! Procurar Contabilidade.';
 END IF;
 END IF;
-
+------------- TRAVA NOTA DE ENTRADA - CAMPO DATA DE VENCIMENTO E PRESTAÇÕES -------------
+IF :object_type = '18' and (:transaction_type = 'A' OR :transaction_type = 'U') THEN
+IF EXISTS(
+SELECT
+	*
+FROM
+	"PCH6" T0
+	INNER JOIN "OPCH" T1 ON T0."DocEntry" = T1."DocEntry" 
+WHERE
+(T0."DueDate" < T1."DocDate"
+OR T1."DocDueDate" < T1."DocDate") 
+AND T0."DocEntry" = :list_of_cols_val_tab_del
+    ) THEN
+        error := 3;
+        error_message := 'Verifique campo de Data de Vencimento ou Prestações, não é permitido datas retroativas!';
+    END IF;
+END IF;
 ----------------------------------------------------------------------------------------------
 /*Documento de marketing*/
 IF :object_type in('23') and  (:transaction_type = 'A' or :transaction_type = 'U') AND 1=2 THEN 
