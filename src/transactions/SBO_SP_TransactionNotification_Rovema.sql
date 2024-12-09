@@ -380,17 +380,23 @@ if  :object_type = '14' and (:transaction_type = 'A'or :transaction_type = 'U') 
 	    	error_message := 'Trocar para o depósito para o 500.05';  
 		END if;
 
-	IF NOT EXISTS (
+	IF  EXISTS (
 	SELECT 1
     FROM orin
     WHERE 
 	    ORIN."CANCELED" = 'N'
-	    AND NOT EXISTS (
+	   AND (NOT  EXISTS (
 	        SELECT 1 
 	        FROM RIN1 
-	        WHERE RIN1."DocEntry" = ORIN."DocEntry"
-	          AND RIN1."BaseEntry" IS NULL
+	        WHERE RIN1."DocEntry" = :list_of_cols_val_tab_del
+	          AND RIN1."BaseEntry"  IS NOT NULL
     )
+    and 
+    NOT EXISTS (
+    SELECT 1 FROM 
+    RIN21 WHERE RIN21."DocEntry" = :list_of_cols_val_tab_del
+    ))
+    
     AND "DocEntry" = :list_of_cols_val_tab_del
 	)
 	THEN
@@ -464,15 +470,28 @@ END if;
 -----------------------------------------------------------------------------------------
 if  :object_type = '16' and (:transaction_type = 'A'or :transaction_type = 'U') THEN
 
-	IF NOT EXISTS (
-	SELECT 1 FROM ORDN 
-     INNER JOIN RDN21 ON ORDN."DocEntry" = RDN21."DocEntry"
-     WHERE 
-     RDN21."DocEntry" = :list_of_cols_val_tab_del
+	IF  EXISTS (
+	SELECT 1
+    FROM ORDN
+    WHERE 
+	    ORDN."CANCELED" = 'N'
+	   AND (NOT  EXISTS (
+	        SELECT 1 
+	        FROM RDN1 
+	        WHERE RDN1."DocEntry" = :list_of_cols_val_tab_del
+	          AND RDN1."BaseEntry"  IS NOT NULL
+    )
+    and 
+    NOT EXISTS (
+    SELECT 1 FROM 
+    RDN21 WHERE RDN21."DocEntry" = :list_of_cols_val_tab_del
+    ))
+    
+    AND "DocEntry" = :list_of_cols_val_tab_del
 	)
 	THEN
 		error := 7;
-		error_message := 'Colocar referencia da nota';  
+    	error_message := 'Colocar referencia da nota';  
 	END if;
 	IF EXISTS(
 		SELECT 
@@ -493,15 +512,28 @@ END if;
 ----------------------------------------------------------------------------------------
 if  :object_type = '21' and (:transaction_type = 'A') THEN
 
-	IF NOT EXISTS (
-	SELECT 1 FROM ORPD 
-     INNER JOIN RPD21 ON ORPD."DocEntry" = RPD21."DocEntry"
-     WHERE 
-     RPD21."DocEntry" = :list_of_cols_val_tab_del
+	IF  EXISTS (
+	SELECT 1
+    FROM ORPD
+    WHERE 
+	    ORPD."CANCELED" = 'N'
+	   AND (NOT  EXISTS (
+	        SELECT 1 
+	        FROM RPD1 
+	        WHERE RPD1."DocEntry" = :list_of_cols_val_tab_del
+	          AND RPD1."BaseEntry"  IS NOT NULL
+    )
+    and 
+    NOT EXISTS (
+    SELECT 1 FROM 
+    RPD21 WHERE RPD21."DocEntry" = :list_of_cols_val_tab_del
+    ))
+    
+    AND "DocEntry" = :list_of_cols_val_tab_del
 	)
 	THEN
 		error := 7;
-		error_message := 'Colocar referencia da nota';  
+    	error_message := 'Colocar referencia da nota';  
 	END if;
 	IF EXISTS(
 		SELECT 
@@ -881,6 +913,39 @@ SELECT
 			error := 3;
          	error_message := 'A Nota de Entrada não contém desoneração, verificar no cadastro do item as informações SUJEITO A RETENÇÃO DE IMPOSTO e CONVENIO 100';  
 	End If;
+
+IF EXISTS(
+SELECT 1 FROM 
+OPCH NOTA
+INNER JOIN PCH1 p ON NOTA."DocEntry" = P."DocEntry" 
+INNER JOIN STC1 imposto ON imposto."STCCode" = p."TaxCode"  AND IMPOSTO."STAType" = 19
+WHERE 
+P."DocEntry" = :list_of_cols_val_tab_del 
+AND NOTA."CANCELED" = 'N'
+AND NOTA."Model" NOT IN (37,38) 
+AND P."CSTfPIS" <> IMPOSTO."CstCodeIn"
+)
+  Then       
+			error := 7;
+         	error_message := 'O CST do PIS não corresponde ao código do imposto.';  
+	End If;
+
+IF EXISTS(
+SELECT 1 FROM 
+OPCH NOTA
+INNER JOIN PCH1 p ON NOTA."DocEntry" = P."DocEntry" 
+LEFT JOIN STC1 imposto ON imposto."STCCode" = p."TaxCode"  AND IMPOSTO."STAType" = 21
+WHERE 
+P."DocEntry" = :list_of_cols_val_tab_del 
+AND NOTA."CANCELED" = 'N'
+AND NOTA."Model" NOT IN (37,38) 
+AND P."CSTfCOFINS" <> IMPOSTO."CstCodeIn"
+)
+  Then       
+			error := 7;
+         	error_message := 'O CST do COFINS não corresponde ao código do imposto.';  
+	End If;
+
 -----------------------------------------------------------------------------------------------
 
 
@@ -1139,6 +1204,38 @@ SELECT
 		error := 8;
 		error_message := 'Entrada com valor divergente da Nota de Saída!'; 
 END IF;
+IF EXISTS(
+SELECT 1 FROM 
+OPDN NOTA
+INNER JOIN PDN1 p ON NOTA."DocEntry" = P."DocEntry" 
+INNER JOIN STC1 imposto ON imposto."STCCode" = p."TaxCode"  AND IMPOSTO."STAType" = 19
+WHERE 
+P."DocEntry" = :list_of_cols_val_tab_del 
+AND NOTA."CANCELED" = 'N'
+AND NOTA."Model" NOT IN (37,38) 
+AND P."CSTfPIS" <> IMPOSTO."CstCodeIn"
+)
+  Then       
+			error := 7;
+         	error_message := 'O CST do PIS não corresponde ao código do imposto.';  
+	End If;
+
+IF EXISTS(
+SELECT 1 FROM 
+OPDN NOTA
+INNER JOIN PDN1 p ON NOTA."DocEntry" = P."DocEntry" 
+LEFT JOIN STC1 imposto ON imposto."STCCode" = p."TaxCode"  AND IMPOSTO."STAType" = 21
+WHERE 
+P."DocEntry" = :list_of_cols_val_tab_del 
+AND NOTA."CANCELED" = 'N'
+AND NOTA."Model" NOT IN (37,38) 
+AND P."CSTfCOFINS" <> IMPOSTO."CstCodeIn"
+)
+  Then       
+			error := 7;
+         	error_message := 'O CST do COFINS não corresponde ao código do imposto.';  
+	End If;
+
 
 END IF;
 ----------------------------------------------------------------------------------------------
