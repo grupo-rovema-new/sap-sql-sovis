@@ -379,8 +379,7 @@ if  :object_type = '14' and (:transaction_type = 'A'or :transaction_type = 'U') 
 			error := 7;
 	    	error_message := 'Trocar para o depósito para o 500.05';  
 		END if;
-
-	IF NOT EXISTS (
+/*IF NOT EXISTS (
 	SELECT 1
     FROM orin
     WHERE 
@@ -395,8 +394,31 @@ if  :object_type = '14' and (:transaction_type = 'A'or :transaction_type = 'U') 
 	)
 	THEN
 		error := 7;
+    	error_message := 'Colocar referencia da nota';  */
+	IF  EXISTS (
+	SELECT 1
+    FROM orin
+    WHERE 
+	    ORIN."CANCELED" = 'N'
+	   AND (NOT  EXISTS (
+	        SELECT 1 
+	        FROM RIN1 
+	        WHERE RIN1."DocEntry" = :list_of_cols_val_tab_del
+	          AND RIN1."BaseEntry"  IS NOT NULL
+    )
+    and 
+    NOT EXISTS (
+    SELECT 1 FROM 
+    RIN21 WHERE RIN21."DocEntry" = :list_of_cols_val_tab_del
+    ))
+    
+    AND "DocEntry" = :list_of_cols_val_tab_del
+	)
+	THEN
+		error := 7;
     	error_message := 'Colocar referencia da nota';  
 	END if;
+
 	IF EXISTS(
 		SELECT 
 		1
@@ -434,8 +456,7 @@ END if;
 
 ---------------------------------------------------------------------------------------
 if  :object_type = '19' and (:transaction_type = 'A') THEN
-
-	IF NOT EXISTS (
+	/*IF NOT EXISTS (
 	SELECT 1 FROM ORPC 
      INNER JOIN RPC21 ON ORPC."DocEntry" = RPC21."DocEntry"
      WHERE 
@@ -444,7 +465,31 @@ if  :object_type = '19' and (:transaction_type = 'A') THEN
 	THEN
 		error := 7;
 		error_message := 'Colocar referencia da nota';  
+	END if;*/
+IF  EXISTS (
+	SELECT 1
+    FROM ORPC
+    WHERE 
+	    ORPC."CANCELED" = 'N'
+	   AND (NOT  EXISTS (
+	        SELECT 1 
+	        FROM RPC21 
+	        WHERE RPC21."DocEntry" = :list_of_cols_val_tab_del
+	          AND RPC21."BaseEntry"  IS NOT NULL
+    )
+    and 
+    NOT EXISTS (
+    SELECT 1 FROM 
+    RPC21 WHERE RPC21."DocEntry" = :list_of_cols_val_tab_del
+    ))
+    
+    AND "DocEntry" = :list_of_cols_val_tab_del
+	)
+	THEN
+		error := 7;
+    	error_message := 'Colocar referencia da nota';  
 	END if;
+
 	IF EXISTS(
 		SELECT 
 		1
@@ -463,8 +508,7 @@ if  :object_type = '19' and (:transaction_type = 'A') THEN
 END if;
 -----------------------------------------------------------------------------------------
 if  :object_type = '16' and (:transaction_type = 'A'or :transaction_type = 'U') THEN
-
-	IF NOT EXISTS (
+/*	IF NOT EXISTS (
 	SELECT 1 FROM ORDN 
      INNER JOIN RDN21 ON ORDN."DocEntry" = RDN21."DocEntry"
      WHERE 
@@ -473,7 +517,31 @@ if  :object_type = '16' and (:transaction_type = 'A'or :transaction_type = 'U') 
 	THEN
 		error := 7;
 		error_message := 'Colocar referencia da nota';  
+	END if;*/
+IF  EXISTS (
+	SELECT 1
+    FROM ORDN
+    WHERE 
+	    ORDN."CANCELED" = 'N'
+	   AND (NOT  EXISTS (
+	        SELECT 1 
+	        FROM RDN21 
+	        WHERE RDN21."DocEntry" = :list_of_cols_val_tab_del
+	          AND RDN21."BaseEntry"  IS NOT NULL
+    )
+    and 
+    NOT EXISTS (
+    SELECT 1 FROM 
+    RDN21 WHERE RDN21."DocEntry" = :list_of_cols_val_tab_del
+    ))
+    
+    AND "DocEntry" = :list_of_cols_val_tab_del
+	)
+	THEN
+		error := 7;
+    	error_message := 'Colocar referencia da nota';  
 	END if;
+
 	IF EXISTS(
 		SELECT 
 		1
@@ -492,8 +560,7 @@ if  :object_type = '16' and (:transaction_type = 'A'or :transaction_type = 'U') 
 END if;
 ----------------------------------------------------------------------------------------
 if  :object_type = '21' and (:transaction_type = 'A') THEN
-
-	IF NOT EXISTS (
+/*	IF NOT EXISTS (
 	SELECT 1 FROM ORPD 
      INNER JOIN RPD21 ON ORPD."DocEntry" = RPD21."DocEntry"
      WHERE 
@@ -502,7 +569,31 @@ if  :object_type = '21' and (:transaction_type = 'A') THEN
 	THEN
 		error := 7;
 		error_message := 'Colocar referencia da nota';  
+	END if;*/
+IF  EXISTS (
+	SELECT 1
+    FROM ORPD
+    WHERE 
+	    ORPD."CANCELED" = 'N'
+	   AND (NOT  EXISTS (
+	        SELECT 1 
+	        FROM RPD21 
+	        WHERE RPD21."DocEntry" = :list_of_cols_val_tab_del
+	          AND RPD21."BaseEntry"  IS NOT NULL
+    )
+    and 
+    NOT EXISTS (
+    SELECT 1 FROM 
+    RPD21 WHERE RPD21."DocEntry" = :list_of_cols_val_tab_del
+    ))
+    
+    AND "DocEntry" = :list_of_cols_val_tab_del
+	)
+	THEN
+		error := 7;
+    	error_message := 'Colocar referencia da nota';  
 	END if;
+
 	IF EXISTS(
 		SELECT 
 		1
