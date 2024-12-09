@@ -286,7 +286,7 @@ END IF;
 
 -- NOTA FISCAL DE SAÍDA
 IF :object_type = '13' and (:transaction_type = 'A' OR :transaction_type = 'U') then 
-   Select 
+ Select 
         count(1) 
         into error1
         From 
@@ -318,6 +318,11 @@ IF :object_type = '13' and (:transaction_type = 'A' OR :transaction_type = 'U') 
 	--PAULO 09-09-2024.
 	--VERIFICAÇÃO SE A NOTA É ENTREGA FUTURA. CASO POSITIVO, SO PERMITIR DESPESA ADICIONAL DE FRETE SIMPLES FATURAMENTO.
 	-- SE NÃO, NÃO PERMITIR USO DA DESPESA DE SIMPLES FATURAMENTO.
+IF EXISTS(
+SELECT 1 FROM INV1 
+WHERE 
+INV1."DocEntry"  = :list_of_cols_val_tab_del
+AND INV1."LineStatus" <> 'C') THEN
 	SELECT
 		COUNT(A."DocEntry") 
 		into XCOUNT
@@ -340,6 +345,7 @@ IF :object_type = '13' and (:transaction_type = 'A' OR :transaction_type = 'U') 
     	   	error_message := 'Frete Simples Fatura somente Nota Mãe.';  			
 		END IF;
 	END IF;
+END IF;
 	--PAULO 15-09-2024.
 	--VERIFICAÇÃO SE A NOTA TEM DESPESA ADICIONAL. SE SIM, VERIFICAR SE TEM IMPOSTO PREENCHIDO
 	SELECT
@@ -458,4 +464,3 @@ END IF;
 select :error, SUBSTRING (:error_message,0,255) AS error_message FROM dummy;
 
 end;
-
