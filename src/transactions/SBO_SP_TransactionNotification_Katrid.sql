@@ -255,6 +255,33 @@ BEGIN
                     transaction_type,
                     '171'
                 );
+       
+        -- CENTRO DE CUSTO
+        ELSEIF (object_type = '61') THEN
+            INSERT INTO
+                "@KATRID_INTE" (
+                    "U_Object_Name",
+                    "DocEntry",
+                    "Object",
+                    "RequestStatus",
+                    "DocNum"
+                )
+            VALUES
+                (
+                    'DistributionRules',
+                    COALESCE(
+                        (
+                            SELECT
+                                MAX("DocEntry") + 1
+                            FROM
+                                "@KATRID_INTE"
+                        ),
+                        1
+                    ),
+                    list_of_cols_val_tab_del,
+                    transaction_type,
+                    '61'
+                );
         END IF; 
        
         -- CENTRO DE CUSTO
