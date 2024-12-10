@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 CREATE OR REPLACE PROCEDURE SBO_SP_VALIDACAO_VENDA_FUTURA
+=======
+CREATE OR REPLACE  PROCEDURE SBO_SP_VALIDACAO_VENDA_FUTURA
+>>>>>>> 225e2c01c05c4f1af6c7bba0b5f777c9ecfb3069
 (
     in object_type nvarchar(30),                 -- SBO Object Type
     in transaction_type nchar(1),                -- [A]dd, [U]pdate, [D]elete, [C]ancel, C[L]ose
@@ -89,4 +93,8 @@ BEGIN
         END IF;
 
     END IF;
+<<<<<<< HEAD
 END;
+=======
+END;
+>>>>>>> 225e2c01c05c4f1af6c7bba0b5f777c9ecfb3069

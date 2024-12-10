@@ -1,4 +1,4 @@
-alter PROCEDURE SBO_SP_TransactionNotification_Rovema
+CREATE OR REPLACE PROCEDURE SBO_SP_TransactionNotification_Rovema
 (
 	in object_type nvarchar(30), 				-- SBO Object Type
 	in transaction_type nchar(1),			-- [A]dd, [U]pdate, [D]elete, [C]ancel, C[L]ose
@@ -235,6 +235,7 @@ SELECT 1 FROM OINV WHERE
 "SlpCode" = -1 
 AND "BPLName" LIKE '%SUSTE%'
 AND OINV."DocEntry"  = :list_of_cols_val_tab_del
+AND OINV."Model" IN ('54','39')
 ) THEN 
 		error := 7;
     	error_message :='Não pode venda sem vendedor!'; 
@@ -314,7 +315,7 @@ END IF;
 		INNER JOIN DLN1 T1 ON T0."DocEntry" = T1."DocEntry"
  		WHERE 
  		T1."Usage" <> 17 AND
- 		T0."DiscPrcnt" <> 0  AND 
+ 		NOT T0."DiscSumSy" BETWEEN -0.05 AND 0.05 AND 
  		T0."CANCELED" = 'N'
  		AND T0."DocEntry" = :list_of_cols_val_tab_del
    )
@@ -379,11 +380,24 @@ if  :object_type = '14' and (:transaction_type = 'A'or :transaction_type = 'U') 
 	    	error_message := 'Trocar para o depósito para o 500.05';  
 		END if;
 
-	IF NOT EXISTS (
-	SELECT 1 FROM orin 
-     INNER JOIN RIN21 ON orin."DocEntry" = RIN21."DocEntry"
-     WHERE 
-     RIN21."DocEntry" = :list_of_cols_val_tab_del
+	IF  EXISTS (
+	SELECT 1
+    FROM orin
+    WHERE 
+	    ORIN."CANCELED" = 'N'
+	   AND (NOT  EXISTS (
+	        SELECT 1 
+	        FROM RIN1 
+	        WHERE RIN1."DocEntry" = :list_of_cols_val_tab_del
+	          AND RIN1."BaseEntry"  IS NOT NULL
+    )
+    and 
+    NOT EXISTS (
+    SELECT 1 FROM 
+    RIN21 WHERE RIN21."DocEntry" = :list_of_cols_val_tab_del
+    ))
+    
+    AND "DocEntry" = :list_of_cols_val_tab_del
 	)
 	THEN
 		error := 7;
@@ -456,15 +470,28 @@ END if;
 -----------------------------------------------------------------------------------------
 if  :object_type = '16' and (:transaction_type = 'A'or :transaction_type = 'U') THEN
 
-	IF NOT EXISTS (
-	SELECT 1 FROM ORDN 
-     INNER JOIN RDN21 ON ORDN."DocEntry" = RDN21."DocEntry"
-     WHERE 
-     RDN21."DocEntry" = :list_of_cols_val_tab_del
+	IF  EXISTS (
+	SELECT 1
+    FROM ORDN
+    WHERE 
+	    ORDN."CANCELED" = 'N'
+	   AND (NOT  EXISTS (
+	        SELECT 1 
+	        FROM RDN1 
+	        WHERE RDN1."DocEntry" = :list_of_cols_val_tab_del
+	          AND RDN1."BaseEntry"  IS NOT NULL
+    )
+    and 
+    NOT EXISTS (
+    SELECT 1 FROM 
+    RDN21 WHERE RDN21."DocEntry" = :list_of_cols_val_tab_del
+    ))
+    
+    AND "DocEntry" = :list_of_cols_val_tab_del
 	)
 	THEN
 		error := 7;
-		error_message := 'Colocar referencia da nota';  
+    	error_message := 'Colocar referencia da nota';  
 	END if;
 	IF EXISTS(
 		SELECT 
@@ -485,15 +512,28 @@ END if;
 ----------------------------------------------------------------------------------------
 if  :object_type = '21' and (:transaction_type = 'A') THEN
 
-	IF NOT EXISTS (
-	SELECT 1 FROM ORPD 
-     INNER JOIN RPD21 ON ORPD."DocEntry" = RPD21."DocEntry"
-     WHERE 
-     RPD21."DocEntry" = :list_of_cols_val_tab_del
+	IF  EXISTS (
+	SELECT 1
+    FROM ORPD
+    WHERE 
+	    ORPD."CANCELED" = 'N'
+	   AND (NOT  EXISTS (
+	        SELECT 1 
+	        FROM RPD1 
+	        WHERE RPD1."DocEntry" = :list_of_cols_val_tab_del
+	          AND RPD1."BaseEntry"  IS NOT NULL
+    )
+    and 
+    NOT EXISTS (
+    SELECT 1 FROM 
+    RPD21 WHERE RPD21."DocEntry" = :list_of_cols_val_tab_del
+    ))
+    
+    AND "DocEntry" = :list_of_cols_val_tab_del
 	)
 	THEN
 		error := 7;
-		error_message := 'Colocar referencia da nota';  
+    	error_message := 'Colocar referencia da nota';  
 	END if;
 	IF EXISTS(
 		SELECT 
@@ -796,7 +836,7 @@ WHERE
 	)
 	THEN 
 		error := 7;
-        error_message := 'Favor preencher campos da REINF na nota ou no parceiro ou no item'; 
+        error_message := 'Favor preencher campos da Reinf na nota ou no parceiro ou no item ou no modelo.'; 
    END IF;
   
 ----TRAVA CAMPOS Codigo de imposto /  CFOP / CST ICMS / CST PIS / CST COFINS
@@ -873,6 +913,39 @@ SELECT
 			error := 3;
          	error_message := 'A Nota de Entrada não contém desoneração, verificar no cadastro do item as informações SUJEITO A RETENÇÃO DE IMPOSTO e CONVENIO 100';  
 	End If;
+
+IF EXISTS(
+SELECT 1 FROM 
+OPCH NOTA
+INNER JOIN PCH1 p ON NOTA."DocEntry" = P."DocEntry" 
+INNER JOIN STC1 imposto ON imposto."STCCode" = p."TaxCode"  AND IMPOSTO."STAType" = 19
+WHERE 
+P."DocEntry" = :list_of_cols_val_tab_del 
+AND NOTA."CANCELED" = 'N'
+AND NOTA."Model" NOT IN (37,38) 
+AND P."CSTfPIS" <> IMPOSTO."CstCodeIn"
+)
+  Then       
+			error := 7;
+         	error_message := 'O CST do PIS não corresponde ao código do imposto.';  
+	End If;
+
+IF EXISTS(
+SELECT 1 FROM 
+OPCH NOTA
+INNER JOIN PCH1 p ON NOTA."DocEntry" = P."DocEntry" 
+LEFT JOIN STC1 imposto ON imposto."STCCode" = p."TaxCode"  AND IMPOSTO."STAType" = 21
+WHERE 
+P."DocEntry" = :list_of_cols_val_tab_del 
+AND NOTA."CANCELED" = 'N'
+AND NOTA."Model" NOT IN (37,38) 
+AND P."CSTfCOFINS" <> IMPOSTO."CstCodeIn"
+)
+  Then       
+			error := 7;
+         	error_message := 'O CST do COFINS não corresponde ao código do imposto.';  
+	End If;
+
 -----------------------------------------------------------------------------------------------
 
 
@@ -1131,6 +1204,38 @@ SELECT
 		error := 8;
 		error_message := 'Entrada com valor divergente da Nota de Saída!'; 
 END IF;
+IF EXISTS(
+SELECT 1 FROM 
+OPDN NOTA
+INNER JOIN PDN1 p ON NOTA."DocEntry" = P."DocEntry" 
+INNER JOIN STC1 imposto ON imposto."STCCode" = p."TaxCode"  AND IMPOSTO."STAType" = 19
+WHERE 
+P."DocEntry" = :list_of_cols_val_tab_del 
+AND NOTA."CANCELED" = 'N'
+AND NOTA."Model" NOT IN (37,38) 
+AND P."CSTfPIS" <> IMPOSTO."CstCodeIn"
+)
+  Then       
+			error := 7;
+         	error_message := 'O CST do PIS não corresponde ao código do imposto.';  
+	End If;
+
+IF EXISTS(
+SELECT 1 FROM 
+OPDN NOTA
+INNER JOIN PDN1 p ON NOTA."DocEntry" = P."DocEntry" 
+LEFT JOIN STC1 imposto ON imposto."STCCode" = p."TaxCode"  AND IMPOSTO."STAType" = 21
+WHERE 
+P."DocEntry" = :list_of_cols_val_tab_del 
+AND NOTA."CANCELED" = 'N'
+AND NOTA."Model" NOT IN (37,38) 
+AND P."CSTfCOFINS" <> IMPOSTO."CstCodeIn"
+)
+  Then       
+			error := 7;
+         	error_message := 'O CST do COFINS não corresponde ao código do imposto.';  
+	End If;
+
 
 END IF;
 ----------------------------------------------------------------------------------------------
@@ -1290,7 +1395,7 @@ IF  :object_type = '17' and (:transaction_type = 'A' OR :transaction_type = 'U')
  		WHERE 
  		T0."U_venda_futura" IS null
  		AND T1."Usage" <> 16 AND
- 		T0."DiscPrcnt" <> 0 AND 
+ 		NOT T0."DiscSumSy" BETWEEN -0.05 AND 0.05 AND  
  		T0."CANCELED" = 'N'
  		AND T0."DocEntry" = :list_of_cols_val_tab_del
  		
@@ -1306,7 +1411,8 @@ IF  :object_type = '17' and (:transaction_type = 'A' OR :transaction_type = 'U')
 		INNER JOIN RDR1 T1 ON T0."DocEntry" = T1."DocEntry" 
 		LEFT JOIN OPLN LP ON T1."U_idTabela" = LP."ListNum"
 	WHERE 
-	(T1."U_preco_negociado" = 0 
+	T0."U_venda_futura" IS null
+	AND (T1."U_preco_negociado" = 0 
 	OR T1."U_idTabela" IS NULL OR LP."U_publica_forca" = 0 OR 	LP."U_tipoComissao" IS NULL )
 	AND T0."BPLName" LIKE 'SUSTENNUTRI%'
 	AND T0."DocEntry"  = :list_of_cols_val_tab_del
@@ -1341,7 +1447,7 @@ IF :object_type = '13' and (:transaction_type = 'A') then
  		WHERE 
  		T0."U_venda_futura" IS null
  		AND T1."Usage" <> 16 AND
- 		T0."DiscPrcnt" <> 0 AND 
+ 	    NOT T0."DiscSumSy" BETWEEN -0.05 AND 0.05 AND  
  		T0."CANCELED" = 'N'
  		AND T0."DocEntry" = :list_of_cols_val_tab_del
  		
@@ -1822,6 +1928,27 @@ THEN
 error_message := 'CANCELAMENTO NÃO PERMITIDO, NF-E AINDA ESTÁ AUTORIZADA!';
 END IF;
 END IF;
+------------------ TRAVA NOTA DE ENTRADA - CAMPO "Sujeito IRF"  ------------------------
+IF :object_type = '18'
+AND (:transaction_type = 'A'
+    OR :transaction_type = 'U') THEN
+IF EXISTS (
+SELECT
+    1
+FROM
+    PCH1
+INNER JOIN CRD11 ON CRD11."CardCode" = PCH1."BaseCard"
+INNER JOIN OPCH ON OPCH."DocEntry" = PCH1."DocEntry" 
+WHERE
+    PCH1."DocEntry" = :list_of_cols_val_tab_del
+    AND CRD11."TributType" = 11
+    AND PCH1."WtLiable" <> 'Y'
+    AND OPCH."Model" = 54
+    ) THEN
+        error := 3;
+        error_message := 'O parceiro é um Produtor Rural, portanto é necessário que o campo "Sujeito IRF" esteja marcado como SIM';
+END IF;
+END IF;
 ------------------TRAVA PEDIDO - NOTA SAÍDA - QUANTIDADE PENDENTES ------------------------
 IF :object_type = '13'
 AND (:transaction_type = 'A')THEN
@@ -1893,7 +2020,23 @@ THEN
 error_message := 'Campo do Conta do Razão sem preenchimento! Procurar Contabilidade.';
 END IF;
 END IF;
-
+------------- TRAVA NOTA DE ENTRADA - CAMPO DATA DE VENCIMENTO E PRESTAÇÕES -------------
+IF :object_type = '18' and (:transaction_type = 'A' OR :transaction_type = 'U') THEN
+IF EXISTS(
+SELECT
+	*
+FROM
+	"PCH6" T0
+	INNER JOIN "OPCH" T1 ON T0."DocEntry" = T1."DocEntry" 
+WHERE
+(T0."DueDate" < T1."DocDate"
+OR T1."DocDueDate" < T1."DocDate") 
+AND T0."DocEntry" = :list_of_cols_val_tab_del
+    ) THEN
+        error := 3;
+        error_message := 'Verifique campo de Data de Vencimento ou Prestações, não é permitido datas retroativas!';
+    END IF;
+END IF;
 ----------------------------------------------------------------------------------------------
 /*Documento de marketing*/
 IF :object_type in('23') and  (:transaction_type = 'A' or :transaction_type = 'U') AND 1=2 THEN 

@@ -20,6 +20,7 @@ query nvarchar(255);
 tipoDoc nvarchar(4);
 futura nvarchar(4);--Verificar se a nota é futura
 xcount int;
+modelo nvarchar(100);
 
 BEGIN
 
@@ -29,6 +30,7 @@ BEGIN
     xcount := 0;
     pTblPrefix := '';
     futura := '';
+    modelo := '';
 
     IF object_type = '13' THEN -- NOTA FISCAL DE SAÍDA
         pTblSuffix := 'OINV';
@@ -57,11 +59,11 @@ BEGIN
     END IF;
 
     IF pTblSuffix <> '-1' THEN
-        query := 'SELECT TOP 1 OBJETO."BPLId", LINHA."Usage", OBJETO."isIns",OBJETO."DocType" FROM ' || pTblSuffix || ' OBJETO INNER JOIN ' || pTblPrefix || ' LINHA ON OBJETO."DocEntry" = LINHA."DocEntry" WHERE  OBJETO."DocEntry" = ' || :list_of_cols_val_tab_del;
+        query := 'SELECT TOP 1 OBJETO."BPLId", LINHA."Usage", OBJETO."isIns",OBJETO."DocType", OBJETO."Model" FROM ' || pTblSuffix || ' OBJETO INNER JOIN ' || pTblPrefix || ' LINHA ON OBJETO."DocEntry" = LINHA."DocEntry" WHERE  OBJETO."DocEntry" = ' || :list_of_cols_val_tab_del;
 
-        EXECUTE IMMEDIATE query INTO filial, utilizacao, futura, tipoDoc;
+        EXECUTE IMMEDIATE query INTO filial, utilizacao, futura, tipoDoc,modelo;
 
-        IF futura = 'N' AND tipoDoc = 'I' THEN
+        IF futura = 'N' AND tipoDoc = 'I' AND modelo <> '37'  THEN
             SELECT 
                 COUNT(*)
             INTO xcount
@@ -92,7 +94,7 @@ BEGIN
                 error_message := 'Essa utilização não é permitida neste módulo. Favor procurar o setor fiscal!';
                 error := 7;    
             END IF;
-        ELSEIF futura = 'Y' AND tipoDoc = 'I' THEN
+        ELSEIF futura = 'Y' AND tipoDoc = 'I' AND modelo <> '37' THEN
             SELECT 
                 COUNT(*)
             INTO xcount
