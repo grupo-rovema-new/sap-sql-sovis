@@ -1212,6 +1212,7 @@ INNER JOIN STC1 imposto ON imposto."STCCode" = p."TaxCode"  AND IMPOSTO."STAType
 WHERE 
 P."DocEntry" = :list_of_cols_val_tab_del 
 AND NOTA."CANCELED" = 'N'
+AND P."Usage" <> 19
 AND NOTA."Model" NOT IN (37,38) 
 AND P."CSTfPIS" <> IMPOSTO."CstCodeIn"
 )
@@ -1228,6 +1229,7 @@ LEFT JOIN STC1 imposto ON imposto."STCCode" = p."TaxCode"  AND IMPOSTO."STAType"
 WHERE 
 P."DocEntry" = :list_of_cols_val_tab_del 
 AND NOTA."CANCELED" = 'N'
+AND P."Usage" <> 19
 AND NOTA."Model" NOT IN (37,38) 
 AND P."CSTfCOFINS" <> IMPOSTO."CstCodeIn"
 )
