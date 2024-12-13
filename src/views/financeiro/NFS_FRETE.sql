@@ -102,6 +102,7 @@ WHERE
 	AND T0."U_Rov_Refaturamento" = 'NAO'
 ORDER BY
 	t0."DocEntry"
+	
 UNION
 
 SELECT
