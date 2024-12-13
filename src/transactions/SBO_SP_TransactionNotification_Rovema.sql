@@ -1,4 +1,5 @@
 CREATE OR REPLACE PROCEDURE SBO_SP_TransactionNotification_Rovema
+
 (
 	in object_type nvarchar(30), 				-- SBO Object Type
 	in transaction_type nchar(1),			-- [A]dd, [U]pdate, [D]elete, [C]ancel, C[L]ose
@@ -1212,6 +1213,7 @@ INNER JOIN STC1 imposto ON imposto."STCCode" = p."TaxCode"  AND IMPOSTO."STAType
 WHERE 
 P."DocEntry" = :list_of_cols_val_tab_del 
 AND NOTA."CANCELED" = 'N'
+AND P."Usage" <> 19
 AND NOTA."Model" NOT IN (37,38) 
 AND P."CSTfPIS" <> IMPOSTO."CstCodeIn"
 )
@@ -1228,6 +1230,7 @@ LEFT JOIN STC1 imposto ON imposto."STCCode" = p."TaxCode"  AND IMPOSTO."STAType"
 WHERE 
 P."DocEntry" = :list_of_cols_val_tab_del 
 AND NOTA."CANCELED" = 'N'
+AND P."Usage" <> 19
 AND NOTA."Model" NOT IN (37,38) 
 AND P."CSTfCOFINS" <> IMPOSTO."CstCodeIn"
 )
