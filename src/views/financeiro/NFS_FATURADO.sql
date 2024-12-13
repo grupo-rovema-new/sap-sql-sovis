@@ -1,9 +1,11 @@
-CREATE OR REPLACE VIEW NFS_FATURADO AS
-SELECT --Nota Fiscal de Saída
+CREATE OR REPLACE VIEW NFS_FATURADO AS ((
+SELECT
+	--Nota Fiscal de Saída
 	DISTINCT 
     T0."DocEntry" AS "EntryNota",
 	T0."DocNum" AS "DocNum",
-	COALESCE(T5."BaseLine",0) AS "BaseLine",
+	COALESCE(T5."BaseLine",
+	0) AS "BaseLine",
 	T0."Serial" AS "NotaFiscal",
 	CASE
 			WHEN T0."isIns" = 'Y' THEN  
@@ -44,16 +46,16 @@ SELECT --Nota Fiscal de Saída
 FROM
 	OINV T0
 INNER JOIN "INV1" T5 ON
-		T0."DocEntry" = T5."DocEntry"
-		
-UNION	
-
-SELECT --Fatura de Adiantamento de clientes
+		T0."DocEntry" = T5."DocEntry")
+UNION (
+SELECT
+	--Fatura de Adiantamento de clientes
 	DISTINCT 
     T0."DocEntry" AS "EntryNota",
 	T0."DocNum" AS "DocNum",
-	COALESCE(T5."BaseLine",0) AS "BaseLine",
-	INV."Serial" AS "Nota Fiscal",
+	COALESCE(T5."BaseLine",
+	0) AS "BaseLine",
+	T0."Serial" AS "NotaFiscal",
 	CASE
 			WHEN T0."isIns" = 'Y' THEN  
 	T5."LineTotal"-COALESCE((
@@ -66,7 +68,7 @@ SELECT --Fatura de Adiantamento de clientes
 					0)
 			END
 		FROM
-				"DPI4" tax
+				"INV4" tax
 		WHERE
 				tax."DocEntry" = T5."DocEntry"
 			AND ( tax."staType" = 28
@@ -83,7 +85,7 @@ SELECT --Fatura de Adiantamento de clientes
 					0)
 			END
 		FROM
-				"DPI4" tax
+				"INV4" tax
 		WHERE
 				tax."DocEntry" = T5."DocEntry"
 			AND tax."staType" = 25
@@ -91,17 +93,10 @@ SELECT --Fatura de Adiantamento de clientes
 			0)
 	END AS "faturado"
 FROM
-	ODPI T0
-INNER JOIN DPI1 T5 ON
-		T0."DocEntry" = T5."DocEntry"
-LEFT JOIN 
-    ORIN RIN -- Tabela de notas de crédito
-    ON RIN."ReceiptNum" = T0."DocNum" -- Conexão por referência de recibo
-LEFT JOIN 
-    RCT2 PAYMENTS
-    ON PAYMENTS."DocEntry" = T0."DocEntry"
-LEFT JOIN 
-    OINV INV
-    ON INV."DocEntry" = PAYMENTS."DocEntry"
-WHERE 
-    T0.CANCELED = 'N'; -- Apenas pagamentos ativos
+		OINV T0
+INNER JOIN INV9 T12 ON
+		T0."DocEntry" = T12."DocEntry"
+INNER JOIN ODPI T14 ON
+		T12."BaseDocNum" = T14."DocNum"
+INNER JOIN "INV1" T5 ON
+		T0."DocEntry" = T5."DocEntry"))
