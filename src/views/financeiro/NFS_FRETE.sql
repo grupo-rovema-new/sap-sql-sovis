@@ -100,13 +100,11 @@ WHERE
 	AND T0."DocDate" >= TO_DATE(20230701,
 	'YYYYMMDD')
 	AND T0."U_Rov_Refaturamento" = 'NAO'
-ORDER BY
-	t0."DocEntry"
-	
+
 UNION
 
 SELECT
-	--Fatura de Adiantamento de clientes
+	--Fatura Adiantamento de Cliente
 	T0."DocEntry" AS "EntryNota",
 	T0."DocNum" AS "DocNum",
 	T2."DocNum" AS "N.Pag",
@@ -210,5 +208,3 @@ WHERE
 	'YYYYMMDD')
 	AND T0."U_Rov_Refaturamento" = 'NAO'
 	AND t5."BaseLine" IS NOT NULL
-ORDER BY
-	t0."DocEntry";
