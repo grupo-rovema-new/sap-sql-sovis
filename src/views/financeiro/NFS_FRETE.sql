@@ -50,6 +50,14 @@ SELECT
 		2)* VP."Total pago")-COALESCE(T12."LineTotal",
 		0) * (VP."Total pago" / NULLIF(T0."DocTotal",
 		0))
+		WHEN CT."NumDesdobr" > 1
+		AND ((round((t5."LineTotal" / NULLIF(NV."TotalBruto",
+		0)),
+		2))* 100) <> 100 THEN (ROUND((t5."LineTotal" / NULLIF(NV."TotalBruto",
+		0)),
+		2)* VP."Total pago")-COALESCE(T12."LineTotal",
+		0) * (VP."Total pago" / NULLIF(T0."DocTotal",
+		0))
 		WHEN CT."NumDesdobr" > T0."Installmnt"
 		AND T10."DocTotal" IS NOT NULL THEN (VP."Total pago"-(COALESCE(T8."LineTotal",
 		0)/ CT."NumDesdobr"))*(round((T12."LineTotal" / NULLIF(T8."LineTotal",
