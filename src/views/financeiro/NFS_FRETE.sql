@@ -9,6 +9,7 @@ SELECT
 	0) AS "FreteGeral", 
 	T0."DocTotal",
 	FA."faturado",
+	T10."DocTotal" AS "Devolução",
 	VP."Total pago",
 	CT."NumDesdobr",
 	T0."Installmnt",
@@ -33,11 +34,34 @@ SELECT
 	0)) * 100)*(T0."DiscPrcnt" / 100),
 	2) AS "%DescLinha",
 	CASE 
-		WHEN CT."NumDesdobr" > T0."Installmnt" AND ((round((t5."LineTotal" / NULLIF(NV."TotalBruto",0)),2))* 100) = 100 THEN (ROUND((t5."LineTotal" / NULLIF(NV."TotalBruto",0)),2)* VP."Total pago")-COALESCE(T12."LineTotal",0) * (VP."Total pago" / NULLIF(T0."DocTotal",	0))
-		WHEN CT."NumDesdobr" > T0."Installmnt" AND T10."DocTotal" IS NOT NULL THEN (VP."Total pago"-(COALESCE(T8."LineTotal",0)/CT."NumDesdobr"))*(round((T12."LineTotal" / NULLIF(T8."LineTotal",0)),2))
-		WHEN CT."NumDesdobr" = T0."Installmnt" THEN (ROUND((t5."LineTotal" / NULLIF(NV."TotalBruto",0)),2)* VP."Total pago")-COALESCE(T12."LineTotal",0) * (VP."Total pago" / NULLIF(T0."DocTotal",	0))
-		WHEN (COALESCE(T12."LineTotal",0) * (VP."Total pago" / NULLIF(T0."DocTotal",0))) < 1 THEN (ROUND((VP."Total pago" / NULLIF(T0."DocTotal",0)),2)* VP."Total pago")-COALESCE(T12."LineTotal",	0)		
-		ELSE (ROUND((VP."Total pago" / NULLIF(T0."DocTotal",0)),2)* VP."Total pago")-COALESCE(T12."LineTotal",0) 
+		WHEN CT."NumDesdobr" > T0."Installmnt"
+		AND ((round((t5."LineTotal" / NULLIF(NV."TotalBruto",
+		0)),
+		2))* 100) = 100 THEN (ROUND((t5."LineTotal" / NULLIF(NV."TotalBruto",
+		0)),
+		2)* VP."Total pago")-COALESCE(T12."LineTotal",
+		0) * (VP."Total pago" / NULLIF(T0."DocTotal",
+		0))
+		WHEN CT."NumDesdobr" > T0."Installmnt"
+		AND T10."DocTotal" IS NOT NULL THEN (VP."Total pago"-(COALESCE(T8."LineTotal",
+		0)/ CT."NumDesdobr"))*(round((T12."LineTotal" / NULLIF(T8."LineTotal",
+		0)),
+		2))
+		WHEN CT."NumDesdobr" = T0."Installmnt" THEN (ROUND((t5."LineTotal" / NULLIF(NV."TotalBruto",
+		0)),
+		2)* VP."Total pago")-COALESCE(T12."LineTotal",
+		0) * (VP."Total pago" / NULLIF(T0."DocTotal",
+		0))
+		WHEN (COALESCE(T12."LineTotal",
+		0) * (VP."Total pago" / NULLIF(T0."DocTotal",
+		0))) < 1 THEN (ROUND((VP."Total pago" / NULLIF(T0."DocTotal",
+		0)),
+		2)* VP."Total pago")-COALESCE(T12."LineTotal",
+		0)
+		ELSE (ROUND((VP."Total pago" / NULLIF(T0."DocTotal",
+		0)),
+		2)* VP."Total pago")-COALESCE(T12."LineTotal",
+		0)
 	END AS "PagoLiq",
 	(ROUND((VP."Total pago" / NULLIF(T0."DocTotal",
 	0)),
@@ -65,7 +89,7 @@ INNER JOIN "INV1" T5 ON
 LEFT JOIN "INV3" T8 ON
 		T0."DocEntry" = T8."DocEntry"
 LEFT JOIN RIN1 T9 ON
-    T0."DocEntry" = T9."BaseEntry"
+	T0."DocEntry" = T9."BaseEntry"
 LEFT JOIN ORIN T10 ON
 		T9."DocEntry" = T10."DocEntry"
 LEFT JOIN INV13 T12 ON
@@ -89,7 +113,6 @@ WHERE
 	AND T0."DocDate" >= TO_DATE(20230701,
 	'YYYYMMDD')
 	AND T0."U_Rov_Refaturamento" = 'NAO'
-
 UNION
 
 SELECT
@@ -102,6 +125,7 @@ SELECT
 	0) AS "FreteGeral", 
 	T14."DocTotal",
 	FA."faturado",
+	T10."DocTotal" AS "Devolução",
 	VP."Total pago",
 	CT."NumDesdobr",
 	T0."Installmnt",
@@ -176,7 +200,7 @@ LEFT JOIN "INV1" T5 ON
 LEFT JOIN "INV3" T8 ON
 		T0."DocEntry" = T8."DocEntry"
 LEFT JOIN RIN1 T9 ON
-        T0."DocEntry" = T9."BaseEntry"
+	T0."DocEntry" = T9."BaseEntry"
 LEFT JOIN ORIN T10 ON
 		T9."DocEntry" = T10."DocEntry"
 LEFT JOIN INV13 T12 ON
