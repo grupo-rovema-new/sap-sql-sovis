@@ -53,7 +53,7 @@ SELECT
 		WHEN CT."NumDesdobr" > 1
 		AND ((round((t5."LineTotal" / NULLIF(NV."TotalBruto",
 		0)),
-		2))* 100) <> 100 THEN (ROUND((t5."LineTotal" / NULLIF(NV."TotalBruto",
+		2))* 100) <> 100 AND T10."DocTotal" IS NULL THEN (ROUND((t5."LineTotal" / NULLIF(NV."TotalBruto",
 		0)),
 		2)* VP."Total pago")-COALESCE(T12."LineTotal",
 		0) * (VP."Total pago" / NULLIF(T0."DocTotal",
