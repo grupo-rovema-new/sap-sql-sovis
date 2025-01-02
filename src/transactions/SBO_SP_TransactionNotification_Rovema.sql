@@ -1821,6 +1821,21 @@ THEN
 
 error_message := 'CANCELAMENTO NÃO PERMITIDO, NF-E AINDA ESTÁ AUTORIZADA!';
 END IF;
+IF EXISTS (
+  SELECT
+    1
+  FROM
+    ODLN NOTA
+    left JOIN DLN1 LINHA ON NOTA."DocEntry" = LINHA."DocEntry"
+  WHERE
+    LINHA."Usage" = 17
+    AND NOTA."Model" = 39
+    AND NOTA."CANCELED" = 'N'
+    AND NOTA."DocEntry" = :list_of_cols_val_tab_del
+    AND LINHA."CFOPCode" IN ('5922', '6922')
+) THEN error:= 7;
+error_message:= 'CFOP Errado!';
+END IF;
 END IF;
 -----------------------------------------------------------------------------------------
 ----------------------NOTA DE ENTRADA  E NF RECEBIMENTO FUTURO---------------------------
@@ -1978,6 +1993,21 @@ WHERE
 
 error_message := 'A QUANTIDADE DOS ITENS ESTÁ MAIOR QUE A DO PEDIDO!';
 END IF;
+IF EXISTS (
+  SELECT
+    1
+  FROM
+    OINV NOTA
+    left JOIN INV1 LINHA ON NOTA."DocEntry" = LINHA."DocEntry"
+  WHERE
+    LINHA."Usage" = 16
+    AND NOTA."Model" = 39
+    AND NOTA."CANCELED" = 'N'
+    AND NOTA."DocEntry" = :list_of_cols_val_tab_del
+    AND LINHA."CSTfPIS" <> 99
+) THEN error:= 7;
+error_message:= 'CST errado!';
+END IF;
 END IF;
 ------------------TRAVA PEDIDO DE COMPRA - CAMPO CONTA DO RAZAO ------------------------
 IF :object_type = '22'
@@ -2039,6 +2069,47 @@ AND T0."DocEntry" = :list_of_cols_val_tab_del
         error := 3;
         error_message := 'Verifique campo de Data de Vencimento ou Prestações, não é permitido datas retroativas!';
     END IF;
+END IF;
+IF EXISTS (
+  SELECT
+    1
+  FROM
+    OPCH NOTA
+    left JOIN PCH1 LINHA ON NOTA."DocEntry" = LINHA."DocEntry"
+    LEFT JOIN pch12 ON NOTA."DocEntry" = PCH12."DocEntry"
+  WHERE
+    PCH12."Incoterms" = 1
+    AND LINHA."Usage" = 15
+    AND NOTA."Model" = 39
+    AND NOTA."U_TX_TagCTe" IS NULL
+    AND NOTA."CANCELED" = 'N'
+    AND NOTA."DocEntry" = :list_of_cols_val_tab_del
+) THEN error:= 7;
+error_message:= 'Nota sem CTE! Favor informe o CTE.';
+END IF;
+IF EXISTS (
+  SELECT
+    1
+  FROM
+    OPCH NOTA
+    left JOIN PCH1 LINHA ON NOTA."DocEntry" = LINHA."DocEntry"
+    LEFT JOIN pch12 ON NOTA."DocEntry" = PCH12."DocEntry"
+  WHERE
+    PCH12."Incoterms" = 1
+    AND LINHA."Usage" = 15
+    AND NOTA."Model" = 39
+    AND NOTA."CANCELED" = 'N'
+    AND NOTA."DocEntry" = :list_of_cols_val_tab_del
+    AND EXISTS (
+      SELECT
+        1
+      FROM
+        OPCH NOTA1
+      WHERE
+        NOTA1."U_ChaveAcesso" = NOTA."U_TX_TagCTe"
+    )
+) THEN error:= 7;
+error_message:= 'Infome um CTE Valido!.';
 END IF;
 ----------------------------------------------------------------------------------------------
 /*Documento de marketing*/
