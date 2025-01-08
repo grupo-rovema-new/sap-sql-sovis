@@ -1593,7 +1593,25 @@ WHERE
 	error_message := 'O preço base não pode ser 0, favor veficiar o preço na tabela'; 
 	END IF;
 
-	 
+IF
+	EXISTS(
+	SELECT
+		1
+	FROM
+		OINV NOTA
+	INNER JOIN INV1 LINHA ON
+		NOTA."DocEntry" = LINHA."DocEntry"
+	WHERE
+		NOTA."DocEntry" = :list_of_cols_val_tab_del
+		AND NOTA."CANCELED" = 'N'
+		AND LINHA."Usage" = 12
+		AND LINHA."U_LBR_Destinacao" <> 'DESPESA'
+)
+THEN 
+ error := 7;
+
+error_message := 'Não e permitido utilizar essa utilização com destinação diferente de DESPESA!';
+END IF;
 END IF;
 -----------------------------------------------------------------------------------------------------------
 
