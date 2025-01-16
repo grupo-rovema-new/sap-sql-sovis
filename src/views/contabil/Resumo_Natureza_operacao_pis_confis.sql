@@ -1,6 +1,9 @@
-CREATE OR REPLACE VIEW RESUMO_NATUREZA_OPERACAO AS 
+
+
+CREATE OR REPLACE VIEW RESUMO_NATUREZA_OPERACAO AS
 SELECT 
     "BPLId",
+    "CST",
     "DtLancamento",
     "BPLName",
     "Usage",
@@ -22,48 +25,38 @@ SELECT
     "TIPO"
 FROM (
 SELECT 
-DISTINCT 
-    mf."DocEntry",
-     MF."DocLanc" AS "DtLancamento" ,
-    mf."Serial",
-    FILIAL."BPLId",
+--DISTINCT 
+    mf."DOC_ENTRY" AS "DocEntry",
+    mf."CST",
+    MF."DATA_DE_LANCAMENTO" AS "DtLancamento" ,
+    mf."NOTA",
+    mf."ID_FILIAL" AS "BPLId",
     FILIAL."BPLName",
-    UTILIZACAO."Usage",
-    UTILIZACAO."ID",
-    mf."ValorMercadoria" AS "VL_Mercadoria",
-    mf."ValorDesconto" AS "VL_Desconto",
-    mf."ValorMercadoria" - mf."ValorDesconto" AS "Total",
+    mf."UTILIZACAO" AS "Usage",
+    mf."ID_UTILIZACAO" AS "ID",
+    mf."VALOR_MERCADORIA" AS "VL_Mercadoria",
+    mf."VALOR_DESCONTOS" AS "VL_Desconto",
+    mf."VALOR_MERCADORIA" - mf."VALOR_DESCONTOS" AS "Total",
     0 AS "Monofasico",
     0 AS "Aliquota_0",
     0 AS "Suspenso",
     0 AS "Nao_incidencia",
-    mf."ValorICMS" AS "ICMS",
-    mf."ValorIPI" AS "IPI",
-    mf."ValorIss" AS "ISS",
-    CASE 
-    	  WHEN (mf."CstPis" <> 50 AND mf."CstPis" <> 01)  AND UTILIZACAO."ID" NOT IN (17,54)  THEN 0 
-    	  ELSE  mf."BasePIS"
-    END
-    AS "Base_de_Calculo",
-    mf."ValorPIS" AS "PIS_PASEP",
-    mf."ValorCOFINS" AS "COFINS",
-    CASE 
-        WHEN MF."ObjType" IN (15, 13, 19, 21) THEN 'SAIDA'
-        ELSE 'ENTRADA'
-    END AS "TIPO"
-FROM "MovFiscal" MF
-LEFT JOIN "Entidade" E ON E."ID" = MF."Entidade"
-LEFT JOIN OBPL FILIAL ON FILIAL."BPLId" = E."BusinessPlaceId"
-LEFT JOIN OUSG UTILIZACAO ON UTILIZACAO.ID = MF."Utilizacao"
-WHERE 
-  MF."Usuario" <> 222
+    mf."ICMS" AS "ICMS",
+    mf."IPI" AS "IPI",
+    mf."ISS" AS "ISS",
+    mf."Base de calculo PIS" AS "Base_de_Calculo",
+    mf."PIS_PASEP" AS "PIS_PASEP",
+    mf."COFINS" AS "COFINS",
+    mf."TIPO"
+FROM "BASE_PIS_COFINS" MF
+LEFT JOIN OBPL FILIAL ON FILIAL."BPLId" = mf."ID_FILIAL"
 
 )
---WHERE "TIPO" = 'SAIDA'
 GROUP BY 
 "BPLId",
+"CST",
     "BPLName",
     "Usage",
     "ID",
     "TIPO",
-   "DtLancamento"
+   "DtLancamento";
