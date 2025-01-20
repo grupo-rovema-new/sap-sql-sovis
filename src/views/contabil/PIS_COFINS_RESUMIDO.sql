@@ -1,6 +1,7 @@
-CREATE OR REPLACE VIEW PIS_COFINS_RESUMIDO AS (
+CREATE OR REPLACE VIEW PIS_COFINS_RESUMIDO AS
 SELECT 
     "BPLId",
+    "CST",
     "DtLancamento",
     "BPLName",
     "Usage",
@@ -11,59 +12,52 @@ SELECT
     SUM("Total") AS Total
 FROM (
 SELECT
-DISTINCT 
-    mf."DocEntry",
-    mf."Serial",
-    mf."DocLanc" AS "DtLancamento",
-    FILIAL."BPLId",
+    mf."DOC_ENTRY",
+    mf."CST",
+    mf."NOTA",
+    mf."DATA_DE_LANCAMENTO" AS "DtLancamento",
+    mf."ID_FILIAL" AS "BPLId",
     FILIAL."BPLName",
-    UTILIZACAO."Usage",
-    UTILIZACAO."ID",
+    mf."UTILIZACAO" AS "Usage",
+    mf."ID_UTILIZACAO" AS ID,
     'PIS' AS "TaxType",
-    "AliqPIS" AS "PIS",
-    0 AS "COFINS",
-    "ValorPIS" AS "Total"
-FROM "MovFiscal" MF
-LEFT JOIN "Entidade" E ON E."ID" = MF."Entidade"
-LEFT JOIN OBPL FILIAL ON FILIAL."BPLId" = E."BusinessPlaceId"
-LEFT JOIN OUSG UTILIZACAO ON UTILIZACAO.ID = MF."Utilizacao"
-WHERE 
-   MF."Usuario" <> 222
-  --  AND "BPLId" = 2
+    "Alicota PIS" AS "PIS",
+     0 AS "COFINS",
+    "PIS_PASEP" AS "Total"
+FROM BASE_PIS_COFINS MF
+LEFT JOIN OBPL FILIAL ON FILIAL."BPLId" = mf."ID_FILIAL"
+
+  
 
 UNION ALL
 
-SELECT 
-DISTINCT 
-    mf."DocEntry",
-    mf."Serial",
-    mf."DocLanc" AS "DtLancamento",
-    FILIAL."BPLId",
+SELECT  
+    mf."DOC_ENTRY",
+    mf."CST",
+    mf."NOTA",
+    mf."DATA_DE_LANCAMENTO" AS "DtLancamento",
+    mf."ID_FILIAL",
     FILIAL."BPLName",
-    UTILIZACAO."Usage",
-    UTILIZACAO."ID",
+    mf."UTILIZACAO" AS "Usage",
+    mf."ID_UTILIZACAO" AS "ID",
     'COFINS' AS "TaxType",
     0 "PIS",
-    "AliqCOFINS" AS "COFINS",
-    "ValorCOFINS" AS "Total"
-FROM "MovFiscal" MF
-LEFT JOIN "Entidade" E ON E."ID" = MF."Entidade"
-LEFT JOIN OBPL FILIAL ON FILIAL."BPLId" =E."BusinessPlaceId"
-LEFT JOIN OUSG UTILIZACAO ON UTILIZACAO.ID = MF."Utilizacao"
-WHERE 
-   mf."Usuario" <> 222
-    --AND "BPLId" = 2
+    "Alicota COFINS" AS "COFINS",
+    "COFINS" AS "Total"
+FROM "BASE_PIS_COFINS" MF
+LEFT JOIN OBPL FILIAL ON FILIAL."BPLId" = mf."ID_FILIAL"
+
 
 )
 WHERE 
 "Total" > 0
 GROUP BY 
 "BPLId",
+"CST",
     "BPLName",
     "Usage",
     "ID",
     "TaxType",
     "PIS",
     "COFINS",
-    "DtLancamento"
-    )
+    "DtLancamento";
