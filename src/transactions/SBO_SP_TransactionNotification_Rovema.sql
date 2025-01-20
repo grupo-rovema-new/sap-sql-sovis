@@ -2088,6 +2088,7 @@ AND T0."DocEntry" = :list_of_cols_val_tab_del
         error_message := 'Verifique campo de Data de Vencimento ou Prestações, não é permitido datas retroativas!';
     END IF;
 END IF;
+/*
 IF EXISTS (
   SELECT
     1
@@ -2129,8 +2130,9 @@ IF EXISTS (
 ) THEN error:= 7;
 error_message:= 'Infome um CTE Valido!.';
 END IF;
+*/
 ----------------------------------------------------------------------------------------------
-/*Documento de marketing*/
+
 IF :object_type in('23') and  (:transaction_type = 'A' or :transaction_type = 'U') AND 1=2 THEN 
 	SELECT 
 		CASE :object_type
