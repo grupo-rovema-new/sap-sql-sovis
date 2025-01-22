@@ -1,7 +1,6 @@
 CREATE OR REPLACE VIEW CR_VALORPAGO AS
-SELECT --Nota Fiscal de Saída
-	T1."PaidSum",
-	T1."AppliedSys",
+SELECT
+	'Nota Fiscal de Saída' AS "Tipo",
 	T0."DocEntry" AS "EntryNota",
 	T0."DocNum",
 	T2."DocNum" AS "N.Pag",
@@ -26,22 +25,18 @@ WHERE
 	T0."CANCELED" = 'N'
 	AND T0."DocDate" >= TO_DATE(20230701, 'YYYYMMDD')
 	AND T0."U_Rov_Refaturamento" = 'NAO'
+	AND T0."DocType" = 'I'
 	
 UNION 
 
-SELECT --Fatura de Adiantamento de clientes
-	DISTINCT 
-	T1."PaidSum",
-	T1."AppliedSys",
+SELECT DISTINCT
+	'Fatura Adiantamento de Cliente' AS "Tipo",
 	T0."DocEntry" AS "EntryNota",
 	T0."DocNum",
 	T2."DocNum" AS "N.Pag",
 	T2."DocEntry" AS "EntryPag",
 	T0."Serial" AS "NotaFiscal",
-	CASE
-		WHEN T1."PaidSum" = 0 THEN T1."AppliedSys"
-		ELSE T1."PaidSum"
-	END AS "Total pago"
+	t12."DrawnSum" AS "Total pago"
 FROM
 		OINV T0
 	INNER JOIN INV9 T12 ON
@@ -58,3 +53,6 @@ WHERE
 	T0."CANCELED" = 'N'
 	AND T0."DocDate" >= TO_DATE(20230701, 'YYYYMMDD')
 	AND T0."U_Rov_Refaturamento" = 'NAO'
+	AND T0."DocType" = 'I' 
+	AND T0."DpmAmnt" > 0 
+	AND T0."DocTotal" = 0
