@@ -1612,6 +1612,40 @@ THEN
 
 error_message := 'Não e permitido utilizar essa utilização com destinação diferente de DESPESA!';
 END IF;
+
+IF EXISTS (
+    SELECT 
+        1
+    FROM 
+        (
+            SELECT
+                "DocEntry",
+                SUM("LineTotal") AS frete
+            FROM 
+                INV13
+            GROUP BY 
+                "DocEntry"
+        ) AS FRETE
+    INNER JOIN 
+        (
+            SELECT
+                "DocEntry",
+                "TotalExpns"
+            FROM
+                OINV
+            WHERE
+                "CANCELED" = 'N'
+                AND "DocEntry" = :list_of_cols_val_tab_del
+        ) AS NOTA
+    ON 
+        FRETE."DocEntry" = NOTA."DocEntry"
+    WHERE 
+        FRETE.frete <> NOTA."TotalExpns"
+)
+THEN
+    error := 7;
+    error_message := 'Diferença entre frete e total de despesas encontrada.';
+END IF;
 END IF;
 -----------------------------------------------------------------------------------------------------------
 
@@ -2069,6 +2103,39 @@ THEN
         error := 3;
 
 error_message := 'Campo do Conta do Razão sem preenchimento! Procurar Contabilidade.';
+END IF;
+IF EXISTS (
+    SELECT 
+        1
+    FROM 
+        (
+            SELECT
+                "DocEntry",
+                SUM("LineTotal") AS frete
+            FROM 
+                RDR13
+            GROUP BY 
+                "DocEntry"
+        ) AS FRETE
+    INNER JOIN 
+        (
+            SELECT
+                "DocEntry",
+                "TotalExpns"
+            FROM
+                ORDR
+            WHERE
+                "CANCELED" = 'N'
+                AND "DocEntry" = :list_of_cols_val_tab_del
+        ) AS NOTA
+    ON 
+        FRETE."DocEntry" = NOTA."DocEntry"
+    WHERE 
+        FRETE.frete <> NOTA."TotalExpns"
+)
+THEN
+    error := 7;
+    error_message := 'Diferença entre frete e total de despesas encontrada.';
 END IF;
 END IF;
 ------------- TRAVA NOTA DE ENTRADA - CAMPO DATA DE VENCIMENTO E PRESTAÇÕES -------------
