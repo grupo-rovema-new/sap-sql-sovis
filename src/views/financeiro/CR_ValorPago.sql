@@ -5,6 +5,7 @@ SELECT
 	T0."DocNum",
 	T2."DocNum" AS "N.Pag",
 	T2."DocEntry" AS "EntryPag",
+	T1."DocLine",
 	T0."Serial" AS "NotaFiscal",
 	CASE
 		WHEN T1."PaidSum" = 0 THEN T1."AppliedSys"
@@ -35,6 +36,7 @@ SELECT DISTINCT
 	T0."DocNum",
 	T2."DocNum" AS "N.Pag",
 	T2."DocEntry" AS "EntryPag",
+	T1."DocLine",
 	T0."Serial" AS "NotaFiscal",
 	t12."DrawnSum" AS "Total pago"
 FROM
