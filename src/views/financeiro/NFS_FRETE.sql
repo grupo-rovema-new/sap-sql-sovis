@@ -21,7 +21,8 @@ SELECT --Nota Fiscal de Saída
 	round(((t5."LineTotal" / NULLIF(NV."TotalBruto",0)) * 100)*(o."DiscPrcnt" / 100),2) AS "%DescLinha",
 	(ROUND((CV."Total pago" / NULLIF(O."DocTotal",	0)),2)* CV."Total pago")-COALESCE(I."LineTotal",0) AS "TotPgSFrete",
 	((t5."LineTotal" / NULLIF(NV."TotalBruto",0))* CV."Total pago")-COALESCE(I."LineTotal",0) * (CV."Total pago" / NULLIF(O."DocTotal",0)) AS "TotPgSFrete2",
-	(ROUND((t5."LineTotal" / NULLIF(NV."TotalBruto",0)),2)* CV."Total pago")-COALESCE(T8."LineTotal",0)*(cv."Total pago" / NULLIF(o."DocTotal",0)) AS "TotPgSFrete3"
+	(ROUND((t5."LineTotal" / NULLIF(NV."TotalBruto",0)),2)* CV."Total pago")-COALESCE(T8."LineTotal",0)*(cv."Total pago" / NULLIF(o."DocTotal",0)) AS "TotPgSFrete3",
+	cv."Total pago" * (t5."LineTotal" / NULLIF(NV."TotalBruto",0)) AS "TotPgSFrete4"
 FROM
 	CR_VALORPAGO cv
 LEFT JOIN NFS_FRETELINHA i ON 
@@ -66,7 +67,8 @@ SELECT DISTINCT --Fatura Adiantamento de Cliente
 	round(((t5."LineTotal" / NULLIF(NV."TotalBruto",0)) * 100)*(o."DiscPrcnt" / 100),2) AS "%DescLinha",
 	(ROUND((CV."Total pago" / NULLIF(o."DpmAmnt",	0)),2)* CV."Total pago")-COALESCE(I."LineTotal",0) AS "TotPgSFrete",
 	((t5."LineTotal" / NULLIF(NV."TotalBruto",0))* CV."Total pago")-COALESCE(I."LineTotal",0) * (CV."Total pago" / NULLIF(o."DpmAmnt",0)) AS "TotPgSFrete2",
-	(ROUND((t5."LineTotal" / NULLIF(NV."TotalBruto",0)),2)* CV."Total pago")-COALESCE(T8."LineTotal",0)*(cv."Total pago" / NULLIF(o."DpmAmnt",0)) AS "TotPgSFrete3"
+	(ROUND((t5."LineTotal" / NULLIF(NV."TotalBruto",0)),2)* CV."Total pago")-COALESCE(T8."LineTotal",0)*(cv."Total pago" / NULLIF(o."DpmAmnt",0)) AS "TotPgSFrete3",
+	cv."Total pago" * (t5."LineTotal" / NULLIF(NV."TotalBruto",0)) AS "TotPgSFrete4"
 FROM
 	CR_VALORPAGO cv
 LEFT JOIN NFS_FRETELINHA i ON 
