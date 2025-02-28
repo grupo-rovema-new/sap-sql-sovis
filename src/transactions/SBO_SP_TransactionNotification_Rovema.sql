@@ -1238,7 +1238,108 @@ AND P."CSTfCOFINS" <> IMPOSTO."CstCodeIn"
 			error := 7;
          	error_message := 'O CST do COFINS não corresponde ao código do imposto.';  
 	End If;
+IF EXISTS(
+WITH
+CUSTO_NOTA AS (
+    SELECT
+        OPDN."DocEntry",
+        OPDN."DocNum",
+        OPDN."DocDate",
+        OPDN."BPLId",
+        OPDN."Serial",
+        PDN1."ItemCode",
+        PDN1."InvQty",
+        (PDN1."Quantity" * PDN1."Price") - SUM(PDN4."TaxSum") AS VALOR_TRANSACAO,
+        ((PDN1."Quantity" * PDN1."Price") - SUM(PDN4."TaxSum")) / NULLIF(PDN1."InvQty", 0) AS CUSTO_QUE_ENTRA,
+        PDN1."WhsCode"
+    FROM
+        PDN1
+    INNER JOIN OPDN ON OPDN."DocEntry" = PDN1."DocEntry"
+    INNER JOIN PDN4 ON PDN1."DocEntry" = PDN4."DocEntry"
+        AND PDN1."LineNum" = PDN4."LineNum"
+    WHERE
+        PDN1."DocEntry" = :list_of_cols_val_tab_del
+        AND OPDN."CANCELED" = 'N'
+        AND PDN1."Usage" = 19
+        AND OPDN."Model" = 39
+    GROUP BY
+        OPDN."DocEntry",
+        PDN1."ItemCode",
+        PDN1."InvQty",
+        PDN1."Quantity",
+        PDN1."Price",
+        PDN1."WhsCode",
+        OPDN."DocNum",
+        OPDN."BPLId",
+        OPDN."Serial",
+        OPDN."DocDate"
+),
 
+TRANSACOES AS (
+    SELECT
+        ESTOQUE."TransValue",
+        ESTOQUE."InQty" - ESTOQUE."OutQty" AS "InQty",
+        ESTOQUE."ItemCode",
+        ESTOQUE."Warehouse",
+        ROW_NUMBER() OVER (PARTITION BY ESTOQUE."ItemCode"
+            ORDER BY ESTOQUE."TransNum" DESC) AS RowNum
+    FROM
+        OINM ESTOQUE
+    INNER JOIN CUSTO_NOTA ON ESTOQUE."ItemCode" = CUSTO_NOTA."ItemCode"
+        AND ESTOQUE."Warehouse" = CUSTO_NOTA."WhsCode"
+),
+
+CUSTO_MEDIO AS (
+    SELECT 
+        "ItemCode",
+        "Warehouse",
+        SUM("TransValue") AS VALOR,
+        SUM("InQty") AS QUANTIDADE
+    FROM TRANSACOES
+    WHERE RowNum >= 2
+    GROUP BY "ItemCode", "Warehouse"
+),
+
+VARIACAO_CUSTO AS (
+    SELECT
+        NOTA."DocEntry",
+        NOTA."DocDate",
+        NOTA."DocNum",
+        NOTA."BPLId",
+        NOTA."Serial",
+        NOTA."ItemCode",
+        NOTA."WhsCode",
+        CASE
+            WHEN ESTOQUE.QUANTIDADE <> 0 
+            THEN ESTOQUE.VALOR / ESTOQUE.QUANTIDADE
+            ELSE 0
+        END AS CUSTO_MEDIO,
+        CASE
+            WHEN ESTOQUE.QUANTIDADE <> 0 AND ESTOQUE.VALOR <> 0 
+            THEN ((NOTA.CUSTO_QUE_ENTRA - (ESTOQUE.VALOR / ESTOQUE.QUANTIDADE)) / (ESTOQUE.VALOR / ESTOQUE.QUANTIDADE)) * 100
+            ELSE 0
+        END AS VARIACAO,
+        NOTA.CUSTO_QUE_ENTRA
+    FROM
+        CUSTO_MEDIO ESTOQUE
+    INNER JOIN CUSTO_NOTA NOTA 
+        ON NOTA."ItemCode" = ESTOQUE."ItemCode"
+        AND NOTA."WhsCode" = ESTOQUE."Warehouse"
+    WHERE
+        NOTA."ItemCode" LIKE 'INS%'
+        AND NOTA."BPLId" = 2
+        AND NOTA."DocDate" >= '20240101'
+)
+
+SELECT *
+FROM VARIACAO_CUSTO
+WHERE VARIACAO > 30 OR VARIACAO < -30
+
+) THEN
+        error := 7;
+
+error_message := 'Desvio de custo muito alto!';
+END IF;
 
 END IF;
 ----------------------------------------------------------------------------------------------
@@ -2198,6 +2299,108 @@ IF EXISTS (
 error_message:= 'Infome um CTE Valido!.';
 END IF;
 */
+IF EXISTS(
+WITH
+CUSTO_NOTA AS (
+    SELECT
+        OPCH."DocEntry",
+        OPCH."DocNum",
+        OPCH."DocDate",
+        OPCH."BPLId",
+        OPCH."Serial",
+        PCH1."ItemCode",
+        PCH1."InvQty",
+        (PCH1."Quantity" * PCH1."Price") - SUM(PCH4."TaxSum") AS VALOR_TRANSACAO,
+        ((PCH1."Quantity" * PCH1."Price") - SUM(PCH4."TaxSum")) / NULLIF(PCH1."InvQty", 0) AS CUSTO_QUE_ENTRA,
+        PCH1."WhsCode"
+    FROM
+        PCH1
+    INNER JOIN OPCH ON OPCH."DocEntry" = PCH1."DocEntry"
+    INNER JOIN PCH4 ON PCH1."DocEntry" = PCH4."DocEntry"
+        AND PCH1."LineNum" = PCH4."LineNum"
+    WHERE
+        PCH1."DocEntry" = :list_of_cols_val_tab_del
+        AND OPCH."CANCELED" = 'N'
+        AND PCH1."Usage" = 15
+        AND OPCH."Model" = 39
+    GROUP BY
+        OPCH."DocEntry",
+        PCH1."ItemCode",
+        PCH1."InvQty",
+        PCH1."Quantity",
+        PCH1."Price",
+        PCH1."WhsCode",
+        OPCH."DocNum",
+        OPCH."BPLId",
+        OPCH."Serial",
+        OPCH."DocDate"
+),
+
+TRANSACOES AS (
+    SELECT
+        ESTOQUE."TransValue",
+        ESTOQUE."InQty" - ESTOQUE."OutQty" AS "InQty",
+        ESTOQUE."ItemCode",
+        ESTOQUE."Warehouse",
+        ROW_NUMBER() OVER (PARTITION BY ESTOQUE."ItemCode"
+            ORDER BY ESTOQUE."TransNum" DESC) AS RowNum
+    FROM
+        OINM ESTOQUE
+    INNER JOIN CUSTO_NOTA ON ESTOQUE."ItemCode" = CUSTO_NOTA."ItemCode"
+        AND ESTOQUE."Warehouse" = CUSTO_NOTA."WhsCode"
+),
+
+CUSTO_MEDIO AS (
+    SELECT 
+        "ItemCode",
+        "Warehouse",
+        SUM("TransValue") AS VALOR,
+        SUM("InQty") AS QUANTIDADE
+    FROM TRANSACOES
+    WHERE RowNum >= 2
+    GROUP BY "ItemCode", "Warehouse"
+),
+
+VARIACAO_CUSTO AS (
+    SELECT
+        NOTA."DocEntry",
+        NOTA."DocDate",
+        NOTA."DocNum",
+        NOTA."BPLId",
+        NOTA."Serial",
+        NOTA."ItemCode",
+        NOTA."WhsCode",
+        CASE
+            WHEN ESTOQUE.QUANTIDADE <> 0 
+            THEN ESTOQUE.VALOR / ESTOQUE.QUANTIDADE
+            ELSE 0
+        END AS CUSTO_MEDIO,
+        CASE
+            WHEN ESTOQUE.QUANTIDADE <> 0 AND ESTOQUE.VALOR <> 0 
+            THEN ((NOTA.CUSTO_QUE_ENTRA - (ESTOQUE.VALOR / ESTOQUE.QUANTIDADE)) / (ESTOQUE.VALOR / ESTOQUE.QUANTIDADE)) * 100
+            ELSE 0
+        END AS VARIACAO,
+        NOTA.CUSTO_QUE_ENTRA
+    FROM
+        CUSTO_MEDIO ESTOQUE
+    INNER JOIN CUSTO_NOTA NOTA 
+        ON NOTA."ItemCode" = ESTOQUE."ItemCode"
+        AND NOTA."WhsCode" = ESTOQUE."Warehouse"
+    WHERE
+        NOTA."ItemCode" LIKE 'INS%'
+        AND NOTA."BPLId" = 2
+        AND NOTA."DocDate" >= '20240101'
+)
+
+SELECT *
+FROM VARIACAO_CUSTO
+WHERE VARIACAO > 30 OR VARIACAO < -30
+
+) THEN
+        error := 7;
+
+error_message := 'Desvio de custo muito alto!';
+END IF;
 ----------------------------------------------------------------------------------------------
 
 IF :object_type in('23') and  (:transaction_type = 'A' or :transaction_type = 'U') AND 1=2 THEN 
