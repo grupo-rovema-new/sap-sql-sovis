@@ -1331,6 +1331,7 @@ VARIACAO_CUSTO AS (
         AND NOTA."DocDate" >= '20240101'
 )
 
+
 SELECT *
 FROM VARIACAO_CUSTO
 WHERE VARIACAO > 30 OR VARIACAO < -30
@@ -2255,7 +2256,6 @@ AND T0."DocEntry" = :list_of_cols_val_tab_del
         error := 3;
         error_message := 'Verifique campo de Data de Vencimento ou Prestações, não é permitido datas retroativas!';
     END IF;
-END IF;
 /*
 IF EXISTS (
   SELECT
@@ -2401,6 +2401,8 @@ WHERE VARIACAO > 30 OR VARIACAO < -30
 
 error_message := 'Desvio de custo muito alto!';
 END IF;
+END IF;
+
 ----------------------------------------------------------------------------------------------
 
 IF :object_type in('23') and  (:transaction_type = 'A' or :transaction_type = 'U') AND 1=2 THEN 
@@ -2427,10 +2429,4 @@ IF :object_type in('23') and  (:transaction_type = 'A' or :transaction_type = 'U
 		error := 334;	
 	END if;
 end if;
-
-
-
 end;
-
-
-
