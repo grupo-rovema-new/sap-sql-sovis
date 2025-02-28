@@ -5,11 +5,13 @@ SELECT
 	T0."DocNum",
 	T2."DocNum" AS "N.Pag",
 	T2."DocEntry" AS "EntryPag",
+	T1."DocLine",
 	T0."Serial" AS "NotaFiscal",
 	CASE
 		WHEN T1."PaidSum" = 0 THEN T1."AppliedSys"
 		ELSE T1."PaidSum"
-	END AS "Total pago"
+	END AS "Total pago",
+	t2."DocTotal"
 FROM
 	OINV T0
 INNER JOIN "INV6" T3 ON
@@ -27,7 +29,7 @@ WHERE
 	AND T0."U_Rov_Refaturamento" = 'NAO'
 	AND T0."DocType" = 'I'
 	
-UNION 
+UNION
 
 SELECT DISTINCT
 	'Fatura Adiantamento de Cliente' AS "Tipo",
@@ -35,8 +37,10 @@ SELECT DISTINCT
 	T0."DocNum",
 	T2."DocNum" AS "N.Pag",
 	T2."DocEntry" AS "EntryPag",
+	T1."DocLine",
 	T0."Serial" AS "NotaFiscal",
-	t12."DrawnSum" AS "Total pago"
+	t12."DrawnSum" AS "Total pago",
+	t2."DocTotal"
 FROM
 		OINV T0
 	INNER JOIN INV9 T12 ON
@@ -55,4 +59,4 @@ WHERE
 	AND T0."U_Rov_Refaturamento" = 'NAO'
 	AND T0."DocType" = 'I' 
 	AND T0."DpmAmnt" > 0 
-	AND T0."DocTotal" = 0
+	AND T0."DocTotal" = 0;
