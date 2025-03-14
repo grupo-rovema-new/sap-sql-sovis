@@ -1,6 +1,6 @@
 -- SBOGRUPOROVEMA.BASE_PIS_COFINS fonte
 
-CREATE OR REPLACE VIEW SBOGRUPOROVEMA.BASE_PIS_COFINS AS
+CREATE OR replace VIEW SBOGRUPOROVEMA.BASE_PIS_COFINS AS
 SELECT
 	"TIPO" ,
 	"DATA_DE_LANCAMENTO" ,
@@ -62,12 +62,13 @@ FROM
 		L."CSTfPIS" AS "CST",
 		L."TaxCode" AS "CODIGO_IMPOSTO",
 		L."CFOPCode" AS "CFOP",
-		ROUND(
+ROUND(
     COALESCE(
         MAX(
             CASE
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
                 WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+                WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL   THEN "TaxRate"
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -83,6 +84,7 @@ ROUND(
             CASE 
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
                 WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -98,6 +100,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (10) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
                 WHEN "staType" IN (10) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+                WHEN "staType" IN (10) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54)  AND I."TaxStatus" = 'Y'  THEN "TaxSum" 
                 ELSE 0 
             END
@@ -113,6 +116,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
                 WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+                WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -128,6 +132,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
                 WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+                WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -143,6 +148,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (16) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
                 WHEN "staType" IN (16) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+                WHEN "staType" IN (16) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -158,6 +164,7 @@ ROUND(
             CASE   
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
                 WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+                WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -173,6 +180,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
                 WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+                WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -188,6 +196,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
                 WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -203,6 +212,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
                 WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -218,6 +228,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
                 WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+                WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -233,6 +244,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
                 WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -247,7 +259,8 @@ ROUND(
         MAX(
             CASE
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
-	             WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
                 WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -260,10 +273,11 @@ ROUND(
 ROUND(
     COALESCE(
         SUM(
-            CASE 
+              CASE 
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
-                WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
+                WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL  THEN "BaseSumSys" 
                 ELSE 0 
             END
         ), 
@@ -277,7 +291,8 @@ ROUND(
         SUM(
             CASE
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
-	             WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
                 WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -348,12 +363,13 @@ UNION ALL
 		L."CSTfPIS" AS "CST",
 		L."TaxCode" AS "CODIGO_IMPOSTO",
 		L."CFOPCode" AS "CFOP",
-	ROUND(
+ROUND(
     COALESCE(
         MAX(
             CASE
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
                 WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+                WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL   THEN "TaxRate"
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -369,6 +385,7 @@ ROUND(
             CASE 
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
                 WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -384,6 +401,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (10) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
                 WHEN "staType" IN (10) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+                WHEN "staType" IN (10) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54)  AND I."TaxStatus" = 'Y'  THEN "TaxSum" 
                 ELSE 0 
             END
@@ -399,6 +417,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
                 WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+                WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -414,6 +433,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
                 WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+                WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -429,6 +449,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (16) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
                 WHEN "staType" IN (16) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+                WHEN "staType" IN (16) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -444,6 +465,7 @@ ROUND(
             CASE   
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
                 WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+                WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -459,6 +481,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
                 WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+                WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -474,6 +497,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
                 WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -489,6 +513,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
                 WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -504,6 +529,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
                 WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+                WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -519,6 +545,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
                 WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -533,7 +560,8 @@ ROUND(
         MAX(
             CASE
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
-	             WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
                 WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -546,10 +574,11 @@ ROUND(
 ROUND(
     COALESCE(
         SUM(
-            CASE 
+              CASE 
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
-                WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
+                WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL  THEN "BaseSumSys" 
                 ELSE 0 
             END
         ), 
@@ -563,7 +592,8 @@ ROUND(
         SUM(
             CASE
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
-	             WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
                 WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -634,12 +664,13 @@ UNION ALL
 		L."CSTfPIS" AS "CST",
 		L."TaxCode" AS "CODIGO_IMPOSTO",
 		L."CFOPCode" AS "CFOP",
-	ROUND(
+ROUND(
     COALESCE(
         MAX(
             CASE
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
                 WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+                WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL   THEN "TaxRate"
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -655,6 +686,7 @@ ROUND(
             CASE 
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
                 WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -670,6 +702,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (10) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
                 WHEN "staType" IN (10) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+                WHEN "staType" IN (10) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54)  AND I."TaxStatus" = 'Y'  THEN "TaxSum" 
                 ELSE 0 
             END
@@ -685,6 +718,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
                 WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+                WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -700,6 +734,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
                 WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+                WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -715,6 +750,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (16) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
                 WHEN "staType" IN (16) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+                WHEN "staType" IN (16) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -730,6 +766,7 @@ ROUND(
             CASE   
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
                 WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+                WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -745,6 +782,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
                 WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+                WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -760,6 +798,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
                 WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -775,6 +814,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
                 WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -790,6 +830,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
                 WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+                WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -805,6 +846,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
                 WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -819,7 +861,8 @@ ROUND(
         MAX(
             CASE
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
-	             WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
                 WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -832,10 +875,11 @@ ROUND(
 ROUND(
     COALESCE(
         SUM(
-            CASE 
+              CASE 
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
-                WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
+                WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL  THEN "BaseSumSys" 
                 ELSE 0 
             END
         ), 
@@ -849,7 +893,8 @@ ROUND(
         SUM(
             CASE
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
-	             WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
                 WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -920,12 +965,13 @@ UNION ALL
 		L."CSTfPIS" AS "CST",
 		L."TaxCode" AS "CODIGO_IMPOSTO",
 		L."CFOPCode" AS "CFOP",
-	ROUND(
+ROUND(
     COALESCE(
         MAX(
             CASE
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
                 WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+                WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL   THEN "TaxRate"
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -941,6 +987,7 @@ ROUND(
             CASE 
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
                 WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -956,6 +1003,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (10) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
                 WHEN "staType" IN (10) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+                WHEN "staType" IN (10) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54)  AND I."TaxStatus" = 'Y'  THEN "TaxSum" 
                 ELSE 0 
             END
@@ -971,6 +1019,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
                 WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+                WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -986,6 +1035,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
                 WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+                WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -1001,6 +1051,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (16) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
                 WHEN "staType" IN (16) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+                WHEN "staType" IN (16) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -1016,6 +1067,7 @@ ROUND(
             CASE   
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
                 WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+                WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -1031,6 +1083,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
                 WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+                WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -1046,6 +1099,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
                 WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -1061,6 +1115,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
                 WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -1076,6 +1131,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
                 WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+                WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -1091,6 +1147,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
                 WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -1105,7 +1162,8 @@ ROUND(
         MAX(
             CASE
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
-	             WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
                 WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -1118,10 +1176,11 @@ ROUND(
 ROUND(
     COALESCE(
         SUM(
-            CASE 
+              CASE 
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
-                WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
+                WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL  THEN "BaseSumSys" 
                 ELSE 0 
             END
         ), 
@@ -1135,7 +1194,8 @@ ROUND(
         SUM(
             CASE
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
-	             WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
                 WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -1206,12 +1266,13 @@ UNION ALL
 		L."CSTfPIS" AS "CST",
 		L."TaxCode" AS "CODIGO_IMPOSTO",
 		L."CFOPCode" AS "CFOP",
-	ROUND(
+ROUND(
     COALESCE(
         MAX(
             CASE
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
                 WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+                WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL   THEN "TaxRate"
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -1227,6 +1288,7 @@ ROUND(
             CASE 
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
                 WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -1242,6 +1304,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (10) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
                 WHEN "staType" IN (10) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+                WHEN "staType" IN (10) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54)  AND I."TaxStatus" = 'Y'  THEN "TaxSum" 
                 ELSE 0 
             END
@@ -1257,6 +1320,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
                 WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+                WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -1272,6 +1336,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
                 WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+                WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -1287,6 +1352,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (16) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
                 WHEN "staType" IN (16) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+                WHEN "staType" IN (16) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -1302,6 +1368,7 @@ ROUND(
             CASE   
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
                 WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+                WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -1317,6 +1384,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
                 WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+                WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -1332,6 +1400,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
                 WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -1347,6 +1416,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
                 WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -1362,6 +1432,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
                 WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+                WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -1377,6 +1448,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
                 WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -1391,7 +1463,8 @@ ROUND(
         MAX(
             CASE
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
-	             WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
                 WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -1404,10 +1477,11 @@ ROUND(
 ROUND(
     COALESCE(
         SUM(
-            CASE 
+              CASE 
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
-                WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
+                WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL  THEN "BaseSumSys" 
                 ELSE 0 
             END
         ), 
@@ -1421,7 +1495,8 @@ ROUND(
         SUM(
             CASE
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
-	             WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
                 WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -1492,12 +1567,13 @@ UNION ALL
 		L."CSTfPIS" AS "CST",
 		L."TaxCode" AS "CODIGO_IMPOSTO",
 		L."CFOPCode" AS "CFOP",
-	ROUND(
+ROUND(
     COALESCE(
         MAX(
             CASE
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
                 WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+                WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL   THEN "TaxRate"
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -1513,6 +1589,7 @@ ROUND(
             CASE 
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
                 WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -1528,6 +1605,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (10) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
                 WHEN "staType" IN (10) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+                WHEN "staType" IN (10) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54)  AND I."TaxStatus" = 'Y'  THEN "TaxSum" 
                 ELSE 0 
             END
@@ -1543,6 +1621,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
                 WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+                WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -1558,6 +1637,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
                 WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+                WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -1573,6 +1653,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (16) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
                 WHEN "staType" IN (16) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+                WHEN "staType" IN (16) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -1588,6 +1669,7 @@ ROUND(
             CASE   
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
                 WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+                WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -1603,6 +1685,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
                 WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+                WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -1618,6 +1701,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
                 WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -1633,6 +1717,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
                 WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -1648,6 +1733,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
                 WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+                WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -1663,6 +1749,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
                 WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -1677,7 +1764,8 @@ ROUND(
         MAX(
             CASE
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
-	             WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
                 WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -1690,10 +1778,11 @@ ROUND(
 ROUND(
     COALESCE(
         SUM(
-            CASE 
+              CASE 
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
-                WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
+                WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL  THEN "BaseSumSys" 
                 ELSE 0 
             END
         ), 
@@ -1707,7 +1796,8 @@ ROUND(
         SUM(
             CASE
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
-	             WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
                 WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -1778,12 +1868,13 @@ UNION ALL
 		L."CSTfPIS" AS "CST",
 		L."TaxCode" AS "CODIGO_IMPOSTO",
 		L."CFOPCode" AS "CFOP",
-	ROUND(
+ROUND(
     COALESCE(
         MAX(
             CASE
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
                 WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+                WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL   THEN "TaxRate"
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -1799,6 +1890,7 @@ ROUND(
             CASE 
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
                 WHEN "staType" = 10 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -1814,6 +1906,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (10) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
                 WHEN "staType" IN (10) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+                WHEN "staType" IN (10) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
 	            WHEN "staType" = 10 AND O."ID" NOT IN (16,54)  AND I."TaxStatus" = 'Y'  THEN "TaxSum" 
                 ELSE 0 
             END
@@ -1829,6 +1922,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
                 WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+                WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -1844,6 +1938,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
                 WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+                WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -1859,6 +1954,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (16) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
                 WHEN "staType" IN (16) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+                WHEN "staType" IN (16) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
 	            WHEN "staType" = 16 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -1874,6 +1970,7 @@ ROUND(
             CASE   
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
                 WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+                WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -1889,6 +1986,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
                 WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+                WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -1904,6 +2002,7 @@ ROUND(
             CASE
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
 	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
                 WHEN "staType" = 24 AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -1919,6 +2018,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
                 WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -1934,6 +2034,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
                 WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
+                WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
                 ELSE 0 
             END
@@ -1949,6 +2050,7 @@ ROUND(
             CASE
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
 	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
                 WHEN "staType" IN (19, 29) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -1963,7 +2065,8 @@ ROUND(
         MAX(
             CASE
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
-	             WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxRate"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxRate"
                 WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxRate" 
                 ELSE 0 
             END
@@ -1976,10 +2079,11 @@ ROUND(
 ROUND(
     COALESCE(
         SUM(
-            CASE 
+              CASE 
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_BaseSum"
-                WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "BaseSumSys" 
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "BaseSumSys"
+                WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL  THEN "BaseSumSys" 
                 ELSE 0 
             END
         ), 
@@ -1993,7 +2097,8 @@ ROUND(
         SUM(
             CASE
 	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'N' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
-	             WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" = 'Y'  THEN "U_TX_TaxSum"
+	            WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' AND "U_TX_Adjusted" IS NULL THEN "TaxSum"
                 WHEN "staType" IN (21, 30) AND O."ID" NOT IN (16,54) AND I."TaxStatus" = 'Y' THEN "TaxSum" 
                 ELSE 0 
             END
@@ -2043,8 +2148,7 @@ ROUND(
 		COALESCE(N."DocTotal",
 		0),
 		N."ObjType"
-    ) 
-    ORDER BY
+    ) ORDER BY
 	DATA_DE_LANCAMENTO,
 	"DOC_ENTRY",
 	"NUMERO_LINHA";
