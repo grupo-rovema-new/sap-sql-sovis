@@ -81,7 +81,7 @@ LEFT JOIN CR_TITULOSDESDOBRADO ct ON
 LEFT JOIN NFS_FRETE F ON
 		T0."DocEntry" = F."EntryNota" 
 	AND T2."DocNum" = F."N.Pag"
-	AND T5."LineNum" = f."BaseLine"
+	AND T5."BaseLine" = f."BaseLine"
 	AND t1."DocLine" = f."DocLine"
 LEFT JOIN NFS_TITREF nt ON
 		T0."DocEntry" = NT."DocEntry" 
@@ -93,11 +93,7 @@ WHERE
 		T0."CANCELED" = 'N'
 	AND T0."DocDate" >= TO_DATE(20230701,'YYYYMMDD')
 	AND T0."U_Rov_Refaturamento" = 'NAO'
-	AND T0."isIns" = 'N') 
-
-UNION ALL
-
-(SELECT
+	AND T0."isIns" = 'N') UNION ALL (SELECT
 	'Nota Fiscal Entrega Futura' AS "Tipo",
 	T0."DocEntry" AS "EntryNota",
 	T0."DocNum" AS "DocNum",
@@ -180,7 +176,7 @@ LEFT JOIN CR_TITULOSDESDOBRADO ct ON
 LEFT JOIN NFS_FRETE F ON
 		T0."DocEntry" = F."EntryNota" 
 	AND T2."DocNum" = F."N.Pag"
-	AND T5."LineNum" = f."BaseLine"
+	AND T5."BaseLine" = f."BaseLine"
 	AND t1."DocLine" = f."DocLine"
 LEFT JOIN NFS_TITREF nt ON
 		T0."DocEntry" = NT."DocEntry" 
@@ -194,11 +190,7 @@ WHERE
 		T0."CANCELED" = 'N'
 	AND T0."DocDate" >= TO_DATE(20230701,'YYYYMMDD')
 	AND T0."U_Rov_Refaturamento" = 'NAO'
-	AND T0."isIns" = 'Y' )
-	
-UNION ALL 
-
-(SELECT
+	AND T0."isIns" = 'Y')) UNION ALL (SELECT
 	'Fatura Adiantamento de Cliente' AS "Tipo",
 	T0."DocEntry" AS "EntryNota",
 	T0."DocNum" AS "DocNum",
@@ -285,7 +277,7 @@ LEFT JOIN NFS_VALORBRUTO NV ON
 LEFT JOIN NFS_FRETE f ON
 		T0."DocEntry" = F."EntryNota" 
 	AND T2."DocNum" = F."N.Pag"
-	AND T5."LineNum" = f."BaseLine"
+	AND T5."BaseLine" = f."BaseLine"
 	AND t1."DocLine" = f."DocLine"
 LEFT JOIN NFS_TITREF nt ON
 		T0."DocEntry" = NT."DocEntry" 

@@ -3,7 +3,7 @@ SELECT
 	'Nota Fiscal de Saída' AS "Tipo",
 	CV."EntryNota",
 	O."DocNum", 
-	i."LineNum" AS "BaseLine",
+	T5."BaseLine",
 	cv."N.Pag",
 	cv."EntryPag",
 	cv."DocLine",
@@ -49,11 +49,7 @@ WHERE
 	AND o."DocDate" >= TO_DATE(20230701,'YYYYMMDD')
 	AND o."U_Rov_Refaturamento" = 'NAO'
 	AND o."DpmAmnt" = 0 --QUANDO É UMA NOTA FISCAL DE SAIDA NORMAL
-	AND o."isIns" = 'N' --SE É NOTA FISCAL DE SAIDA
-	
-UNION
-
-SELECT 
+	AND o."isIns" = 'N') UNION (SELECT 
 	'Nota Fiscal Entrega Futura' AS "Tipo",
 	CV."EntryNota",
 	O."DocNum", 
@@ -105,15 +101,11 @@ WHERE
 	AND o."DocDate" >= TO_DATE(20230701,'YYYYMMDD')
 	AND o."U_Rov_Refaturamento" = 'NAO'
 	AND o."DpmAmnt" = 0 --QUANDO É UMA NOTA FISCAL DE SAIDA NORMAL
-	AND o."isIns" = 'Y' --SE É ENTREGA FUTURA
-	
-UNION
-
-SELECT DISTINCT 
+	AND o."isIns" = 'Y')) UNION (SELECT DISTINCT 
 	'Fatura Adiantamento de Cliente' AS "Tipo",
 	CV."EntryNota",
 	O."DocNum", 
-	i."LineNum" AS "BaseLine",
+	T5."BaseLine",
 	cv."N.Pag",
 	cv."EntryPag",
 	cv."DocLine",
