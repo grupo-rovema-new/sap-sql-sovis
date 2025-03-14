@@ -249,7 +249,7 @@ Call SBO_SP_Validacao_Bloqueio_Periodo_Contabil(object_type,transaction_type,num
 Call SBO_SP_VALIDACAO_POR_UTILIZACAO(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 Call SBO_SP_TransactionNotification_Katrid(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 
-/*Call SBO_SP_VALIDACAO_VENDA_FUTURA(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);*/
+Call SBO_SP_VALIDACAO_VENDA_FUTURA(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 
 
 -- LANÇAMENTO CONTABIL MANUAL
@@ -286,35 +286,35 @@ END IF;
 
 -- NOTA FISCAL DE SAÍDA
 IF :object_type = '13' and (:transaction_type = 'A' OR :transaction_type = 'U') then 
- Select 
-        count(1) 
-        into error1
-        From 
-            INV1 T0 
-            INNER JOIN OINV T1 ON T1."DocEntry" = T0."DocEntry"
-        Where 
-            T0."DocEntry"  = :list_of_cols_val_tab_del AND
-            T0."BaseType" = '17' AND
-            T1."CANCELED"  = 'N' AND
-            "Get_Pedido_Venda_Permissao_Faturamento"(T0."BaseEntry", T0."BaseLine", T0."Quantity" ) <> 'Ok';
-
-        IF(:error1 > 0) THEN
-            SELECT 
-                MIN("Get_Pedido_Venda_Permissao_Faturamento"(T0."BaseEntry", T0."BaseLine", T0."Quantity" )) 
-                INTO
-                XITEM
-            From 
-                INV1 T0 
-                INNER JOIN OINV T1 ON T1."DocEntry" = T0."DocEntry"
-            Where 
-                T0."DocEntry"  = :list_of_cols_val_tab_del AND
-                T0."BaseType" = '17' AND
-                T1."CANCELED"  = 'N' AND
-                "Get_Pedido_Venda_Permissao_Faturamento"(T0."BaseEntry", T0."BaseLine", T0."Quantity" ) <> 'Ok';
-                   
-                error := 1;
-                error_message := XITEM;  
-        END IF;
+-- Select 
+--        count(1) 
+--        into error1
+--        From 
+--            INV1 T0 
+--            INNER JOIN OINV T1 ON T1."DocEntry" = T0."DocEntry"
+--        Where 
+--            T0."DocEntry"  = :list_of_cols_val_tab_del AND
+--            T0."BaseType" = '17' AND
+--            T1."CANCELED"  = 'N' AND
+--            "Get_Pedido_Venda_Permissao_Faturamento"(T0."BaseEntry", T0."BaseLine", T0."Quantity" ) <> 'Ok';
+--
+--        IF(:error1 > 0) THEN
+--            SELECT 
+--                MIN("Get_Pedido_Venda_Permissao_Faturamento"(T0."BaseEntry", T0."BaseLine", T0."Quantity" )) 
+--                INTO
+--                XITEM
+--            From 
+--                INV1 T0 
+--                INNER JOIN OINV T1 ON T1."DocEntry" = T0."DocEntry"
+--            Where 
+--                T0."DocEntry"  = :list_of_cols_val_tab_del AND
+--                T0."BaseType" = '17' AND
+--                T1."CANCELED"  = 'N' AND
+--                "Get_Pedido_Venda_Permissao_Faturamento"(T0."BaseEntry", T0."BaseLine", T0."Quantity" ) <> 'Ok';
+--                   
+--                error := 1;
+--                error_message := XITEM;  
+--        END IF;
 	--PAULO 09-09-2024.
 	--VERIFICAÇÃO SE A NOTA É ENTREGA FUTURA. CASO POSITIVO, SO PERMITIR DESPESA ADICIONAL DE FRETE SIMPLES FATURAMENTO.
 	-- SE NÃO, NÃO PERMITIR USO DA DESPESA DE SIMPLES FATURAMENTO.
