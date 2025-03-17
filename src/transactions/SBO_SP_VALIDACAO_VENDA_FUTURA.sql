@@ -14,6 +14,24 @@ SQL SECURITY INVOKER
 AS
 BEGIN
 	
+	
+	
+IF :object_type IN('24','46') then
+	IF( EXISTS(
+		SELECT
+			"ORCT".*
+		FROM
+			"RCT2"
+			INNER JOIN "OJDT" ON "RCT2"."DocEntry" = "OJDT"."TransId"
+			LEFT JOIN "ORCT" ON "RCT2"."DocNum" = "ORCT"."DocEntry" 
+		WHERE
+			"InvType" = 30 AND "OJDT"."TransCode" in('VFET','VFEC')
+			AND "ORCT"."DocEntry" = :list_of_cols_val_tab_del)) THEN
+		error := '88';
+    	error_message := 'Não e permitido efeturar contas a receber de uma reclassificação';
+	END if;
+END IF;
+	
     IF :object_type = '23' AND ( :transaction_type = 'A' OR :transaction_type = 'U') THEN
 
     	DECLARE v_isbn    VARCHAR(20) = '';
