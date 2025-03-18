@@ -354,7 +354,23 @@ END IF;
 			error := 7;
 	    	error_message := 'Não pode entregar para consumidor final'; 
 	END IF;
-
+			
+ IF EXISTS(
+	SELECT 
+	1
+	FROM 
+	ODLN N
+	INNER JOIN DLN1 L ON N."DocEntry" = L."DocEntry" 
+	INNER JOIN OITW E ON L."ItemCode" = E."ItemCode"  AND L."WhsCode" = E."WhsCode" 
+	WHERE L."Usage" in (5,129)
+	AND ROUND(L."Price",2) <> ROUND(E."AvgPrice",2) 
+	AND N.CANCELED = 'N'
+	AND N."DocEntry" = :list_of_cols_val_tab_del
+)
+THEN
+			error := 7;
+	    	error_message := 'Preço unitario diferente do estoque'; 
+ END IF;
 
 END IF;
 
@@ -1333,7 +1349,7 @@ VARIACAO_CUSTO AS (
 
 SELECT *
 FROM VARIACAO_CUSTO
-WHERE VARIACAO > 30 OR VARIACAO < -30
+WHERE VARIACAO > 50 OR VARIACAO < -50
 
 ) THEN
         error := 7;
@@ -2394,7 +2410,7 @@ VARIACAO_CUSTO AS (
 
 SELECT *
 FROM VARIACAO_CUSTO
-WHERE VARIACAO > 30 OR VARIACAO < -30
+WHERE VARIACAO > 50 OR VARIACAO < -50
 
 ) THEN
         error := 7;
@@ -2429,4 +2445,5 @@ IF :object_type in('23') and  (:transaction_type = 'A' or :transaction_type = 'U
 		error := 334;	
 	END if;
 end if;
+
 end;
