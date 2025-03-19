@@ -49,7 +49,11 @@ WHERE
 	AND o."DocDate" >= TO_DATE(20230701,'YYYYMMDD')
 	AND o."U_Rov_Refaturamento" = 'NAO'
 	AND o."DpmAmnt" = 0 --QUANDO É UMA NOTA FISCAL DE SAIDA NORMAL
-	AND o."isIns" = 'N') UNION (SELECT 
+	AND o."isIns" = 'N' 
+	
+	UNION 
+	
+	SELECT 
 	'Nota Fiscal Entrega Futura' AS "Tipo",
 	CV."EntryNota",
 	O."DocNum", 
@@ -101,7 +105,11 @@ WHERE
 	AND o."DocDate" >= TO_DATE(20230701,'YYYYMMDD')
 	AND o."U_Rov_Refaturamento" = 'NAO'
 	AND o."DpmAmnt" = 0 --QUANDO É UMA NOTA FISCAL DE SAIDA NORMAL
-	AND o."isIns" = 'Y')) UNION (SELECT DISTINCT 
+	AND o."isIns" = 'Y' 
+	
+	UNION 
+	
+	SELECT DISTINCT 
 	'Fatura Adiantamento de Cliente' AS "Tipo",
 	CV."EntryNota",
 	O."DocNum", 
@@ -146,6 +154,7 @@ INNER JOIN NFS_NUMITENSNOTA NN ON
 	o."DocEntry" = NN."DocEntry"
 LEFT JOIN INV9 T1 ON 
 	O."DocEntry" = T1."DocEntry"
+	AND cv."LineNum" = t1."LineNum"
 LEFT JOIN ODPI T2 ON
 	T1."BaseAbs" = T2."DocEntry"
 LEFT JOIN CR_TITULOSDESDOBRADO ct ON 
