@@ -1,7 +1,9 @@
-CREATE OR REPLACE  VIEW GGFPRODUZIDO AS
+CREATE OR REPLACE VIEW GGFPRODUZIDO AS
 ((SELECT
 	doc."BPLId",
 	'Produzido' AS nome,
+	CAST(LINHA."OcrCode2" AS VARCHAR) AS "CentroCusto",
+	CAST(LINHA."OcrCode2" AS VARCHAR) AS "NomeCentroCusto",
 	sum(linha."Quantity" * grupo."BaseQty") AS valor,
 	MONTH(ordem."PostDate") AS mes,
     YEAR(ordem."PostDate") AS ano,
@@ -16,11 +18,14 @@ WHERE
 	AND linha."ItemCode" LIKE 'PAC%'
 GROUP BY
 	doc."BPLId",
+	LINHA."OcrCode2",
 	MONTH(ordem."PostDate"),
     YEAR(ordem."PostDate"),
 	YEAR(ordem."PostDate") || '-' ||MONTH(ordem."PostDate")) UNION (SELECT
 	doc."BPLId",
 	'Estorno Produção' AS nome,
+	LINHA."OcrCode2" AS "CentroCusto",
+	LINHA."OcrCode2" AS "NomeCentroCusto",
 	-sum(linha."Quantity" * grupo."BaseQty") AS valor,
 	MONTH(ordem."PostDate") AS mes,
     YEAR(ordem."PostDate") AS ano,
@@ -35,6 +40,7 @@ WHERE
 	AND linha."ItemCode" LIKE 'PAC%'
 GROUP BY
 	doc."BPLId",
+	LINHA."OcrCode2",
 	MONTH(ordem."PostDate"),
     YEAR(ordem."PostDate"),
 	YEAR(ordem."PostDate") || '-' ||MONTH(ordem."PostDate")));
