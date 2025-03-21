@@ -1,0 +1,13 @@
+{
+    "ImageId": "ami-0e52bb357326c46e8",
+    "InstanceType": "t4g.nano",
+    "KeyName": "notebook-ssh-pub",
+    "NetworkInterfaces": [
+        {
+            "NetworkInterfaceId": "eni-09d22880d048d689d",
+            "DeviceIndex": 0
+        }
+    ],
+    "InstanceInitiatedShutdownBehavior": "terminate",
+    "UserData": "IyEvYmluL2Jhc2gKCnN1ZG8gc2h1dGRvd24gLWggKzMw"
+}
