@@ -24,7 +24,7 @@ FROM
     "ano-mes"
 FROM
 	ggfApropriado AS apropriado)) UNION (SELECT
-   "BPLId",
+  "BPLId",
    nome,
    0 AS apurado,
     0 AS realizado,
@@ -37,3 +37,4 @@ FROM
 FROM
 	ggfProduzido AS produzido
 ));
+

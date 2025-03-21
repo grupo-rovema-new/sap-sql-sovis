@@ -42,5 +42,6 @@ WHERE
 		IDEMPRESAERP
 	FROM
 		EMPRESA e)
-	AND T2."DocDate" IS null
-	AND titulo."DocStatus" IN ('O','D');
+	AND titulo."DocStatus" IN ('O','D')
+
+	AND T2."DocDate" IS NULL;
