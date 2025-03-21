@@ -118,7 +118,7 @@ jobs:
         aws-region: us-east-1
 
     - name: Terminate EC2 Instance
-      run:
+      run: |
         INSTANCE_ID=${{ needs.initialize-ec2.outputs.instance_id }}
         aws ec2 terminate-instances --instance-ids $INSTANCE_ID
         echo "Terminated EC2 Instance ID: $INSTANCE_ID"
