@@ -190,7 +190,7 @@ WHERE
 		T0."CANCELED" = 'N'
 	AND T0."DocDate" >= TO_DATE(20230701,'YYYYMMDD')
 	AND T0."U_Rov_Refaturamento" = 'NAO'
-	AND T0."isIns" = 'Y')) UNION ALL (SELECT
+	AND T0."isIns" = 'Y') UNION ALL (SELECT
 	'Fatura Adiantamento de Cliente' AS "Tipo",
 	T0."DocEntry" AS "EntryNota",
 	T0."DocNum" AS "DocNum",
@@ -217,7 +217,7 @@ WHERE
 	f."Percentual2",
 	f."%DescLinha",
 	CASE 
-		WHEN F."N.Itens" > 1 AND f."Prestação" = 1 AND CT."NumDesdobr" > 1 AND COALESCE(T10."DocTotal",0) = 0 THEN f."TotPgSFrete"
+		--WHEN F."N.Itens" > 1 AND f."Prestação" = 1 AND CT."NumDesdobr" > 1 AND COALESCE(T10."DocTotal",0) = 0 THEN f."TotPgSFrete"
 		WHEN F."N.Itens" > 1 AND f."Prestação" = 1 AND CT."NumDesdobr" > 1 AND COALESCE(T10."DocTotal",0) > 0 THEN f."TotPgSFrete2"
 		WHEN F."N.Itens" > 1 AND f."Prestação" = 1 AND CT."NumDesdobr" = 1 THEN f."TotPgSFrete2"
 		WHEN f."N.Itens" > 1 AND f."Prestação" > 1 AND CT."NumDesdobr" > 1 AND COALESCE(T10."DocTotal",0) = 0 THEN f."TotPgSFrete2"
