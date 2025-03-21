@@ -52,6 +52,7 @@ jobs:
       instance_id: ${{ steps.wait_for_instance.outputs.instance_id }}
 
   producao:
+    needs: initialize-ec2
     runs-on: self-hosted
     container:
       image: python:3.12.3
