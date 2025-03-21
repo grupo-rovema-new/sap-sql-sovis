@@ -1,10 +1,10 @@
--- SBOGRUPOROVEMA.GGFAPROPRIADO fonte
-
 CREATE OR REPLACE VIEW GGFAPROPRIADO AS
 SELECT
     JDT1."BPLId",
     pai."AcctName" pai,
     SUM(JDT1."Debit"-JDT1."Credit") AS "valor",
+    OOCR."OcrCode" AS "CentroCusto",
+    OOCR."OcrName" AS "NomeCentroCusto",
     MONTH(OJDT."RefDate") AS mes,
     YEAR(OJDT."RefDate") AS ano,
     YEAR(OJDT."RefDate") || '-' ||MONTH(OJDT."RefDate") AS "ano-mes"
@@ -18,6 +18,8 @@ WHERE
     AND "Account" LIKE '4.9%'
 GROUP BY
     JDT1."BPLId",
+    OOCR."OcrCode",
+    OOCR."OcrName",
     pai."AcctName",
     YEAR(OJDT."RefDate") || '-' ||MONTH(OJDT."RefDate"),
     MONTH(OJDT."RefDate"),

@@ -1,5 +1,3 @@
-
-
 CREATE OR REPLACE VIEW GGF AS
 (((SELECT
     "BPLId",
@@ -7,6 +5,8 @@ CREATE OR REPLACE VIEW GGF AS
     "valor" AS apurado,
     0 AS realizado,
     0 AS estoque,
+    "CentroCusto",
+    "NomeCentroCusto",
     mes,
     ano,
     "ano-mes"
@@ -17,18 +17,24 @@ FROM
     0 AS apurado,
     "valor" AS realizado,
     0 AS estoque,
+    "CentroCusto",
+    "NomeCentroCusto",
     mes,
     ano,
     "ano-mes"
 FROM
 	ggfApropriado AS apropriado)) UNION (SELECT
-    "BPLId",
-    nome,
-    0 AS apurado,
+  "BPLId",
+   nome,
+   0 AS apurado,
     0 AS realizado,
     valor AS estoque,
+    "CentroCusto",
+    "NomeCentroCusto",
     mes,
     ano,
     "ano-mes"
 FROM
-	ggfProduzido AS produzido));
+	ggfProduzido AS produzido
+));
+
