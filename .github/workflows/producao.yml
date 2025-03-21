@@ -26,7 +26,7 @@ jobs:
         
     - name: Launch EC2 Instance
       id: launch_ec2_instance
-      run:
+      run: |
         INSTANCE_ID=$(aws ec2 run-instances \
           --cli-input-json file://instance_specification.json \
           --query 'Instances[0].InstanceId' \
@@ -36,7 +36,7 @@ jobs:
     
     - name: Wait for EC2 Instance to be running
       id: wait_for_instance
-      run:
+      run: |
         INSTANCE_ID=""
         while [ -z "$INSTANCE_ID" ] || [ "$INSTANCE_ID" != "running" ]; do
           echo "Waiting for EC2 Instance to be in 'running' state..."
