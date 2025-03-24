@@ -43,7 +43,7 @@ IF :object_type IN('202') THEN
 		AND ordem."DocEntry" = :list_of_cols_val_tab_del LIMIT 1;
 
 	-- Bloqueia modificar novos se existir ordem velhas planejada ou liberadas
-	IF(idade < 30 AND EXISTS(
+	IF(idade < 20 AND EXISTS(
 		SELECT
 			"DocNum"
 		FROM
@@ -51,7 +51,7 @@ IF :object_type IN('202') THEN
 		WHERE
 			"Status" in('R','P')
 			AND "CreateDate" >= '2025-01-01'
-			AND DAYS_BETWEEN("CreateDate", CURRENT_DATE) > 30
+			AND DAYS_BETWEEN("CreateDate", CURRENT_DATE) > 20
 		LIMIT 1)) THEN
 		error := '88';
 		error_message := 'Ação bloqueada pois existe ordens de produção abertas com mais de 30 dais';
