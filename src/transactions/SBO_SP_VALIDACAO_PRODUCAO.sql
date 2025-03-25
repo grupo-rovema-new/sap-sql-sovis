@@ -43,7 +43,7 @@ IF :object_type IN('202') THEN
 		AND ordem."DocEntry" = :list_of_cols_val_tab_del LIMIT 1;
 
 	-- Bloqueia modificar novos se existir ordem velhas planejada ou liberadas
-	IF(idade < 30 AND EXISTS(
+	IF(idade < 20 AND EXISTS(
 		SELECT
 			"DocNum"
 		FROM
@@ -51,10 +51,20 @@ IF :object_type IN('202') THEN
 		WHERE
 			"Status" in('R','P')
 			AND "CreateDate" >= '2025-01-01'
-			AND DAYS_BETWEEN("CreateDate", CURRENT_DATE) > 30
+			AND DAYS_BETWEEN("CreateDate", CURRENT_DATE) > 20
 		LIMIT 1)) THEN
-		error := '88';
-		error_message := 'Ação bloqueada pois existe ordens de produção abertas com mais de 30 dais';
+			SELECT
+				"DocNum"
+			INTO docNumMsg
+			FROM
+				"OWOR"
+			WHERE
+				"Status" in('R','P')
+				AND "CreateDate" >= '2025-01-01'
+				AND DAYS_BETWEEN("CreateDate", CURRENT_DATE) > 20
+			LIMIT 1;
+			error := '88';
+			error_message := 'Ação bloqueada pois existe ordens de produção abertas com mais de 30 dais '|| docNumMsg;
 	END if;
 
 
@@ -72,9 +82,23 @@ IF :object_type IN('202') THEN
 			"Status" in('R')
 			AND "CreateDate" >= '2025-01-01' 
 			AND DAYS_BETWEEN("CreateDate", CURRENT_DATE) > 3
-			AND ((entrada."DocEntry" IS NOT NULL AND saida."DocEntry" IS NULL) OR (entrada."DocEntry" IS NULL AND saida."DocEntry" IS NOT NULL)))) THEN
-		error := '88';
-		error_message := 'Ação bloqueada porque existe ordens com lancamentos parciais (so entrada ou so saida)';
+			AND ordem."DocEntry" <> :list_of_cols_val_tab_del
+			AND ((entrada."DocEntry" IS NOT NULL AND saida."DocEntry" IS NULL) OR (entrada."DocEntry" IS NULL AND saida."DocEntry" IS NOT NULL)))) 
+	    THEN
+			SELECT
+				ordem."DocNum"
+				INTO docNumMsg 
+			FROM
+				"OWOR" ordem
+				LEFT JOIN "IGN1" entrada ON(entrada."BaseRef" = to_char(ordem."DocNum"))
+				LEFT JOIN "IGE1" saida ON(saida."BaseRef" = to_char(ordem."DocNum"))
+			WHERE
+				"Status" in('R')
+				AND "CreateDate" >= '2025-01-01' 
+				AND DAYS_BETWEEN("CreateDate", CURRENT_DATE) > 3
+				AND ((entrada."DocEntry" IS NOT NULL AND saida."DocEntry" IS NULL) OR (entrada."DocEntry" IS NULL AND saida."DocEntry" IS NOT NULL)) LIMIT 1;
+			error := '88';
+			error_message := 'Ação bloqueada porque existe ordens com lancamentos parciais (so entrada ou so saida) '|| docNumMsg;
 	END if;
 
 
