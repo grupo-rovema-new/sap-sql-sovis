@@ -344,7 +344,7 @@ IF :object_type = '15' and ( :transaction_type = 'A') then
 	ODLN N
 	INNER JOIN DLN1 L ON N."DocEntry" = L."DocEntry" 
 	INNER JOIN OITW E ON L."ItemCode" = E."ItemCode"  AND L."WhsCode" = E."WhsCode" 
-	WHERE L."Usage" in (5,129)
+	WHERE L."Usage" = 5
 	AND ROUND(L."Price",2) <> ROUND(E."AvgPrice",2) 
 	AND N.CANCELED = 'N'
 	AND N."DocEntry" = :list_of_cols_val_tab_del
@@ -1746,6 +1746,40 @@ THEN
     error := 7;
     error_message := 'Diferença entre frete e total de despesas encontrada.';
 END IF;
+
+ IF EXISTS(
+	SELECT 
+	1
+	FROM 
+	OINV N
+	INNER JOIN INV1 L ON N."DocEntry" = L."DocEntry" 
+	INNER JOIN OITW E ON L."ItemCode" = E."ItemCode"  AND L."WhsCode" = E."WhsCode" 
+	WHERE L."Usage" = 129
+	AND ROUND(L."Price",2) <> ROUND(E."AvgPrice",2) 
+	AND N.CANCELED = 'N'
+	AND N."DocEntry" = :list_of_cols_val_tab_del
+)
+THEN
+			error := 7;
+	    	error_message := 'Preço unitario diferente do estoque'; 
+ END IF;
+ 
+  IF EXISTS(
+	SELECT 
+	1
+	FROM 
+	OINV N
+	INNER JOIN INV1 L ON N."DocEntry" = L."DocEntry" 
+	INNER JOIN OITW E ON L."ItemCode" = E."ItemCode"  AND L."WhsCode" = E."WhsCode" 
+	WHERE L."Usage" = 129
+	AND ROUND(L."Price",2) <> ROUND(E."AvgPrice",2) 
+	AND N.CANCELED = 'N'
+	AND N."DocEntry" = :list_of_cols_val_tab_del
+)
+THEN
+			error := 7;
+	    	error_message := 'Preço unitario diferente do estoque'; 
+ END IF;
 END IF;
 -----------------------------------------------------------------------------------------------------------
 
