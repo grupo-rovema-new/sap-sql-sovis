@@ -82,6 +82,7 @@ IF :object_type IN('202') THEN
 			"Status" in('R')
 			AND "CreateDate" >= '2025-01-01' 
 			AND DAYS_BETWEEN("CreateDate", CURRENT_DATE) > 3
+			AND ordem."DocEntry" <> :list_of_cols_val_tab_del
 			AND ((entrada."DocEntry" IS NOT NULL AND saida."DocEntry" IS NULL) OR (entrada."DocEntry" IS NULL AND saida."DocEntry" IS NOT NULL)))) 
 	    THEN
 			SELECT
