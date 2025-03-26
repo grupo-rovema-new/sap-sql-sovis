@@ -18,6 +18,8 @@ cardCode nvarchar(200);
 pTblSuffix nvarchar(4);
 query nvarchar(255);
 debug nvarchar(200);
+precoNota nvarchar(255);
+precoEstoque nvarchar(255);
 begin
 
 erroAdiantamento := 0;
@@ -348,11 +350,25 @@ IF :object_type = '15' and ( :transaction_type = 'A') then
 	AND ROUND(L."INMPrice",2) <> ROUND(E."AvgPrice",2) 
 	AND N.CANCELED = 'N'
 	AND N."DocEntry" = :list_of_cols_val_tab_del
+	LIMIT 1
 )
 THEN
+SELECT 
+	ROUND(L."INMPrice",2),
+	ROUND(E."AvgPrice",2)
+	INTO precoNota,precoEstoque
+	FROM 
+	ODLN N
+	INNER JOIN DLN1 L ON N."DocEntry" = L."DocEntry" 
+	INNER JOIN OITW E ON L."ItemCode" = E."ItemCode"  AND L."WhsCode" = E."WhsCode" 
+	WHERE L."Usage" = 5
+	AND ROUND(L."INMPrice",2) <> ROUND(E."AvgPrice",2) 
+	AND N.CANCELED = 'N'
+	AND N."DocEntry" = :list_of_cols_val_tab_del
+	LIMIT 1;
 	
 			error := 7;
-	    	error_message := 'Preço unitario diferente do estoque'; 
+	    	error_message := 'Preço unitario diferente do estoque ' || 'preco nota ' || precoNota || ' preco estoque ' || precoEstoque; 
  END IF;
 
 END IF;
