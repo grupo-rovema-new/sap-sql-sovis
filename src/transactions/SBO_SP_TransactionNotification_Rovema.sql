@@ -1,4 +1,4 @@
-CREATE OR replace PROCEDURE SBO_SP_TransactionNotification_Rovema
+CREATE or replace PROCEDURE SBO_SP_TransactionNotification_Rovema
 
 (
 	in object_type nvarchar(30), 				-- SBO Object Type
@@ -274,22 +274,22 @@ END IF;
 End If;
 -----------------------------------------------------------------------------------------------
 IF :object_type = '15' and ( :transaction_type = 'A') then
-	
-		
-		IF  EXISTS(
-
-			SELECT 
-			1
-			FROM ODLN 
-			WHERE  "CANCELED" = 'N'
-			AND "DiscSum" <> 0
-			AND "DocEntry" = :list_of_cols_val_tab_del
-			)
-		THEN 
-			error := 7;
-			error_message:= 'Não permitido desconto nesse modulo, favor retirar o desconto.';
-		
-	END IF;
+--	
+--		
+--		IF  EXISTS(
+--
+--			SELECT 
+--			1
+--			FROM ODLN 
+--			WHERE  "CANCELED" = 'N'
+--			AND "DiscSum" <> 0
+--			AND "DocEntry" = :list_of_cols_val_tab_del
+--			)
+--		THEN 
+--			error := 7;
+--			error_message:= 'Não permitido desconto nesse modulo, favor retirar o desconto.';
+--		
+--	END IF;
 
   IF EXISTS(
 	SELECT 
@@ -345,11 +345,12 @@ IF :object_type = '15' and ( :transaction_type = 'A') then
 	INNER JOIN DLN1 L ON N."DocEntry" = L."DocEntry" 
 	INNER JOIN OITW E ON L."ItemCode" = E."ItemCode"  AND L."WhsCode" = E."WhsCode" 
 	WHERE L."Usage" = 5
-	AND ROUND(L."Price",2) <> ROUND(E."AvgPrice",2) 
+	AND ROUND(L."INMPrice",2) <> ROUND(E."AvgPrice",2) 
 	AND N.CANCELED = 'N'
 	AND N."DocEntry" = :list_of_cols_val_tab_del
 )
 THEN
+	
 			error := 7;
 	    	error_message := 'Preço unitario diferente do estoque'; 
  END IF;
