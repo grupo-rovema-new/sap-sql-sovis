@@ -276,22 +276,42 @@ END IF;
 End If;
 -----------------------------------------------------------------------------------------------
 IF :object_type = '15' and ( :transaction_type = 'A') then
---	
---		
---		IF  EXISTS(
---
---			SELECT 
---			1
---			FROM ODLN 
---			WHERE  "CANCELED" = 'N'
---			AND "DiscSum" <> 0
---			AND "DocEntry" = :list_of_cols_val_tab_del
---			)
---		THEN 
---			error := 7;
---			error_message:= 'Não permitido desconto nesse modulo, favor retirar o desconto.';
---		
---	END IF;
+ IF NOT EXISTS (
+	SELECT 1 FROM ODLN n
+	INNER JOIN DLN1 l ON n."DocEntry" = l."DocEntry" 
+	INNER JOIN OINV  M ON l."BaseEntry"  = M."DocEntry" 
+	WHERE
+	M."DocDate" <= TO_DATE('20230804', 'YYYYMMDD') 
+	AND l."DocEntry" = :list_of_cols_val_tab_del
+	)
+	THEN 
+	
+		
+		IF  EXISTS(
+			SELECT
+				sum("U_TX_VlDeL") AS "soma",
+				sum("U_TX_VlDeL")-n."DiscSum"
+			FROM
+				DLN4 t
+				INNER JOIN ODLN n on(t."DocEntry" = n."DocEntry")
+			WHERE 
+				t."DocEntry" = :list_of_cols_val_tab_del
+				AND t."staType" in(28,10)
+				AND n."CANCELED" = 'N'
+			GROUP BY 
+				n."DiscSum",
+				t."DocEntry"
+			
+			HAVING 
+				(sum("U_TX_VlDeL")-n."DiscSum") >= 0.05 OR (sum("U_TX_VlDeL")-n."DiscSum") <= -0.05
+			)
+		THEN 
+			error := 7;
+			error_message:= 'Não permitido desconto divergente do valor do impoto desonerado';
+		
+	END IF;
+	
+END IF;
 
   IF EXISTS(
 	SELECT 
