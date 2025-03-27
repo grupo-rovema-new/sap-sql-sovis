@@ -211,23 +211,30 @@ BEGIN
 
         -- TRANSFERENCIA DE DEPOSITO
         ELSEIF (object_type = '67') THEN
-            INSERT INTO "@KATRID_INTE" (
-                "U_Object_Name",
-                "DocEntry",
-                "Object",
-                "RequestStatus",
-                "Remark",
-                "DocNum"
-            )
-            SELECT 
-                'SQLQueries(''Sql_Items'')/List',
-                COALESCE((SELECT MAX("DocEntry") + 1 FROM "@KATRID_INTE"), 1),
-                '''' || TO_VARCHAR("ItemCode") || '''',
-                transaction_type,
-                'item',
-                '67'
-            FROM WTR1
-            WHERE "DocEntry" = list_of_cols_val_tab_del;
+            INSERT
+	INTO
+	"@KATRID_INTE" (
+	    "U_Object_Name",
+	    "DocEntry",
+	    "Object",
+	    "RequestStatus",
+	    "Remark",
+	    "DocNum"
+	)
+	SELECT
+	   'SQLQueries(''Sql_Items'')/List', 
+	   COALESCE((SELECT MAX("DocEntry") FROM "@KATRID_INTE"), 1) + ROW_NUMBER() OVER (
+	ORDER BY "ItemCode"),
+	    '''' || TO_VARCHAR("ItemCode") || '''' , 
+	    transaction_type, 
+	    'item', 
+	    '67'
+FROM
+	WTR1
+WHERE
+	"DocEntry" = list_of_cols_val_tab_del
+GROUP BY
+	"ItemCode";
            
 		-- COLABORADORES
         ELSEIF (object_type = '171') THEN
