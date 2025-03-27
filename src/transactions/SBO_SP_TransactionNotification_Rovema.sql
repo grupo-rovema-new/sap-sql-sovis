@@ -20,6 +20,7 @@ query nvarchar(255);
 debug nvarchar(200);
 precoNota nvarchar(255);
 precoEstoque nvarchar(255);
+notaSemDespesa nvarchar(255);
 begin
 
 erroAdiantamento := 0;
@@ -981,6 +982,7 @@ AND P."CSTfCOFINS" <> IMPOSTO."CstCodeIn"
 			error := 7;
          	error_message := 'O CST do COFINS não corresponde ao código do imposto.';  
 	End If;
+
 
 -----------------------------------------------------------------------------------------------
 
@@ -2325,7 +2327,7 @@ AND T0."DocEntry" = :list_of_cols_val_tab_del
         error := 3;
         error_message := 'Verifique campo de Data de Vencimento ou Prestações, não é permitido datas retroativas!';
     END IF;
-/*
+
 IF EXISTS (
   SELECT
     1
@@ -2367,7 +2369,7 @@ IF EXISTS (
 ) THEN error:= 7;
 error_message:= 'Infome um CTE Valido!.';
 END IF;
-*/
+
 IF EXISTS(
 WITH
 CUSTO_NOTA AS (
@@ -2471,6 +2473,117 @@ WHERE VARIACAO > 50 OR VARIACAO < -50
 error_message := 'Desvio de custo muito alto!';
 END IF;
 END IF;
+
+IF :object_type in('60') and  (:transaction_type = 'A') THEN 
+
+IF NOT EXISTS(
+	WITH 
+	SAIDA_INSUMO AS (
+SELECT 
+	N."DocEntry",
+	L."ItemCode",
+	L."WhsCode"
+FROM
+	OIGE N
+INNER JOIN IGE1 L ON
+	N."DocEntry" = L."DocEntry"
+WHERE
+	L."DocEntry" = :list_of_cols_val_tab_del 
+	),
+	ESTOQUE AS (
+SELECT 
+	MAX(E."CreatedBy" ) AS "DocEntry",
+	E."ItemCode"
+FROM
+	OINM E
+INNER JOIN SAIDA_INSUMO S ON
+	E."ItemCode" = S."ItemCode"
+	AND S."WhsCode" = E."Warehouse"
+WHERE
+	"TransType" = '18'
+	AND E."DocDate" > '2025-03-23'
+GROUP BY 
+	E."ItemCode"
+	),
+	NOTA AS (
+SELECT 
+	E."DocEntry",
+	N."DocNum",
+	E."ItemCode"
+FROM
+	OPCH N
+INNER JOIN PCH1 L ON
+	N."DocEntry" = L."DocEntry"
+INNER JOIN ESTOQUE E ON
+	N."DocEntry" = E."DocEntry"
+WHERE
+	N.CANCELED = 'N'
+	AND L."Usage" = '15'
+	)
+	SELECT 
+	1
+FROM
+	ipf1 DI
+INNER JOIN NOTA N ON
+	DI."BaseEntry" = N."DocEntry"
+	AND di."ItemCode" = N."ItemCode"
+	LIMIT 1
+)
+   THEN
+	WITH 
+	SAIDA_INSUMO AS (
+SELECT 
+	N."DocEntry",
+	L."ItemCode",
+	L."WhsCode"
+FROM
+	OIGE N
+INNER JOIN IGE1 L ON
+	N."DocEntry" = L."DocEntry"
+WHERE
+	L."DocEntry" = :list_of_cols_val_tab_del 
+	),
+	ESTOQUE AS (
+SELECT 
+	MAX(E."CreatedBy" ) AS "DocEntry",
+	E."ItemCode"
+FROM
+	OINM E
+INNER JOIN SAIDA_INSUMO S ON
+	E."ItemCode" = S."ItemCode"
+	AND S."WhsCode" = E."Warehouse"
+WHERE
+	"TransType" = '18'
+	AND E."DocDate" > '2025-03-23'
+GROUP BY 
+	E."ItemCode"
+	),
+	NOTA AS (
+SELECT 
+	E."DocEntry",
+	N."DocNum",
+	E."ItemCode"
+FROM
+	OPCH N
+INNER JOIN PCH1 L ON
+	N."DocEntry" = L."DocEntry"
+INNER JOIN ESTOQUE E ON
+	N."DocEntry" = E."DocEntry"
+WHERE
+	N.CANCELED = 'N'
+	AND L."Usage" = '15'
+	)
+	SELECT 
+	"DocNum"
+	INTO notaSemDespesa
+FROM
+	NOTA
+	LIMIT 1;
+	
+			error := 7;
+         	error_message := 'Não foi feito despesa de importação da nota: ' || notaSemDespesa;  
+	End If;
+END IF ;
 
 ----------------------------------------------------------------------------------------------
 
