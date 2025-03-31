@@ -2480,7 +2480,7 @@ error_message := 'Desvio de custo muito alto!';
 END IF;
 END IF;
 
-IF :object_type in('60') and  (:transaction_type = 'A') THEN 
+IF :object_type in('60') and  (:transaction_type = 'A') and 1 = 2 THEN 
 
 IF NOT EXISTS(
 	WITH 
