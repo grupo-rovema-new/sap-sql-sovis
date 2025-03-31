@@ -21,7 +21,6 @@ debug nvarchar(200);
 precoNota nvarchar(255);
 precoEstoque nvarchar(255);
 notaSemDespesa nvarchar(255);
-
 begin
 
 erroAdiantamento := 0;
@@ -2330,6 +2329,7 @@ AND T0."DocEntry" = :list_of_cols_val_tab_del
         error_message := 'Verifique campo de Data de Vencimento ou Prestações, não é permitido datas retroativas!';
     END IF;
 
+<<<<<<< HEAD
 --IF EXISTS (
 --  SELECT
 --    1
@@ -2374,6 +2374,49 @@ AND T0."DocEntry" = :list_of_cols_val_tab_del
 --) THEN error:= 7;
 --error_message:= 'Infome um CTE Valido!';
 --END IF;
+=======
+IF EXISTS (
+  SELECT
+    1
+  FROM
+    OPCH NOTA
+    left JOIN PCH1 LINHA ON NOTA."DocEntry" = LINHA."DocEntry"
+    LEFT JOIN pch12 ON NOTA."DocEntry" = PCH12."DocEntry"
+  WHERE
+    PCH12."Incoterms" = 1
+    AND LINHA."Usage" = 15
+    AND NOTA."Model" = 39
+    AND NOTA."U_TX_TagCTe" IS NULL
+    AND NOTA."CANCELED" = 'N'
+    AND NOTA."DocEntry" = :list_of_cols_val_tab_del
+) THEN error:= 7;
+error_message:= 'Nota sem CTE! Favor informe o CTE.';
+END IF;
+IF EXISTS (
+  SELECT
+    1
+  FROM
+    OPCH NOTA
+    left JOIN PCH1 LINHA ON NOTA."DocEntry" = LINHA."DocEntry"
+    LEFT JOIN pch12 ON NOTA."DocEntry" = PCH12."DocEntry"
+  WHERE
+    PCH12."Incoterms" = 1
+    AND LINHA."Usage" = 15
+    AND NOTA."Model" = 39
+    AND NOTA."CANCELED" = 'N'
+    AND NOTA."DocEntry" = :list_of_cols_val_tab_del
+    AND EXISTS (
+      SELECT
+        1
+      FROM
+        OPCH NOTA1
+      WHERE
+        NOTA1."U_ChaveAcesso" = NOTA."U_TX_TagCTe"
+    )
+) THEN error:= 7;
+error_message:= 'Infome um CTE Valido!.';
+END IF;
+>>>>>>> b63a4b95de0420d097495eba1b3de6ec8e9b9f7c
 
 IF EXISTS(
 WITH
