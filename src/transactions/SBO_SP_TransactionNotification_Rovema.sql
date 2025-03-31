@@ -2329,7 +2329,6 @@ AND T0."DocEntry" = :list_of_cols_val_tab_del
         error_message := 'Verifique campo de Data de Vencimento ou Prestações, não é permitido datas retroativas!';
     END IF;
 
-<<<<<<< HEAD
 --IF EXISTS (
 --  SELECT
 --    1
@@ -2374,7 +2373,7 @@ AND T0."DocEntry" = :list_of_cols_val_tab_del
 --) THEN error:= 7;
 --error_message:= 'Infome um CTE Valido!';
 --END IF;
-=======
+
 IF EXISTS (
   SELECT
     1
@@ -2416,7 +2415,7 @@ IF EXISTS (
 ) THEN error:= 7;
 error_message:= 'Infome um CTE Valido!.';
 END IF;
->>>>>>> b63a4b95de0420d097495eba1b3de6ec8e9b9f7c
+
 
 IF EXISTS(
 WITH
