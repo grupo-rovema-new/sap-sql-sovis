@@ -14,7 +14,44 @@ SQL SECURITY INVOKER
 AS
 BEGIN
 	
+DECLARE totalFrete number;
+DECLARE freteAtual number;
 	
+IF :object_type IN('14') AND :transaction_type = 'A' then
+	IF( EXISTS(
+		SELECT
+			1
+		FROM
+			"ORIN" 
+		WHERE
+			"U_conciliar_automatico" = 0
+			AND "DocEntry" = :list_of_cols_val_tab_del)
+	) THEN
+		error := '88';
+    	error_message := 'Modifique o campo "Conciliar automaticamente?" para "SIM"';
+	END if;
+
+	SELECT
+		sum(ROUND((item."U_preco_negociado" * item."Quantity") / (pedido."DocTotal" - COALESCE(frete."LineTotal", 0)), 2) / item."Quantity" * COALESCE(frete."LineTotal", 0) * devItem."Quantity") AS "freteItemDev",
+		sum(COALESCE(devFrete."LineTotal", 0))
+	INTO
+		totalFrete, freteAtual
+	FROM 
+		"ORDR" pedido
+		INNER JOIN "RDR1" item ON pedido."DocEntry" = item."DocEntry"
+		INNER JOIN "@AR_CONTRATO_FUTURO" contrato ON contrato."U_orderDocEntry"  = pedido."DocEntry" 
+		LEFT JOIN "RDR3" frete ON pedido."DocEntry" = frete."DocEntry"
+		INNER JOIN "ORIN" devolucao ON devolucao."U_venda_futura" = contrato."DocEntry"
+		INNER JOIN "RIN1" devItem ON devItem."DocEntry" = devolucao."DocEntry" AND devItem."ItemCode" = item."ItemCode"
+		LEFT JOIN "RIN3"  devFrete ON devFrete."DocEntry" = devolucao."DocEntry"
+	WHERE
+		devolucao."DocEntry" = :list_of_cols_val_tab_del;
+		
+	IF totalFrete <> freteAtual THEN
+		error := '88';
+    	error_message := 'O frete deve ser proporcional ao contrato. Sugestão '|| totalFrete;
+	END if;
+END IF;
 	
 IF :object_type IN('24','46') then
 	IF( EXISTS(
@@ -58,54 +95,67 @@ END IF;
 	            -- Verifica se existe algum valor negativo na subtração do total de contrato menos as quantidades de cotação, pedido e nota para o mesmo ItemCode
 	            IF EXISTS (
 	              WITH 
-	                CONTRATO AS 
-	                (
-	                    SELECT "DocEntry", "U_itemCode", "U_quantity" AS TOTAL_CONTRATO 
-	                    FROM "@AR_CF_LINHA" 
-	                    WHERE "DocEntry" = :v_contract_docentry
-	                ),
-	                COTACAO AS
-	                (
-	                    SELECT LINHACOTACAO."ItemCode", SUM(LINHACOTACAO."Quantity") AS TOTAL_COTACAO 
-	                    FROM OQUT COTACAO
-	                    INNER JOIN QUT1 LINHACOTACAO ON COTACAO."DocEntry" = LINHACOTACAO."DocEntry"
-	                    INNER JOIN CONTRATO ON CONTRATO."DocEntry" = COTACAO."U_venda_futura" AND LINHACOTACAO."ItemCode" = CONTRATO."U_itemCode"
-	                  	WHERE "DocStatus" = 'O'
-	                    GROUP BY LINHACOTACAO."ItemCode"
-	                ),
-	                PEDIDO AS 
-	                (
-	                    SELECT LINHAPEDIDO."ItemCode", SUM(LINHAPEDIDO."Quantity") AS TOTAL_PEDIDO 
-	                    FROM ORDR PEDIDO
-	                    INNER JOIN RDR1 LINHAPEDIDO ON PEDIDO."DocEntry" = LINHAPEDIDO."DocEntry"
-	                    INNER JOIN CONTRATO ON CONTRATO."DocEntry" = PEDIDO."U_venda_futura" AND LINHAPEDIDO."ItemCode" = CONTRATO."U_itemCode"
-	                    WHERE "DocStatus" = 'O'
-	                    GROUP BY LINHAPEDIDO."ItemCode"
-	                ),
-	                NOTA AS
-	                (
-	                    SELECT LINHANOTA."ItemCode", SUM(LINHANOTA."Quantity") AS TOTAL_NOTA 
-	                    FROM OINV NOTA
-	                    INNER JOIN INV1 LINHANOTA ON NOTA."DocEntry" = LINHANOTA."DocEntry"
-	                    INNER JOIN CONTRATO ON CONTRATO."DocEntry" = NOTA."U_venda_futura" AND LINHANOTA."ItemCode" = CONTRATO."U_itemCode"
-	                    WHERE "CANCELED" = 'N'
-	                    GROUP BY LINHANOTA."ItemCode"
-	                )
-	                SELECT 
-	                    CONTRATO."U_itemCode", 
-	                    COALESCE(CONTRATO.TOTAL_CONTRATO, 0) - 
-	                    COALESCE(COTACAO.TOTAL_COTACAO, 0) - 
-	                    COALESCE(PEDIDO.TOTAL_PEDIDO, 0) - 
-	                    COALESCE(NOTA.TOTAL_NOTA, 0) AS RESULTADO 
-	                FROM CONTRATO
-	                LEFT JOIN COTACAO ON CONTRATO."U_itemCode" = COTACAO."ItemCode"
-	                LEFT JOIN PEDIDO ON CONTRATO."U_itemCode" = PEDIDO."ItemCode"
-	                LEFT JOIN NOTA ON CONTRATO."U_itemCode" = NOTA."ItemCode"
-	                WHERE CONTRATO."U_itemCode" = :v_item_code -- Verifica apenas o item em questão
-	                   AND COALESCE(CONTRATO.TOTAL_CONTRATO, 0) - 
-	                      COALESCE(COTACAO.TOTAL_COTACAO, 0) - 
-	                      COALESCE(PEDIDO.TOTAL_PEDIDO, 0) - 
-	                      COALESCE(NOTA.TOTAL_NOTA, 0) < 0
+				    CONTRATO AS 
+				    (
+				        SELECT "DocEntry", "U_itemCode", "U_quantity" AS TOTAL_CONTRATO 
+				        FROM "@AR_CF_LINHA" 
+				        WHERE "DocEntry" = :v_contract_docentry
+				    ),
+				    COTACAO AS
+				    (
+				        SELECT LINHACOTACAO."ItemCode", SUM(LINHACOTACAO."Quantity") AS TOTAL_COTACAO 
+				        FROM OQUT COTACAO
+				        INNER JOIN QUT1 LINHACOTACAO ON COTACAO."DocEntry" = LINHACOTACAO."DocEntry"
+				        INNER JOIN CONTRATO ON CONTRATO."DocEntry" = COTACAO."U_venda_futura" AND LINHACOTACAO."ItemCode" = CONTRATO."U_itemCode"
+				      	WHERE "DocStatus" = 'O'
+				        GROUP BY LINHACOTACAO."ItemCode"
+				    ),
+				    PEDIDO AS 
+				    (
+				        SELECT LINHAPEDIDO."ItemCode", SUM(LINHAPEDIDO."Quantity") AS TOTAL_PEDIDO 
+				        FROM ORDR PEDIDO
+				        INNER JOIN RDR1 LINHAPEDIDO ON PEDIDO."DocEntry" = LINHAPEDIDO."DocEntry"
+				        INNER JOIN CONTRATO ON CONTRATO."DocEntry" = PEDIDO."U_venda_futura" AND LINHAPEDIDO."ItemCode" = CONTRATO."U_itemCode"
+				        WHERE "DocStatus" = 'O'
+				        GROUP BY LINHAPEDIDO."ItemCode"
+				    ),
+				    NOTA AS
+				    (
+				        SELECT LINHANOTA."ItemCode", SUM(LINHANOTA."Quantity") AS TOTAL_NOTA 
+				        FROM OINV NOTA
+				        INNER JOIN INV1 LINHANOTA ON NOTA."DocEntry" = LINHANOTA."DocEntry"
+				        INNER JOIN CONTRATO ON CONTRATO."DocEntry" = NOTA."U_venda_futura" AND LINHANOTA."ItemCode" = CONTRATO."U_itemCode"
+				        WHERE "CANCELED" = 'N'
+				        GROUP BY LINHANOTA."ItemCode"
+				    ),
+				    DEVOLUCAO AS
+				    (
+				        SELECT LINHANOTA."ItemCode", SUM(LINHANOTA."Quantity") AS TOTAL_NOTA 
+				        FROM ORIN NOTA
+				        INNER JOIN RIN1 LINHANOTA ON NOTA."DocEntry" = LINHANOTA."DocEntry"
+				        INNER JOIN CONTRATO ON CONTRATO."DocEntry" = NOTA."U_venda_futura" AND LINHANOTA."ItemCode" = CONTRATO."U_itemCode"
+				        WHERE "CANCELED" = 'N'
+				        GROUP BY LINHANOTA."ItemCode"
+				    )
+				    SELECT 
+				        CONTRATO."U_itemCode", 
+				        COALESCE(CONTRATO.TOTAL_CONTRATO, 0) + 
+				        COALESCE(DEVOLUCAO.TOTAL_NOTA, 0) - 
+				        COALESCE(COTACAO.TOTAL_COTACAO, 0) - 
+				        COALESCE(PEDIDO.TOTAL_PEDIDO, 0) -  
+				        COALESCE(NOTA.TOTAL_NOTA, 0) AS RESULTADO 
+				    FROM CONTRATO
+				    LEFT JOIN COTACAO ON CONTRATO."U_itemCode" = COTACAO."ItemCode"
+				    LEFT JOIN PEDIDO ON CONTRATO."U_itemCode" = PEDIDO."ItemCode"
+				    LEFT JOIN NOTA ON CONTRATO."U_itemCode" = NOTA."ItemCode"
+				    LEFT JOIN DEVOLUCAO ON CONTRATO."U_itemCode" = DEVOLUCAO."ItemCode"
+				    WHERE
+				    	CONTRATO."U_itemCode" = :v_item_code AND 
+						COALESCE(CONTRATO.TOTAL_CONTRATO, 0) +
+				       	COALESCE(DEVOLUCAO.TOTAL_NOTA, 0) -
+				  		COALESCE(COTACAO.TOTAL_COTACAO, 0) - 
+						COALESCE(PEDIDO.TOTAL_PEDIDO, 0) - 
+				      	COALESCE(NOTA.TOTAL_NOTA, 0) < 0
 	            ) THEN 
 	                -- Se qualquer resultado for negativo para o item específico e o item está na cotação, defina o erro e a mensagem de erro
 	                error := 7;
