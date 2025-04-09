@@ -14,7 +14,7 @@ left JOIN DLN1 T2 ON T0."DocEntry" = T2."DocEntry"
 left join INV1 T1 on T2."BaseEntry" = T1."DocEntry"
 left join OINV T3 on T3."DocEntry" = T1."DocEntry"; */
 
-CREATE OR REPLACE VIEW SBOGRUPOROVEMA.OBSENTREGA AS
+CREATE OR REPLACE VIEW OBSENTREGA AS
 SELECT DISTINCT
     CASE
         WHEN (T1."DocEntry" > 0 AND T2."BaseEntry" > 0 AND T2."BaseType" = 13) THEN
