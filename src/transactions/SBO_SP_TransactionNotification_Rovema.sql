@@ -2358,6 +2358,9 @@ AND T0."DocEntry" = :list_of_cols_val_tab_del
 --error_message:= 'Infome um CTE Valido!';
 --END IF;
 /*
+
+
+>>>>>>> dcdd6446522f39b77452cea4d559cc3a26451e80
 IF EXISTS (
   SELECT
     1
@@ -2400,6 +2403,7 @@ IF EXISTS (
 error_message:= 'Infome um CTE Valido!.';
 END IF;
 */
+
 
 IF EXISTS(
 WITH

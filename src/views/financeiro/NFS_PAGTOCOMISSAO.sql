@@ -1,5 +1,5 @@
 CREATE OR REPLACE VIEW NFS_PAGTOCOMISSAO AS
-(SELECT
+SELECT
 	'Nota Fiscal de Saída' AS "Tipo",
 	T0."DocEntry" AS "EntryNota",
 	T0."DocNum" AS "DocNum",
@@ -26,20 +26,26 @@ CREATE OR REPLACE VIEW NFS_PAGTOCOMISSAO AS
 	f."Percentual2",
 	f."%DescLinha",
 	CASE 
-		WHEN F."N.Itens" > 1 AND f."Prestação" = 1 AND CT."NumDesdobr" > 1 AND COALESCE(T10."DocTotal",0) = 0 THEN f."TotPgSFrete"
-		WHEN F."N.Itens" > 1 AND f."Prestação" = 1 AND CT."NumDesdobr" > 1 AND COALESCE(T10."DocTotal",0) > 0 AND NT."Referenciado" = 1 THEN f."TotPgSFrete2"
-		WHEN F."N.Itens" > 1 AND f."Prestação" = 1 AND CT."NumDesdobr" > 1 AND COALESCE(T10."DocTotal",0) > 0 AND NT."Referenciado" > 1 THEN f."TotPgSFrete5"
-		WHEN F."N.Itens" > 1 AND f."Prestação" = 1 AND CT."NumDesdobr" = 1 THEN f."TotPgSFrete2"
-		WHEN f."N.Itens" > 1 AND f."Prestação" > 1 AND CT."NumDesdobr" > 1 AND COALESCE(T10."DocTotal",0) = 0 THEN f."TotPgSFrete2"
-		WHEN f."N.Itens" > 1 AND f."Prestação" > CT."NumDesdobr" THEN f."TotPgSFrete2"
-		WHEN F."N.Itens" > 1 AND F."Prestação" < CT."NumDesdobr" THEN f."TotPgSFrete2"
-		WHEN F."N.Itens" > 1 AND f."Prestação" = CT."NumDesdobr" AND COALESCE(T10."DocTotal",0) > 0 THEN f."TotPgSFrete4"
-		WHEN F."N.Itens" = 1 AND f."Prestação" = 1 AND CT."NumDesdobr" = 1 AND COALESCE(T10."DocTotal",0) = 0 THEN f."TotPgSFrete"
-		WHEN F."N.Itens" = 1 AND f."Prestação" = 1 AND CT."NumDesdobr" = 1 AND COALESCE(T10."DocTotal",0) > 0 THEN f."TotPgSFrete2"
-		WHEN f."N.Itens" = 1 AND f."Prestação" = 1 AND CT."NumDesdobr" > 1 THEN f."TotPgSFrete2"
-		WHEN f."N.Itens" = 1 AND f."Prestação" >= CT."NumDesdobr" THEN f."TotPgSFrete3"
-		WHEN f."N.Itens" = 1 AND f."Prestação" < CT."NumDesdobr" THEN f."TotPgSFrete"
-		WHEN f."N.Itens" = 1 AND f."Prestação" = CT."NumDesdobr"  THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" = 1 AND f."Prestação" = 1 AND CT."NumDesdobr" = 1 AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" <> 0 AND t0."DocStatus" = 'C' THEN f."TotPgSFrete"
+		WHEN F."N.Itens" = 1 AND f."Prestação" = 1 AND CT."NumDesdobr" = 1 AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" <> 0 AND t0."DocStatus" = 'O' THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" > 1 AND f."Prestação" = 1 AND CT."NumDesdobr" = 1 AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" = 0 THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" = 1 AND f."Prestação" = 1 AND CT."NumDesdobr" = 1 AND NT."Referenciado" = 1 AND nd."Devolução" <> 0 AND f."Frete" = 0 THEN f."TotPgSFrete"
+		WHEN F."N.Itens" = 1 AND f."Prestação" = CT."NumDesdobr" AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" = 0 THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" > 1 AND f."Prestação" = CT."NumDesdobr" AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" <> 0 THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" = 1 AND f."Prestação" = CT."NumDesdobr" AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" <> 0 THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" > 1 AND f."Prestação" <> CT."NumDesdobr" AND NT."Referenciado" > 1 AND nd."Devolução" > 0 AND f."Frete" <> 0 THEN f."TotPgSFrete5"
+		WHEN F."N.Itens" = 1 AND f."Prestação" <> CT."NumDesdobr" AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" <> 0 THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" > 1 AND f."Prestação" <> CT."NumDesdobr" AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" <> 0 THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" = 1 AND f."Prestação" < CT."NumDesdobr" AND NT."Referenciado" = 1 AND nd."Devolução" <> 0 AND f."Frete" <> 0 THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" > 1 AND f."Prestação" <> CT."NumDesdobr" AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" = 0 THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" = 1 AND f."Prestação" = 1 AND CT."NumDesdobr" > 1  AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" = 0 THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" > 1 AND f."Prestação" = CT."NumDesdobr" AND NT."Referenciado" = 1 AND nd."Devolução" = 1 AND f."Frete" = 0 THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" > 1 AND f."Prestação" = CT."NumDesdobr" AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" = 0 THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" > 1 AND f."Prestação" <> CT."NumDesdobr" AND NT."Referenciado" = 1 AND nd."Devolução" = 1 AND f."Frete" > 0 THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" = 1 AND f."Prestação" <> CT."NumDesdobr" AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" = 0 AND t0."DocStatus" = 'O' THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" = 1 AND f."Prestação" <> CT."NumDesdobr" AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" = 0 AND t0."DocStatus" = 'C' THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" = 1 AND f."Prestação" <> CT."NumDesdobr" AND NT."Referenciado" > 1 AND nd."Devolução" = 0 AND f."Frete" > 0 THEN f."TotPgSFrete2"
+		ELSE f."TotPgSFrete2"
 	END AS "PagoLiq",
 	f."TotPgSFrete",
 	f."TotPgSFrete2",
@@ -93,7 +99,11 @@ WHERE
 		T0."CANCELED" = 'N'
 	AND T0."DocDate" >= TO_DATE(20230701,'YYYYMMDD')
 	AND T0."U_Rov_Refaturamento" = 'NAO'
-	AND T0."isIns" = 'N') UNION ALL (SELECT
+	AND T0."isIns" = 'N'
+	
+UNION ALL 
+
+SELECT
 	'Nota Fiscal Entrega Futura' AS "Tipo",
 	T0."DocEntry" AS "EntryNota",
 	T0."DocNum" AS "DocNum",
@@ -120,21 +130,26 @@ WHERE
 	f."Percentual2",
 	f."%DescLinha",
 	CASE 
-		WHEN F."N.Itens" > 1 AND f."Prestação" = 1 AND CT."NumDesdobr" > 1 AND COALESCE(T10."DocTotal",0) = 0 THEN f."TotPgSFrete"
-		WHEN F."N.Itens" > 1 AND f."Prestação" = 1 AND CT."NumDesdobr" > 1 AND COALESCE(T10."DocTotal",0) > 0 AND NT."Referenciado" = 1 THEN f."TotPgSFrete2"
-		WHEN F."N.Itens" > 1 AND f."Prestação" = 1 AND CT."NumDesdobr" > 1 AND COALESCE(T10."DocTotal",0) > 0 AND NT."Referenciado" > 1 THEN f."TotPgSFrete5"
-		WHEN F."N.Itens" > 1 AND f."Prestação" = 1 AND CT."NumDesdobr" = 1 THEN f."TotPgSFrete2"
-		WHEN f."N.Itens" > 1 AND f."Prestação" > 1 AND CT."NumDesdobr" > 1 AND COALESCE(T10."DocTotal",0) = 0 THEN f."TotPgSFrete2"
-		WHEN f."N.Itens" > 1 AND f."Prestação" > CT."NumDesdobr" THEN f."TotPgSFrete2"
-		WHEN F."N.Itens" > 1 AND F."Prestação" < CT."NumDesdobr" THEN f."TotPgSFrete2"
-		WHEN F."N.Itens" > 1 AND f."Prestação" = CT."NumDesdobr" AND nd."Devolução" > 0 AND NT."Referenciado" = 0 THEN f."TotPgSFrete4"
-		WHEN F."N.Itens" > 1 AND f."Prestação" = CT."NumDesdobr" AND nd."Devolução" > 0 AND NT."Referenciado" > 0 THEN f."TotPgSFrete6"
-		WHEN F."N.Itens" = 1 AND f."Prestação" = 1 AND CT."NumDesdobr" = 1 AND COALESCE(T10."DocTotal",0) = 0 THEN f."TotPgSFrete"
-		WHEN F."N.Itens" = 1 AND f."Prestação" = 1 AND CT."NumDesdobr" = 1 AND COALESCE(T10."DocTotal",0) > 0 THEN f."TotPgSFrete2"
-		WHEN f."N.Itens" = 1 AND f."Prestação" = 1 AND CT."NumDesdobr" > 1 THEN f."TotPgSFrete2"
-		WHEN f."N.Itens" = 1 AND f."Prestação" >= CT."NumDesdobr" THEN f."TotPgSFrete3"
-		WHEN f."N.Itens" = 1 AND f."Prestação" < CT."NumDesdobr" THEN f."TotPgSFrete"
-		WHEN f."N.Itens" = 1 AND f."Prestação" = CT."NumDesdobr"  THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" = 1 AND f."Prestação" = 1 AND CT."NumDesdobr" = 1 AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" <> 0 AND t0."DocStatus" = 'C' THEN f."TotPgSFrete"
+		WHEN F."N.Itens" = 1 AND f."Prestação" = 1 AND CT."NumDesdobr" = 1 AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" <> 0 AND t0."DocStatus" = 'O' THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" > 1 AND f."Prestação" = 1 AND CT."NumDesdobr" = 1 AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" = 0 THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" = 1 AND f."Prestação" = 1 AND CT."NumDesdobr" = 1 AND NT."Referenciado" = 1 AND nd."Devolução" <> 0 AND f."Frete" = 0 THEN f."TotPgSFrete"
+		WHEN F."N.Itens" = 1 AND f."Prestação" = CT."NumDesdobr" AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" = 0 THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" > 1 AND f."Prestação" = CT."NumDesdobr" AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" <> 0 THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" = 1 AND f."Prestação" = CT."NumDesdobr" AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" <> 0 THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" > 1 AND f."Prestação" <> CT."NumDesdobr" AND NT."Referenciado" > 1 AND nd."Devolução" > 0 AND f."Frete" <> 0 THEN f."TotPgSFrete5"
+		WHEN F."N.Itens" = 1 AND f."Prestação" <> CT."NumDesdobr" AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" <> 0 THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" > 1 AND f."Prestação" <> CT."NumDesdobr" AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" <> 0 THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" = 1 AND f."Prestação" < CT."NumDesdobr" AND NT."Referenciado" = 1 AND nd."Devolução" <> 0 AND f."Frete" <> 0 THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" > 1 AND f."Prestação" <> CT."NumDesdobr" AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" = 0 THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" = 1 AND f."Prestação" = 1 AND CT."NumDesdobr" > 1  AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" = 0 THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" > 1 AND f."Prestação" = CT."NumDesdobr" AND NT."Referenciado" = 1 AND nd."Devolução" = 1 AND f."Frete" = 0 THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" > 1 AND f."Prestação" = CT."NumDesdobr" AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" = 0 THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" > 1 AND f."Prestação" <> CT."NumDesdobr" AND NT."Referenciado" = 1 AND nd."Devolução" = 1 AND f."Frete" > 0 THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" = 1 AND f."Prestação" <> CT."NumDesdobr" AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" = 0 AND t0."DocStatus" = 'O' THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" = 1 AND f."Prestação" <> CT."NumDesdobr" AND NT."Referenciado" = 1 AND nd."Devolução" = 0 AND f."Frete" = 0 AND t0."DocStatus" = 'C' THEN f."TotPgSFrete2"
+		WHEN F."N.Itens" = 1 AND f."Prestação" <> CT."NumDesdobr" AND NT."Referenciado" > 1 AND nd."Devolução" = 0 AND f."Frete" > 0 THEN f."TotPgSFrete2"
+		ELSE f."TotPgSFrete2"
 	END AS "PagoLiq",
 	f."TotPgSFrete",
 	f."TotPgSFrete2",
@@ -190,7 +205,11 @@ WHERE
 		T0."CANCELED" = 'N'
 	AND T0."DocDate" >= TO_DATE(20230701,'YYYYMMDD')
 	AND T0."U_Rov_Refaturamento" = 'NAO'
-	AND T0."isIns" = 'Y') UNION ALL (SELECT
+	AND T0."isIns" = 'Y' 
+	
+UNION ALL 
+	
+SELECT
 	'Fatura Adiantamento de Cliente' AS "Tipo",
 	T0."DocEntry" AS "EntryNota",
 	T0."DocNum" AS "DocNum",
@@ -289,4 +308,4 @@ WHERE
 		T0."CANCELED" = 'N'
 	AND T0."DocDate" >= TO_DATE(20230701,'YYYYMMDD')
 	AND T0."U_Rov_Refaturamento" = 'NAO'
-	AND t5."BaseLine" IS NOT NULL);
+	AND t5."BaseLine" IS NOT NULL;
