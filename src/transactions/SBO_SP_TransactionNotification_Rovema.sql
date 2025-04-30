@@ -1,4 +1,4 @@
-CREATE or replace PROCEDURE SBO_SP_TransactionNotification_Rovema
+create or replace PROCEDURE SBO_SP_TransactionNotification_Rovema
 
 (
 	in object_type nvarchar(30), 				-- SBO Object Type
@@ -21,6 +21,7 @@ debug nvarchar(200);
 precoNota nvarchar(255);
 precoEstoque nvarchar(255);
 notaSemDespesa nvarchar(255);
+variacao nvarchar(255);
 begin
 
 erroAdiantamento := 0;
@@ -367,7 +368,7 @@ END IF;
 	ODLN N
 	INNER JOIN DLN1 L ON N."DocEntry" = L."DocEntry" 
 	INNER JOIN OITW E ON L."ItemCode" = E."ItemCode"  AND L."WhsCode" = E."WhsCode" 
-	WHERE L."Usage" = 5
+	WHERE L."Usage" IN  (5,110)
 	AND ROUND(L."INMPrice",2) <> ROUND(E."AvgPrice",2) 
 	AND N.CANCELED = 'N'
 	AND N."DocEntry" = :list_of_cols_val_tab_del
@@ -382,7 +383,7 @@ SELECT
 	ODLN N
 	INNER JOIN DLN1 L ON N."DocEntry" = L."DocEntry" 
 	INNER JOIN OITW E ON L."ItemCode" = E."ItemCode"  AND L."WhsCode" = E."WhsCode" 
-	WHERE L."Usage" = 5
+	WHERE L."Usage" IN  (5,110)
 	AND ROUND(L."INMPrice",2) <> ROUND(E."AvgPrice",2) 
 	AND N.CANCELED = 'N'
 	AND N."DocEntry" = :list_of_cols_val_tab_del
@@ -391,6 +392,110 @@ SELECT
 			error := 7;
 	    	error_message := 'Preço unitario diferente do estoque ' || 'preco nota ' || precoNota || ' preco estoque ' || precoEstoque; 
  END IF;
+
+			IF EXISTS(
+WITH
+CUSTO_NOTA AS (
+    SELECT
+        ODLN."DocEntry",
+        ODLN."DocNum",
+        ODLN."DocDate",
+        ODLN."BPLId",
+        ODLN."Serial",
+        PDN1."ItemCode",
+        PDN1."InvQty",
+        (PDN1."Quantity" * PDN1."Price") - SUM(PDN4."TaxSum") AS VALOR_TRANSACAO,
+        ((PDN1."Quantity" * PDN1."Price") - SUM(PDN4."TaxSum")) / NULLIF(PDN1."InvQty", 0) AS CUSTO_QUE_ENTRA,
+        PDN1."WhsCode"
+    FROM
+        PDN1
+    INNER JOIN ODLN ON ODLN."DocEntry" = PDN1."DocEntry"
+    INNER JOIN PDN4 ON PDN1."DocEntry" = PDN4."DocEntry"
+        AND PDN1."LineNum" = PDN4."LineNum"
+    WHERE
+        PDN1."DocEntry" = :list_of_cols_val_tab_del
+        AND ODLN."CANCELED" = 'N'
+        AND PDN1."Usage" = 19
+        AND ODLN."Model" = 39
+        AND ODLN."U_trava_custo" = 'Y'
+        AND PDN1."ItemCode" NOT IN ('INS0000136')
+    GROUP BY
+        ODLN."DocEntry",
+        PDN1."ItemCode",
+        PDN1."InvQty",
+        PDN1."Quantity",
+        PDN1."Price",
+        PDN1."WhsCode",
+        ODLN."DocNum",
+        ODLN."BPLId",
+        ODLN."Serial",
+        ODLN."DocDate"
+),
+
+TRANSACOES AS (
+    SELECT
+        ESTOQUE."TransValue",
+        ESTOQUE."InQty" - ESTOQUE."OutQty" AS "InQty",
+        ESTOQUE."ItemCode",
+        ESTOQUE."Warehouse",
+        ROW_NUMBER() OVER (PARTITION BY ESTOQUE."ItemCode"
+            ORDER BY ESTOQUE."TransNum" DESC) AS RowNum
+    FROM
+        OINM ESTOQUE
+    INNER JOIN CUSTO_NOTA ON ESTOQUE."ItemCode" = CUSTO_NOTA."ItemCode"
+        AND ESTOQUE."Warehouse" = CUSTO_NOTA."WhsCode"
+),
+
+CUSTO_MEDIO AS (
+    SELECT 
+        "ItemCode",
+        "Warehouse",
+        SUM("TransValue") AS VALOR,
+        SUM("InQty") AS QUANTIDADE
+    FROM TRANSACOES
+    WHERE RowNum >= 2
+    GROUP BY "ItemCode", "Warehouse"
+),
+
+VARIACAO_CUSTO AS (
+    SELECT
+        NOTA."DocEntry",
+        NOTA."DocDate",
+        NOTA."DocNum",
+        NOTA."BPLId",
+        NOTA."Serial",
+        NOTA."ItemCode",
+        NOTA."WhsCode",
+        CASE
+            WHEN ESTOQUE.QUANTIDADE <> 0 
+            THEN ESTOQUE.VALOR / ESTOQUE.QUANTIDADE
+            ELSE 0
+        END AS CUSTO_MEDIO,
+        CASE
+            WHEN ESTOQUE.QUANTIDADE <> 0 AND ESTOQUE.VALOR <> 0 
+            THEN ((NOTA.CUSTO_QUE_ENTRA - (ESTOQUE.VALOR / ESTOQUE.QUANTIDADE)) / (ESTOQUE.VALOR / ESTOQUE.QUANTIDADE)) * 100
+            ELSE 0
+        END AS VARIACAO,
+        NOTA.CUSTO_QUE_ENTRA
+    FROM
+        CUSTO_MEDIO ESTOQUE
+    INNER JOIN CUSTO_NOTA NOTA 
+        ON NOTA."ItemCode" = ESTOQUE."ItemCode"
+        AND NOTA."WhsCode" = ESTOQUE."Warehouse"
+    WHERE
+        (NOTA."ItemCode" LIKE 'INS%' OR NOTA."ItemCode" LIKE 'GRA%') 
+        AND NOTA."DocDate" >= '20240101'
+)
+
+SELECT *
+FROM VARIACAO_CUSTO
+WHERE VARIACAO > 50 OR VARIACAO < -50
+
+) THEN
+        error := 7;
+
+error_message := 'Desvio de custo muito alto!';
+END IF;
 
 END IF;
 
@@ -1284,29 +1389,30 @@ CUSTO_NOTA AS (
         OPDN."DocDate",
         OPDN."BPLId",
         OPDN."Serial",
-        PDN1."ItemCode",
-        PDN1."InvQty",
-        (PDN1."Quantity" * PDN1."Price") - SUM(PDN4."TaxSum") AS VALOR_TRANSACAO,
-        ((PDN1."Quantity" * PDN1."Price") - SUM(PDN4."TaxSum")) / NULLIF(PDN1."InvQty", 0) AS CUSTO_QUE_ENTRA,
-        PDN1."WhsCode"
+        DLN1."ItemCode",
+        DLN1."InvQty",
+        (DLN1."Quantity" * DLN1."Price") - SUM(PDN4."TaxSum") AS VALOR_TRANSACAO,
+        ((DLN1."Quantity" * DLN1."Price") - SUM(PDN4."TaxSum")) / NULLIF(DLN1."InvQty", 0) AS CUSTO_QUE_ENTRA,
+        DLN1."WhsCode"
     FROM
-        PDN1
-    INNER JOIN OPDN ON OPDN."DocEntry" = PDN1."DocEntry"
-    INNER JOIN PDN4 ON PDN1."DocEntry" = PDN4."DocEntry"
-        AND PDN1."LineNum" = PDN4."LineNum"
+        DLN1
+    INNER JOIN OPDN ON OPDN."DocEntry" = DLN1."DocEntry"
+    INNER JOIN PDN4 ON DLN1."DocEntry" = PDN4."DocEntry"
+        AND DLN1."LineNum" = PDN4."LineNum"
     WHERE
-        PDN1."DocEntry" = :list_of_cols_val_tab_del
+        DLN1."DocEntry" = :list_of_cols_val_tab_del
         AND OPDN."CANCELED" = 'N'
-        AND PDN1."Usage" = 19
+        AND DLN1."Usage"  IN(110,5)
         AND OPDN."Model" = 39
-        AND PDN1."ItemCode" NOT IN ('INS0000136')
+        AND OPDN."U_trava_custo" = 'Y'
+        AND DLN1."ItemCode" NOT IN ('INS0000136')
     GROUP BY
         OPDN."DocEntry",
-        PDN1."ItemCode",
-        PDN1."InvQty",
-        PDN1."Quantity",
-        PDN1."Price",
-        PDN1."WhsCode",
+        DLN1."ItemCode",
+        DLN1."InvQty",
+        DLN1."Quantity",
+        DLN1."Price",
+        DLN1."WhsCode",
         OPDN."DocNum",
         OPDN."BPLId",
         OPDN."Serial",
@@ -1364,8 +1470,7 @@ VARIACAO_CUSTO AS (
         ON NOTA."ItemCode" = ESTOQUE."ItemCode"
         AND NOTA."WhsCode" = ESTOQUE."Warehouse"
     WHERE
-        NOTA."ItemCode" LIKE 'INS%'
-        AND NOTA."BPLId" = 2
+        (NOTA."ItemCode" LIKE 'INS%' OR NOTA."ItemCode" LIKE 'GRA%')
         AND NOTA."DocDate" >= '20240101'
 )
 
@@ -1788,23 +1893,6 @@ THEN
 END IF;
 
  IF EXISTS(
-	SELECT 
-	1
-	FROM 
-	OINV N
-	INNER JOIN INV1 L ON N."DocEntry" = L."DocEntry" 
-	INNER JOIN OITW E ON L."ItemCode" = E."ItemCode"  AND L."WhsCode" = E."WhsCode" 
-	WHERE L."Usage" = 129
-	AND ROUND(L."Price",2) <> ROUND(E."AvgPrice",2) 
-	AND N.CANCELED = 'N'
-	AND N."DocEntry" = :list_of_cols_val_tab_del
-)
-THEN
-			error := 7;
-	    	error_message := 'Preço unitario diferente do estoque'; 
- END IF;
- 
-  IF EXISTS(
 	SELECT 
 	1
 	FROM 
