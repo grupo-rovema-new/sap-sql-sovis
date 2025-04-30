@@ -1,4 +1,4 @@
-CREATE or replace PROCEDURE SBO_SP_TransactionNotification_Rovema
+CREATE OR replace PROCEDURE SBO_SP_TransactionNotification_Rovema
 
 (
 	in object_type nvarchar(30), 				-- SBO Object Type
@@ -367,7 +367,7 @@ END IF;
 	ODLN N
 	INNER JOIN DLN1 L ON N."DocEntry" = L."DocEntry" 
 	INNER JOIN OITW E ON L."ItemCode" = E."ItemCode"  AND L."WhsCode" = E."WhsCode" 
-	WHERE L."Usage" = 5
+	WHERE L."Usage" IN (5,110)
 	AND ROUND(L."INMPrice",2) <> ROUND(E."AvgPrice",2) 
 	AND N.CANCELED = 'N'
 	AND N."DocEntry" = :list_of_cols_val_tab_del
@@ -382,7 +382,7 @@ SELECT
 	ODLN N
 	INNER JOIN DLN1 L ON N."DocEntry" = L."DocEntry" 
 	INNER JOIN OITW E ON L."ItemCode" = E."ItemCode"  AND L."WhsCode" = E."WhsCode" 
-	WHERE L."Usage" = 5
+	WHERE L."Usage" IN (5,110)
 	AND ROUND(L."INMPrice",2) <> ROUND(E."AvgPrice",2) 
 	AND N.CANCELED = 'N'
 	AND N."DocEntry" = :list_of_cols_val_tab_del
@@ -408,6 +408,7 @@ if  :object_type = '14' and (:transaction_type = 'A'or :transaction_type = 'U') 
 		WHERE (T1."WhsCode" <> '500.05') AND 
 		T0."BPLId" = 2	 AND
 		T0."Model" = 39 AND
+		T0."CANCELED" = 'N' AND 
 		T1."Usage" NOT in(100,16,54,67) AND  
 		T0."DocEntry" = :list_of_cols_val_tab_del
 		)
@@ -1802,24 +1803,7 @@ END IF;
 THEN
 			error := 7;
 	    	error_message := 'Preço unitario diferente do estoque'; 
- END IF;
- 
-  IF EXISTS(
-	SELECT 
-	1
-	FROM 
-	OINV N
-	INNER JOIN INV1 L ON N."DocEntry" = L."DocEntry" 
-	INNER JOIN OITW E ON L."ItemCode" = E."ItemCode"  AND L."WhsCode" = E."WhsCode" 
-	WHERE L."Usage" = 129
-	AND ROUND(L."Price",2) <> ROUND(E."AvgPrice",2) 
-	AND N.CANCELED = 'N'
-	AND N."DocEntry" = :list_of_cols_val_tab_del
-)
-THEN
-			error := 7;
-	    	error_message := 'Preço unitario diferente do estoque'; 
- END IF;
+END IF;
 END IF;
 -----------------------------------------------------------------------------------------------------------
 
@@ -2329,50 +2313,7 @@ AND T0."DocEntry" = :list_of_cols_val_tab_del
         error_message := 'Verifique campo de Data de Vencimento ou Prestações, não é permitido datas retroativas!';
     END IF;
 
---IF EXISTS (
---  SELECT
---    1
---  FROM
---    OPCH NOTA
---    left JOIN PCH1 LINHA ON NOTA."DocEntry" = LINHA."DocEntry"
---    LEFT JOIN pch12 ON NOTA."DocEntry" = PCH12."DocEntry"
---  WHERE
---    PCH12."Incoterms" = 1
---    AND LINHA."Usage" = 15
---    AND NOTA."Model" = 39
---    AND NOTA."U_TX_TagCTe" IS NULL
---    AND NOTA."CANCELED" = 'N'
---    AND NOTA."DocEntry" = :list_of_cols_val_tab_del
---) THEN error:= 7;
---error_message:= 'Nota sem CTE! Favor informe o CTE.';
---END IF;
---IF EXISTS (
---  SELECT
---    1
---  FROM
---    OPCH NOTA
---    left JOIN PCH1 LINHA ON NOTA."DocEntry" = LINHA."DocEntry"
---    LEFT JOIN pch12 ON NOTA."DocEntry" = PCH12."DocEntry"
---  WHERE
---    PCH12."Incoterms" = 1
---    AND LINHA."Usage" = 15
---    AND NOTA."Model" = 39
---    AND NOTA."CANCELED" = 'N'
---    AND NOTA."DocEntry" = :list_of_cols_val_tab_del
---    AND EXISTS (
---      SELECT
---        1
---      FROM
---        OPCH NOTA1
---      WHERE
---        NOTA1."U_ChaveAcesso" = NOTA."U_TX_TagCTe"
---        AND NOTA."DocEntry" <> :list_of_cols_val_tab_del
---        AND NOTA1."Model" = 45
---        AND NOTA1."CANCELED" = 'N'
---    )
---) THEN error:= 7;
---error_message:= 'Infome um CTE Valido!';
---END IF;
+/*
 
 IF EXISTS (
   SELECT
@@ -2415,6 +2356,7 @@ IF EXISTS (
 ) THEN error:= 7;
 error_message:= 'Infome um CTE Valido!.';
 END IF;
+*/
 
 
 IF EXISTS(
