@@ -2399,6 +2399,7 @@ error_message:= 'Infome um CTE Valido!.';
 END IF;
 */
 
+
 IF EXISTS(
 WITH
 CUSTO_NOTA AS (
