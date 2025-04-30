@@ -408,6 +408,7 @@ if  :object_type = '14' and (:transaction_type = 'A'or :transaction_type = 'U') 
 		WHERE (T1."WhsCode" <> '500.05') AND 
 		T0."BPLId" = 2	 AND
 		T0."Model" = 39 AND
+		T0."CANCELED" = 'N' AND 
 		T1."Usage" NOT in(100,16,54,67) AND  
 		T0."DocEntry" = :list_of_cols_val_tab_del
 		)
@@ -1802,6 +1803,7 @@ END IF;
 THEN
 			error := 7;
 	    	error_message := 'Preço unitario diferente do estoque'; 
+END IF;
 END IF;
 -----------------------------------------------------------------------------------------------------------
 
