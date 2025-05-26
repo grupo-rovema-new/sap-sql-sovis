@@ -274,6 +274,19 @@ IF EXISTS (
     error_message := 'NUMERAÇÃO CT-E JÁ UTILIZADA!';
 END IF;
 
+IF EXISTS (
+  SELECT 1
+  FROM inv6
+    INNER JOIN OINV n ON n."DocEntry"   = inv6."DocEntry"
+    INNER JOIN OCTG c ON c."GroupNum"   = n."GroupNum"
+  WHERE n."DocEntry"   = :list_of_cols_val_tab_del
+    AND c."GroupNum"   <> -1                   -- <— ignora -1
+  GROUP BY c."InstNum"
+  HAVING COUNT(inv6."InstlmntID") <> c."InstNum"  -- discrepância
+) THEN
+  error         := 7;
+  error_message := 'Número de parcelas diferente da condição de pagamento!';
+END IF;
 End If;
 -----------------------------------------------------------------------------------------------
 IF :object_type = '15' and ( :transaction_type = 'A') then
@@ -1433,6 +1446,20 @@ IF :object_type = 'comissao' THEN
 	         	error_message := 'Não pode comissão sem condição de pagamento'; 
 	End If;
 	
+	IF  EXISTS(
+	WITH 
+	condicoes AS (
+	SELECT o."GroupNum"  FROM OCTG o WHERE "U_Rov_EnviarForca" = '2'
+	)
+	SELECT * FROM "@CONDICOESFV" 
+	INNER JOIN condicoes ON condicoes."GroupNum" = "@CONDICOESFV" ."U_prazo" 
+	WHERE "Code" = :list_of_cols_val_tab_del
+	)	
+		THEN 
+				error := 7;
+	         	error_message := 'Essa condição de pagamento não esta liberada.'; 
+	End If;
+	
 	IF EXISTS(
 	SELECT
 		1
@@ -1580,6 +1607,18 @@ IF  :object_type = '17' and (:transaction_type = 'A' OR :transaction_type = 'U')
 	error_message := 'O preço base não pode ser 0, favor veficiar o preço na tabela'; 
 	END IF;
 	
+IF EXISTS (
+  SELECT 1
+  FROM "ORDR" o
+  JOIN OCTG c
+    ON c."GroupNum" = o."GroupNum"
+   AND c."U_Rov_EnviarForca" = '2'    
+  WHERE o."DocEntry" = :list_of_cols_val_tab_del
+    AND o."CANCELED"  = 'N'
+) THEN
+  error         := 7;
+  error_message := 'Essa condição de pagamento não está liberada.';
+END IF;
 END IF;
 IF :object_type = '13' and (:transaction_type = 'A') then 
   IF EXISTS(
@@ -1803,6 +1842,18 @@ END IF;
 THEN
 			error := 7;
 	    	error_message := 'Preço unitario diferente do estoque'; 
+END IF;
+IF EXISTS (
+  SELECT 1
+  FROM "OINV" o
+  JOIN OCTG c
+    ON c."GroupNum" = o."GroupNum"
+   AND c."U_Rov_EnviarForca" = '2'    
+  WHERE o."DocEntry" = :list_of_cols_val_tab_del
+    AND o."CANCELED"  = 'N'
+) THEN
+  error         := 7;
+  error_message := 'Essa condição de pagamento não está liberada.';
 END IF;
 END IF;
 -----------------------------------------------------------------------------------------------------------
