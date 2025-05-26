@@ -1,3 +1,4 @@
+
 CREATE OR REPLACE VIEW faturamento as
 
 SELECT DISTINCT 
@@ -15,7 +16,8 @@ SELECT DISTINCT
 	T0."DocDate" AS "data",
 	filial."BPLName" AS filial,
 	T0."CANCELED",
-	(SELECT SUM("LineTotal") FROM INV13 WHERE "DocEntry" = T0."DocEntry") AS frete,
+	nf."LineTotal" AS "Frete",
+	--((T1."LineTotal"-COALESCE((SELECT SUM(COALESCE(NULLIF("U_TX_VlDeL", 0),"TaxSum")) FROM "INV4" tax WHERE tax."DocEntry" = T1."DocEntry" AND tax."staType" = 25 AND tax."LineNum" = T1."LineNum"),0))/(T0."DocTotal"-T0."TotalExpns")) * T0."TotalExpns" AS frete,
 -- HEADER
 
 -- Produtos
@@ -79,12 +81,13 @@ FROM
 	LEFT JOIN OITB T15 ON T15."ItmsGrpCod" = T14."ItmsGrpCod"
 	LEFT JOIN "OUOM" medida ON T1."UomCode" = medida."UomCode"
 	LEFT JOIN "UGP1" grupo ON grupo."UgpEntry" = 4 AND grupo."UomEntry" = medida."UomEntry"
+	LEFT JOIN NFS_FRETELINHA2 nf ON T1."DocEntry" = nf."DocEntry" AND T1."ItemCode" = nf."ItemCode"
 WHERE
 	sefaz."StatusId" = 4
 	AND T0."BPLId" IN(2,4,11,17,18)
 	AND T1."CFOPCode" in(5101,5116,5102,6116,6101,6109,5109,6102,6108)
 
-UNION
+UNION 
 
 SELECT DISTINCT 
 -- HEADER
@@ -101,7 +104,8 @@ SELECT DISTINCT
 	T0."DocDate",
 	filial."BPLName",
 	T0."CANCELED",
-	-1*(SELECT SUM("LineTotal") FROM RIN13 WHERE "DocEntry" = T0."DocEntry") AS frete,
+	nf."LineTotal"*-1 AS "Frete",
+	--1*((T1."LineTotal"-COALESCE((SELECT SUM(COALESCE(NULLIF("U_TX_VlDeL", 0),"TaxSum")) FROM "INV4" tax WHERE tax."DocEntry" = T1."DocEntry" AND tax."staType" = 25 AND tax."LineNum" = T1."LineNum"),0))/(T0."DocTotal"-T0."TotalExpns")) * T0."TotalExpns" AS frete,
 -- HEADER
 
 -- Produtos
@@ -165,14 +169,13 @@ FROM
 	INNER JOIN OITB T15 ON T15."ItmsGrpCod" = T14."ItmsGrpCod"
 	LEFT JOIN "OUOM" medida ON T1."UomCode" = medida."UomCode"
 	LEFT JOIN "UGP1" grupo ON grupo."UgpEntry" = 4 AND grupo."UomEntry" = medida."UomEntry"
+	LEFT JOIN NFS_FRETELINHA2 nf ON T1."DocEntry" = nf."DocEntry" AND T1."ItemCode" = nf."ItemCode"
 WHERE
 	sefaz."StatusId" = 4
 	AND T0."BPLId" IN(2,4,11,17,18)
 	AND T1."CFOPCode" in(1201,1202,2201)
-	
-	
-UNION
 
+UNION 
 
 SELECT DISTINCT 
 -- HEADER
@@ -189,7 +192,8 @@ SELECT DISTINCT
 	T0."DocDate",
 	filial."BPLName",
 	T0."CANCELED",
-	(SELECT SUM("LineTotal") FROM DLN13 WHERE "DocEntry" = T0."DocEntry") AS frete,
+	nf."LineTotal" AS "Frete",
+	--((T1."LineTotal"-COALESCE((SELECT SUM(COALESCE(NULLIF("U_TX_VlDeL", 0),"TaxSum")) FROM "INV4" tax WHERE tax."DocEntry" = T1."DocEntry" AND tax."staType" = 25 AND tax."LineNum" = T1."LineNum"),0))/(T0."DocTotal"-T0."TotalExpns")) * T0."TotalExpns" AS frete,
 -- HEADER
 	
 -- Produtos
@@ -253,15 +257,14 @@ FROM
 	INNER JOIN OITB T15 ON T15."ItmsGrpCod" = T14."ItmsGrpCod"
 	LEFT JOIN "OUOM" medida ON T1."UomCode" = medida."UomCode"
 	LEFT JOIN "UGP1" grupo ON grupo."UgpEntry" = 4 AND grupo."UomEntry" = medida."UomEntry"
+	LEFT JOIN NFS_FRETELINHA2 nf ON T1."DocEntry" = nf."DocEntry" AND T1."ItemCode" = nf."ItemCode"
 WHERE
 	sefaz."StatusId" = 4
 	AND T0."BPLId" IN(2,4,11,17,18)
-	AND T1."CFOPCode" in(5101,5116,5102,6116,6101,6109,5109,6102,6108)
-
-
-UNION 
-
-
+	AND T1."CFOPCode" in(5101,5116,5102,6116,6101,6109,5109,6102,6108) 
+	
+	UNION 
+	
 SELECT DISTINCT 
 -- HEADER
 	T0."DocEntry" || T0."ObjType" AS "PK",
@@ -277,7 +280,8 @@ SELECT DISTINCT
 	T0."DocDate",
 	filial."BPLName",
 	T0."CANCELED",
-	(SELECT SUM("LineTotal") FROM RDN13 WHERE "DocEntry" = T0."DocEntry") AS frete,
+	nf."LineTotal"*-1 AS "Frete",
+	--1*((T1."LineTotal"-COALESCE((SELECT SUM(COALESCE(NULLIF("U_TX_VlDeL", 0),"TaxSum")) FROM "INV4" tax WHERE tax."DocEntry" = T1."DocEntry" AND tax."staType" = 25 AND tax."LineNum" = T1."LineNum"),0))/(T0."DocTotal"-T0."TotalExpns")) * T0."TotalExpns" AS frete,
 -- HEADER
 	
 -- Produtos
@@ -341,10 +345,9 @@ FROM
 	INNER JOIN OITB T15 ON T15."ItmsGrpCod" = T14."ItmsGrpCod"
 	LEFT JOIN "OUOM" medida ON T1."UomCode" = medida."UomCode"
 	LEFT JOIN "UGP1" grupo ON grupo."UgpEntry" = 4 AND grupo."UomEntry" = medida."UomEntry"
+	LEFT JOIN NFS_FRETELINHA2 nf ON T1."DocEntry" = nf."DocEntry" AND T1."ItemCode" = nf."ItemCode"
 WHERE
 	sefaz."StatusId" = 4
 	AND T0."BPLId" IN(2,4,11,17,18)
 	AND T1."CFOPCode" in(1201,1202,2201)
 
-	
-	
