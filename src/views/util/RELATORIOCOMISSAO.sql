@@ -1,9 +1,38 @@
 CREATE OR REPLACE VIEW RELATORIOCOMISSAO AS
-SELECT 
-*
-
-
- FROM
+SELECT
+	"CardCode" ,
+	"DocEntry nota" ,
+	"Cliente" ,
+	"Nº Pagamento#" ,
+	"DocEntryPagamento" ,
+	"Price" ,
+	"Nº Nota" ,
+	"InstId" ,
+	"Nº Parcelas" ,
+	"Data de lançamento" ,
+	"Total Nota" ,
+	"Data de Pagamento" ,
+	"Total pago" ,
+	"BPLId" ,
+	"BPLName" ,
+	"SlpCode" ,
+	"Vendedor" ,
+	"Desconto" ,
+	"U_preco_base" ,
+	"CodProduto" ,
+	"Produto" ,
+	"U_ROV_PREBASE" ,
+	"U_preco_negociado" ,
+	"isIns" ,
+	"desonerado" ,
+	"faturado" ,
+	"Quantity" ,
+	"PymntGroup" ,
+	"U_regressiva" ,
+	"U_porcentagem" ,
+	"ListName" ,
+	"Frete"
+FROM
 
 	(
 	SELECT
@@ -41,8 +70,11 @@ SELECT
 	COALESCE((
 			SELECT
 				CASE 
-					WHEN COALESCE(SUM("U_TX_VlDeL"),0) = 0 THEN COALESCE(SUM("TaxSum"),0)
-					ELSE COALESCE(SUM("U_TX_VlDeL"),0)
+					WHEN COALESCE(SUM("U_TX_VlDeL"),
+					0) = 0 THEN COALESCE(SUM("TaxSum"),
+					0)
+					ELSE COALESCE(SUM("U_TX_VlDeL"),
+					0)
 				END
 			FROM
 				"INV4" tax
@@ -54,9 +86,12 @@ SELECT
 			0)
 			ELSE COALESCE((
 			SELECT
-			CASE 
-					WHEN COALESCE(SUM("U_TX_VlDeL"),0) = 0 THEN COALESCE(SUM("TaxSum"),0)
-					ELSE COALESCE(SUM("U_TX_VlDeL"),0)
+				CASE 
+					WHEN COALESCE(SUM("U_TX_VlDeL"),
+					0) = 0 THEN COALESCE(SUM("TaxSum"),
+					0)
+					ELSE COALESCE(SUM("U_TX_VlDeL"),
+					0)
 				END
 			FROM
 				"INV4" tax
@@ -71,8 +106,11 @@ SELECT
 	T5."LineTotal"-COALESCE((
 			SELECT
 				CASE 
-					WHEN COALESCE(SUM("U_TX_VlDeL"),0) = 0 THEN COALESCE(SUM("TaxSum"),0)
-					ELSE COALESCE(SUM("U_TX_VlDeL"),0)
+					WHEN COALESCE(SUM("U_TX_VlDeL"),
+					0) = 0 THEN COALESCE(SUM("TaxSum"),
+					0)
+					ELSE COALESCE(SUM("U_TX_VlDeL"),
+					0)
 				END
 			FROM
 				"INV4" tax
@@ -84,9 +122,12 @@ SELECT
 			0)
 			ELSE T5."LineTotal"-COALESCE((
 			SELECT
-			CASE 
-					WHEN COALESCE(SUM("U_TX_VlDeL"),0) = 0 THEN COALESCE(SUM("TaxSum"),0)
-					ELSE COALESCE(SUM("U_TX_VlDeL"),0)
+				CASE 
+					WHEN COALESCE(SUM("U_TX_VlDeL"),
+					0) = 0 THEN COALESCE(SUM("TaxSum"),
+					0)
+					ELSE COALESCE(SUM("U_TX_VlDeL"),
+					0)
 				END
 			FROM
 				"INV4" tax
@@ -140,7 +181,6 @@ T1."DocTransId" = T0."TransId"
 		AND (T5."Usage" = 9
 			OR T5."Usage" = 16)
 		AND T0."DocDate" >= TO_DATE(20230701, 'YYYYMMDD')
-		--AND T9."RefDocNum" IS NULL
 		AND T0."U_Rov_Refaturamento" = 'NAO'
 UNION
 	SELECT
@@ -160,8 +200,6 @@ UNION
 			WHEN T1."PaidSum" = 0 THEN T1."AppliedSys"
 			ELSE T1."PaidSum"
 		END AS "Total pago",
-		--T3."InstlmntID" AS "Parcela",
-		--T3."DueDate" AS "Data de Vencimento" ,
 		T0."BPLId",
 		T0."BPLName",
 		T0."SlpCode",
@@ -178,8 +216,11 @@ UNION
 	COALESCE((
 			SELECT
 				CASE 
-					WHEN COALESCE(SUM("U_TX_VlDeL"),0) = 0 THEN COALESCE(SUM("TaxSum"),0)
-					ELSE COALESCE(SUM("U_TX_VlDeL"),0)
+					WHEN COALESCE(SUM("U_TX_VlDeL"),
+					0) = 0 THEN COALESCE(SUM("TaxSum"),
+					0)
+					ELSE COALESCE(SUM("U_TX_VlDeL"),
+					0)
 				END
 			FROM
 				"INV4" tax
@@ -192,8 +233,11 @@ UNION
 			ELSE COALESCE((
 			SELECT
 				CASE 
-					WHEN COALESCE(SUM("U_TX_VlDeL"),0) = 0 THEN COALESCE(SUM("TaxSum"),0)
-					ELSE COALESCE(SUM("U_TX_VlDeL"),0)
+					WHEN COALESCE(SUM("U_TX_VlDeL"),
+					0) = 0 THEN COALESCE(SUM("TaxSum"),
+					0)
+					ELSE COALESCE(SUM("U_TX_VlDeL"),
+					0)
 				END
 			FROM
 				"INV4" tax
@@ -208,8 +252,11 @@ UNION
 	T5."LineTotal"-COALESCE((
 			SELECT
 				CASE 
-					WHEN COALESCE(SUM("U_TX_VlDeL"),0) = 0 THEN COALESCE(SUM("TaxSum"),0)
-					ELSE COALESCE(SUM("U_TX_VlDeL"),0)
+					WHEN COALESCE(SUM("U_TX_VlDeL"),
+					0) = 0 THEN COALESCE(SUM("TaxSum"),
+					0)
+					ELSE COALESCE(SUM("U_TX_VlDeL"),
+					0)
 				END
 			FROM
 				"INV4" tax
@@ -222,8 +269,11 @@ UNION
 			ELSE T5."LineTotal"-COALESCE((
 			SELECT
 				CASE 
-					WHEN COALESCE(SUM("U_TX_VlDeL"),0) = 0 THEN COALESCE(SUM("TaxSum"),0)
-					ELSE COALESCE(SUM("U_TX_VlDeL"),0)
+					WHEN COALESCE(SUM("U_TX_VlDeL"),
+					0) = 0 THEN COALESCE(SUM("TaxSum"),
+					0)
+					ELSE COALESCE(SUM("U_TX_VlDeL"),
+					0)
 				END
 			FROM
 				"INV4" tax
@@ -241,17 +291,16 @@ UNION
 		COALESCE(T8."LineTotal",
 		0) AS "Frete"
 	FROM
-		"OINV" T0
-	INNER JOIN "INV6" T3 ON
-		T3."DocEntry" = T0."DocEntry"
-	INNER JOIN "INV9" T12 ON
+		OINV T0
+	INNER JOIN INV9 T12 ON
 		T0."DocEntry" = T12."DocEntry"
+	INNER JOIN ODPI T14 ON
+		T12."BaseDocNum" = T14."DocNum"
 	INNER JOIN "RCT2" T1 ON
-		T12."DocEntry" = T1."DocEntry"
+		T14."DocEntry" = T1."DocEntry"
 		AND T1."InvType" = 203
 	INNER JOIN "ORCT" T2 ON
-		T2."DocEntry" = T1."DocNum"
-		AND T2."Canceled" = 'N'
+		T14."ReceiptNum" = T2."DocEntry"
 	INNER JOIN "OSLP" T4 ON
 		T0."SlpCode" = T4."SlpCode"
 	INNER JOIN "INV1" T5 ON
@@ -281,4 +330,3 @@ UNION
 		AND T0."U_Rov_Refaturamento" = 'NAO'
 
  );
-

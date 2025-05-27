@@ -4,4 +4,6 @@ SELECT
 	"Descript" AS "DESCRICAO",
 	CASE WHEN "Active" = 'Y' THEN 1 ELSE 0 END AS "SITUACAO"
 FROM
-	OPYM;
+	OPYM
+WHERE 
+	"Descript" IS NOT NULL AND "PayMethCod" != '*';

@@ -25,7 +25,7 @@ SELECT
 		0 AS "IDRAMOERP",
 		"CardName"  AS "NOME",
 		"CardName"  AS "RSOCIAL",
-		OCRD."Address"  AS "ENDERECO",
+		LEFT(OCRD."Address",50)  AS "ENDERECO",
 		"Number"  AS "NUMERO",
 		OCRD."Block"  AS "BAIRRO",
 		OCRD."ZipCode"  AS "CEP",
