@@ -1,6 +1,6 @@
 {
     "ImageId": "ami-07ea162394632bda5",
-    "InstanceType": "t4g.nano",
+    "InstanceType": "t4g.small",
     "KeyName": "notebook-ssh-pub",
     "NetworkInterfaces": [
         {
