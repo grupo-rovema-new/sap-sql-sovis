@@ -375,35 +375,34 @@ END IF;
 			
  IF EXISTS(
 	SELECT 
-	1
+     1
 	FROM 
 	ODLN N
 	INNER JOIN DLN1 L ON N."DocEntry" = L."DocEntry" 
-	INNER JOIN OITW E ON L."ItemCode" = E."ItemCode"  AND L."WhsCode" = E."WhsCode" 
 	WHERE L."Usage" IN (5,110)
-	AND ROUND(L."INMPrice",2) <> ROUND(E."AvgPrice",2) 
+	AND ROUND(L."INMPrice",2) <> ROUND(L."PriceBefDi",2) 
 	AND N.CANCELED = 'N'
 	AND N."DocEntry" = :list_of_cols_val_tab_del
 	LIMIT 1
 )
-THEN
-SELECT 
-	ROUND(L."INMPrice",2),
-	ROUND(E."AvgPrice",2)
-	INTO precoNota,precoEstoque
-	FROM 
-	ODLN N
-	INNER JOIN DLN1 L ON N."DocEntry" = L."DocEntry" 
-	INNER JOIN OITW E ON L."ItemCode" = E."ItemCode"  AND L."WhsCode" = E."WhsCode" 
-	WHERE L."Usage" IN (5,110)
-	AND ROUND(L."INMPrice",2) <> ROUND(E."AvgPrice",2) 
-	AND N.CANCELED = 'N'
-	AND N."DocEntry" = :list_of_cols_val_tab_del
-	LIMIT 1;
-	
-			error := 7;
-	    	error_message := 'Preço unitario diferente do estoque ' || 'preco nota ' || precoNota || ' preco estoque ' || precoEstoque; 
- END IF;
+  THEN
+	SELECT 
+		L."ItemCode",
+		ROUND(L."INMPrice",2),
+		ROUND(L."PriceBefDi",2)
+		INTO itemCode,precoNota,precoEstoque
+		FROM 
+		ODLN N
+		INNER JOIN DLN1 L ON N."DocEntry" = L."DocEntry" 
+		WHERE L."Usage" IN (5,110)
+		AND ROUND(L."INMPrice",2) <> ROUND(L."PriceBefDi",2) 
+		AND N.CANCELED = 'N'
+		AND N."DocEntry" = :list_of_cols_val_tab_del
+		LIMIT 1;
+		
+				error := 7;
+		    	error_message := 'Preço unitario diferente do estoque ' || 'Item: ' || itemcode || 'preco nota ' || precoNota || ' preco estoque ' || precoEstoque; 
+	 END IF;
 
 END IF;
 
