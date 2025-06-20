@@ -1,4 +1,4 @@
-CREATE  OR replace PROCEDURE SBO_SP_TransactionNotification_Rovema
+CREATE OR REPLACE  PROCEDURE SBO_SP_TransactionNotification_Rovema
 
 (
 	in object_type nvarchar(30), 				-- SBO Object Type
@@ -383,7 +383,7 @@ END IF;
 	ODLN N
 	INNER JOIN DLN1 L ON N."DocEntry" = L."DocEntry" 
 	WHERE L."Usage" IN (5,110)
-	AND ROUND(L."INMPrice",2) <> ROUND(L."PriceBefDi",2) 
+	AND ROUND(L."INMPrice",2) <> ROUND(L."StockPrice",2) 
 	AND N.CANCELED = 'N'
 	AND N."DocEntry" = :list_of_cols_val_tab_del
 	LIMIT 1
@@ -398,7 +398,7 @@ SELECT
 	ODLN N
 	INNER JOIN DLN1 L ON N."DocEntry" = L."DocEntry" 
 	WHERE L."Usage" IN (5,110)
-	AND ROUND(L."INMPrice",2) <> ROUND(L."PriceBefDi",2) 
+	AND ROUND(L."INMPrice",2) <> ROUND(L."StockPrice",2) 
 	AND N.CANCELED = 'N'
 	AND N."DocEntry" = :list_of_cols_val_tab_del
 	LIMIT 1;
@@ -2351,16 +2351,16 @@ END IF;
 END IF;
 ------------- TRAVA NOTA DE ENTRADA - CAMPO DATA DE VENCIMENTO E PRESTAÇÕES -------------
 IF :object_type = '18' and (:transaction_type = 'A' OR :transaction_type = 'U') THEN
-IF EXISTS(
-SELECT
-	*
-FROM
-	"PCH6" T0
-	INNER JOIN "OPCH" T1 ON T0."DocEntry" = T1."DocEntry" 
-WHERE
-(T0."DueDate" < T1."DocDate"
-OR T1."DocDueDate" < T1."DocDate") 
-AND T0."DocEntry" = :list_of_cols_val_tab_del
+	IF EXISTS (
+    SELECT 1
+    FROM "PCH6" T0
+    INNER JOIN "OPCH" T1 ON T0."DocEntry" = T1."DocEntry"
+    WHERE (
+        T0."DueDate" < T1."DocDate" OR 
+        T1."DocDueDate" < T1."DocDate"
+    )
+    AND T0."PaidToDate" = 0
+    AND T0."DocEntry" = :list_of_cols_val_tab_del
     ) THEN
         error := 3;
         error_message := 'Verifique campo de Data de Vencimento ou Prestações, não é permitido datas retroativas!';
