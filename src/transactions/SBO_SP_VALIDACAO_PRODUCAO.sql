@@ -35,7 +35,7 @@ IF :object_type IN('202') THEN
 		LEFT JOIN "IGN1" entrada ON(entrada."BaseRef" = to_char(ordem."DocNum"))
 		LEFT JOIN "IGE1" saida ON(saida."BaseRef" = to_char(ordem."DocNum"))
 	WHERE
-		"CreateDate" >= '2025-06-01'
+		"CreateDate" >= '2025-01-01'
 		AND ordem."DocEntry" = :list_of_cols_val_tab_del LIMIT 1;
 
 	-- Bloqueia modificar novos se existir ordem velhas planejada ou liberadas
@@ -46,7 +46,7 @@ IF :object_type IN('202') THEN
 			"OWOR"
 		WHERE
 			"Status" in('R','P')
-			AND "CreateDate" >= '2025-06-01'
+			AND "CreateDate" >= '2025-01-01'
 			AND DAYS_BETWEEN("CreateDate", CURRENT_DATE) > 20
 		LIMIT 1)) THEN
 			SELECT
@@ -56,7 +56,7 @@ IF :object_type IN('202') THEN
 				"OWOR"
 			WHERE
 				"Status" in('R','P')
-				AND "CreateDate" >= '2025-06-01'
+				AND "CreateDate" >= '2025-01-01'
 				AND DAYS_BETWEEN("CreateDate", CURRENT_DATE) > 20
 			LIMIT 1;
 			error := '88';
@@ -76,7 +76,7 @@ IF :object_type IN('202') THEN
 			LEFT JOIN "IGE1" saida ON(saida."BaseRef" = to_char(ordem."DocNum"))
 		WHERE
 			"Status" in('R')
-			AND "CreateDate" >= '2025-06-01' 
+			AND "CreateDate" >= '2025-01-01' 
 			AND DAYS_BETWEEN("CreateDate", CURRENT_DATE) > 3
 			AND ordem."DocEntry" <> :list_of_cols_val_tab_del
 			AND ((entrada."DocEntry" IS NOT NULL AND saida."DocEntry" IS NULL) OR (entrada."DocEntry" IS NULL AND saida."DocEntry" IS NOT NULL)))) 
@@ -90,7 +90,7 @@ IF :object_type IN('202') THEN
 				LEFT JOIN "IGE1" saida ON(saida."BaseRef" = to_char(ordem."DocNum"))
 			WHERE
 				"Status" in('R')
-				AND "CreateDate" >= '2025-06-01' 
+				AND "CreateDate" >= '2025-01-01' 
 				AND DAYS_BETWEEN("CreateDate", CURRENT_DATE) > 3
 				AND ((entrada."DocEntry" IS NOT NULL AND saida."DocEntry" IS NULL) OR (entrada."DocEntry" IS NULL AND saida."DocEntry" IS NOT NULL)) LIMIT 1;
 			error := '88';
