@@ -1,4 +1,4 @@
-CREATE OR replace PROCEDURE SBO_SP_TransactionNotification_Rovema
+CREATE OR REPLACE  PROCEDURE SBO_SP_TransactionNotification_Rovema
 
 (
 	in object_type nvarchar(30), 				-- SBO Object Type
@@ -21,6 +21,7 @@ debug nvarchar(200);
 precoNota nvarchar(255);
 precoEstoque nvarchar(255);
 notaSemDespesa nvarchar(255);
+itemCode nvarchar(255);
 begin
 
 erroAdiantamento := 0;
@@ -280,7 +281,8 @@ IF EXISTS (
     INNER JOIN OINV n ON n."DocEntry"   = inv6."DocEntry"
     INNER JOIN OCTG c ON c."GroupNum"   = n."GroupNum"
   WHERE n."DocEntry"   = :list_of_cols_val_tab_del
-    AND c."GroupNum"   <> -1                   -- <— ignora -1
+    AND c."GroupNum"   <> -1   
+    AND n."Model" = 39
   GROUP BY c."InstNum"
   HAVING COUNT(inv6."InstlmntID") <> c."InstNum"  -- discrepância
 ) THEN
@@ -372,37 +374,37 @@ END IF;
 			error := 7;
 	    	error_message := 'Não pode entregar para consumidor final'; 
 	END IF;
-			
+
+
  IF EXISTS(
 	SELECT 
-	1
+1
 	FROM 
 	ODLN N
 	INNER JOIN DLN1 L ON N."DocEntry" = L."DocEntry" 
-	INNER JOIN OITW E ON L."ItemCode" = E."ItemCode"  AND L."WhsCode" = E."WhsCode" 
 	WHERE L."Usage" IN (5,110)
-	AND ROUND(L."INMPrice",2) <> ROUND(E."AvgPrice",2) 
+	AND ROUND(L."INMPrice",2) <> ROUND(L."StockPrice",2) 
 	AND N.CANCELED = 'N'
 	AND N."DocEntry" = :list_of_cols_val_tab_del
 	LIMIT 1
 )
 THEN
 SELECT 
+	L."ItemCode",
 	ROUND(L."INMPrice",2),
-	ROUND(E."AvgPrice",2)
-	INTO precoNota,precoEstoque
+	ROUND(L."PriceBefDi",2)
+	INTO itemCode,precoNota,precoEstoque
 	FROM 
 	ODLN N
 	INNER JOIN DLN1 L ON N."DocEntry" = L."DocEntry" 
-	INNER JOIN OITW E ON L."ItemCode" = E."ItemCode"  AND L."WhsCode" = E."WhsCode" 
 	WHERE L."Usage" IN (5,110)
-	AND ROUND(L."INMPrice",2) <> ROUND(E."AvgPrice",2) 
+	AND ROUND(L."INMPrice",2) <> ROUND(L."StockPrice",2) 
 	AND N.CANCELED = 'N'
 	AND N."DocEntry" = :list_of_cols_val_tab_del
 	LIMIT 1;
 	
 			error := 7;
-	    	error_message := 'Preço unitario diferente do estoque ' || 'preco nota ' || precoNota || ' preco estoque ' || precoEstoque; 
+	    	error_message := 'Preço unitario diferente do estoque ' || 'Item: ' || itemcode || 'preco nota ' || precoNota || ' preco estoque ' || precoEstoque; 
  END IF;
 
 END IF;
@@ -2349,16 +2351,16 @@ END IF;
 END IF;
 ------------- TRAVA NOTA DE ENTRADA - CAMPO DATA DE VENCIMENTO E PRESTAÇÕES -------------
 IF :object_type = '18' and (:transaction_type = 'A' OR :transaction_type = 'U') THEN
-IF EXISTS(
-SELECT
-	*
-FROM
-	"PCH6" T0
-	INNER JOIN "OPCH" T1 ON T0."DocEntry" = T1."DocEntry" 
-WHERE
-(T0."DueDate" < T1."DocDate"
-OR T1."DocDueDate" < T1."DocDate") 
-AND T0."DocEntry" = :list_of_cols_val_tab_del
+	IF EXISTS (
+    SELECT 1
+    FROM "PCH6" T0
+    INNER JOIN "OPCH" T1 ON T0."DocEntry" = T1."DocEntry"
+    WHERE (
+        T0."DueDate" < T1."DocDate" OR 
+        T1."DocDueDate" < T1."DocDate"
+    )
+    AND T0."PaidToDate" = 0
+    AND T0."DocEntry" = :list_of_cols_val_tab_del
     ) THEN
         error := 3;
         error_message := 'Verifique campo de Data de Vencimento ou Prestações, não é permitido datas retroativas!';
