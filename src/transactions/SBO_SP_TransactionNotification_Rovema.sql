@@ -284,7 +284,7 @@ IF EXISTS (
     AND c."GroupNum"   <> -1   
     AND n."Model" = 39
   GROUP BY c."InstNum"
-  HAVING COUNT(inv6."InstlmntID") <> c."InstNum"  -- discrepância
+  HAVING COUNT(inv6."InstlmntID") <> c."InstNum"  
 ) THEN
   error         := 7;
   error_message := 'Número de parcelas diferente da condição de pagamento!';
@@ -463,7 +463,7 @@ if  :object_type = '14' and (:transaction_type = 'A'or :transaction_type = 'U') 
 		INNER JOIN RIN1 T1 ON T0."DocEntry" = T1."DocEntry"
 		INNER JOIN OUSG T2 ON T1."Usage" = T2."ID"
 		WHERE 
-		("U_TX_NatOp"  IS NULL OR "U_TX_NatOp" = '') --OR "U_TX_NatOp" <> 'DEVOLUÇÃO DE ' || Max(T2."Descr")) 
+		("U_TX_NatOp"  IS NULL OR "U_TX_NatOp" = '') 
 		AND T0."DocEntry" = :list_of_cols_val_tab_del
 		AND T0."Model" = 39 
 	)

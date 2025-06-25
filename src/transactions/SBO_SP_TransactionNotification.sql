@@ -243,7 +243,7 @@ SELECT CURRENT_SCHEMA INTO companyDbIntBank FROM DUMMY;
 Call "IV_IB_TransNotificationValidateIntBank"(companyDbIntBank, companyDbIntBank, 'IV_IB_Setting', 'IV_IB_BillOfExchange', 'IV_IB_BillOfExchangeInstallment', 'IV_IB_CompanyLocal', object_type, transaction_type, list_of_cols_val_tab_del, error, error_message);
 Call "IV_IB_TransacaoValidacaoPagamentoBankPlus"(companyDbIntBank, object_type, transaction_type, list_of_cols_val_tab_del, error, error_message);
 Call "TransNotificationValidate"(companyDbIntBank, object_type, list_of_cols_val_tab_del, error, error_message);
-Call SBO_SP_TRANSACTIONNOTIFICATION_MOGNO(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
+--Call SBO_SP_TRANSACTIONNOTIFICATION_MOGNO(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 Call SBO_SP_TRANSACTIONNOTIFICATION_Liberali(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 Call SBO_SP_TRANSACTIONNOTIFICATION_ROVEMA(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 Call SBO_SP_Validacao_Bloqueio_Periodo_Contabil(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
