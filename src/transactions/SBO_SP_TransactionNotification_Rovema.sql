@@ -406,6 +406,39 @@ SELECT
 			error := 7;
 	    	error_message := 'Preço unitario diferente do estoque ' || 'Item: ' || itemcode || 'preco nota ' || precoNota || ' preco estoque ' || precoEstoque; 
  END IF;
+			IF EXISTS (
+    SELECT 
+        1
+    FROM 
+        (
+            SELECT
+                "DocEntry",
+                SUM("LineTotal") AS frete
+            FROM 
+                DLN13
+            GROUP BY 
+                "DocEntry"
+        ) AS FRETE
+    INNER JOIN 
+        (
+            SELECT
+                "DocEntry",
+                "TotalExpns"
+            FROM
+                ODLN
+            WHERE
+                "CANCELED" = 'N'
+                AND "DocEntry" = :list_of_cols_val_tab_del
+        ) AS NOTA
+    ON 
+        FRETE."DocEntry" = NOTA."DocEntry"
+    WHERE 
+        FRETE.frete <> NOTA."TotalExpns"
+)
+THEN
+    error := 7;
+    error_message := 'Diferença entre frete e total de despesas encontrada.';
+END IF;
 
 END IF;
 
