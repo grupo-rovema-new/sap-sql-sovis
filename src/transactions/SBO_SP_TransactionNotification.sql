@@ -406,6 +406,55 @@ IF :object_type = '15' and (:transaction_type = 'A') then
 	END IF;
 END IF;
 
+-- SAIDA DE MERCADORIA
+IF :object_type = '60' and (:transaction_type = 'A') then 
+
+    --TRAVA PARA NÃO PERMITIR SAÍDA DE MERCADORIA QUE DEIXE O ITEM COM ESTOQUE NEGATIVO COM DATA RETROATIVA PARA ITENS SEM ORDEM DE PRODUÇÃO.
+    --PAULO 15/06/2025 
+    SELECT COUNT(*) INTO XCOUNT FROM IGE1 WHERE "DocEntry" = :list_of_cols_val_tab_del AND "BaseType" IS NULL;
+    
+    IF XCOUNT > 0 THEN
+
+		SELECT 
+    	 	Count(T0."ItemCode")
+     		INTO
+     		error1
+     	FROM 
+     		IGE1 T0 
+     		JOIN OINM T1 ON T1."ItemCode" = T0."ItemCode" AND T1."Warehouse" = T0."WhsCode" 
+    	WHERE
+    		T0."DocEntry"  = :list_of_cols_val_tab_del
+		GROUP BY
+			T0."ItemCode",
+			T0."Quantity"
+     	HAVING 
+     		SUM(T1."InQty" - T1."OutQty") - T0."Quantity" < 0;
+
+	  	IF(:error1 > 0) AND XCOUNT > 0 THEN        
+
+			SELECT 
+				(T0."ItemCode") 
+				INTO XITEM
+			FROM 
+				IGE1 T0 
+     			JOIN OINM T1 ON T1."ItemCode" = T0."ItemCode" AND T1."Warehouse" = T0."WhsCode" 
+    		WHERE
+    			T0."DocEntry"  = :list_of_cols_val_tab_del
+			GROUP BY
+				T0."ItemCode",
+				T0."Quantity"
+	     	HAVING 
+    	 		SUM(T1."InQty" - T1."OutQty") - T0."Quantity" < 0
+         	LIMIT 1;
+         
+				error := 1;
+			
+         		error_message := CONCAT('O Item ficará com estoque negativo: ', XITEM) ;  
+
+	  	END IF;
+	  END IF;
+END IF;
+
 select :error, SUBSTRING (:error_message,0,255) AS error_message FROM dummy;
 
 end;
