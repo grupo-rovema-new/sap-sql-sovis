@@ -1,4 +1,4 @@
-CREATE OR REPLACE  PROCEDURE SBO_SP_TransactionNotification_Rovema
+CREATE OR REPLACE PROCEDURE SBO_SP_TransactionNotification_Rovema
 
 (
 	in object_type nvarchar(30), 				-- SBO Object Type
@@ -2550,123 +2550,50 @@ error_message := 'Desvio de custo muito alto!';
 END IF;
 END IF;
 
-IF :object_type in('60') and  (:transaction_type = 'A')  THEN 
+IF :object_type = '60' AND :transaction_type = 'A' THEN
 
-IF NOT EXISTS(
-	WITH 
-	SAIDA_INSUMO AS (
-SELECT 
-	N."DocEntry",
-	L."ItemCode",
-	L."WhsCode"
-FROM
-	OIGE N
-INNER JOIN IGE1 L ON
-	N."DocEntry" = L."DocEntry"
-WHERE
-	L."DocEntry" = :list_of_cols_val_tab_del 
-	),
-	ESTOQUE AS (
-SELECT 
-	MAX(E."CreatedBy" ) AS "DocEntry",
-	E."ItemCode"
-FROM
-	OINM E
-INNER JOIN SAIDA_INSUMO S ON
-	E."ItemCode" = S."ItemCode"
-	AND S."WhsCode" = E."Warehouse"
-WHERE
-	"TransType" = '18'
-	AND E."DocDate" > '2025-03-23'
-GROUP BY 
-	E."ItemCode"
-	),
-	NOTA AS (
-SELECT 
-	E."DocEntry",
-	N."DocNum",
-	E."ItemCode"
-FROM
-	OPCH N
-INNER JOIN PCH1 L ON
-	N."DocEntry" = L."DocEntry"
-INNER JOIN ESTOQUE E ON
-	N."DocEntry" = E."DocEntry"
-LEFT JOIN pch12 ON N."DocEntry" = PCH12."DocEntry"
-WHERE
-	N.CANCELED = 'N'
-	AND L."Usage" = '15'
-	AND PCH12."Incoterms" = 1
-	AND N."Model" = 39
-	)
-	SELECT 
-	1
-FROM
-	ipf1 DI
-INNER JOIN NOTA N ON
-	DI."BaseEntry" = N."DocEntry"
-	AND di."ItemCode" = N."ItemCode"
-	LIMIT 1
-)
-   THEN
-	WITH 
-	SAIDA_INSUMO AS (
-SELECT 
-	N."DocEntry",
-	L."ItemCode",
-	L."WhsCode"
-FROM
-	OIGE N
-INNER JOIN IGE1 L ON
-	N."DocEntry" = L."DocEntry"
-WHERE
-	L."DocEntry" = :list_of_cols_val_tab_del 
-	),
-	ESTOQUE AS (
-SELECT 
-	MAX(E."CreatedBy" ) AS "DocEntry",
-	E."ItemCode"
-FROM
-	OINM E
-INNER JOIN SAIDA_INSUMO S ON
-	E."ItemCode" = S."ItemCode"
-	AND S."WhsCode" = E."Warehouse"
-WHERE
-	"TransType" = '18'
-	AND E."DocDate" > '2025-07-14'
-GROUP BY 
-	E."ItemCode"
-	),
-		NOTA AS (
-SELECT 
-	E."DocEntry",
-	N."DocNum",
-	E."ItemCode"
-FROM
-	OPCH N
-INNER JOIN PCH1 L ON
-	N."DocEntry" = L."DocEntry"
-INNER JOIN ESTOQUE E ON
-	N."DocEntry" = E."DocEntry"
-LEFT JOIN pch12 ON N."DocEntry" = PCH12."DocEntry"
-WHERE
-	N.CANCELED = 'N'
-	AND L."Usage" = '15'
-	AND PCH12."Incoterms" = 1
-	AND N."Model" = 39
-	
-	)
-	SELECT 
-	"DocNum"
-	INTO notaSemDespesa
-FROM
-	NOTA
-	LIMIT 1;
-	
-			error := 7;
-         	error_message := 'Não foi feito despesa de importação da nota: ' || notaSemDespesa;  
-	End If;
-END IF ;
+  -- só uma vez a CTE, sem duplicar
+  WITH 
+  SAIDA_INSUMO AS (
+    SELECT N."DocEntry", L."ItemCode", L."WhsCode"
+    FROM OIGE N
+    JOIN IGE1 L ON N."DocEntry" = L."DocEntry"
+    WHERE L."DocEntry" = :list_of_cols_val_tab_del
+  ),
+  ESTOQUE AS (
+    SELECT MAX(E."CreatedBy") AS "DocEntry", E."ItemCode"
+    FROM OINM E
+    JOIN SAIDA_INSUMO S 
+      ON E."ItemCode" = S."ItemCode"
+     AND S."WhsCode" = E."Warehouse"
+    WHERE E."TransType" = '18'
+      AND E."DocDate" > '2025-07-14'
+    GROUP BY E."ItemCode"
+  ),
+  NOTA AS (
+    SELECT E."DocEntry", N."DocNum", E."ItemCode"
+    FROM OPCH N
+    JOIN PCH1 L ON N."DocEntry" = L."DocEntry"
+    JOIN ESTOQUE E ON N."DocEntry" = E."DocEntry"
+    LEFT JOIN PCH12 ON N."DocEntry" = PCH12."DocEntry"
+    WHERE N."CANCELED" = 'N'
+      AND L."Usage"    = '15'
+      AND PCH12."Incoterms" = 1
+      AND N."Model"    = 39
+  )
+
+
+  SELECT MAX("DocNum") 
+    INTO notaSemDespesa
+  FROM NOTA;
+
+
+  IF notaSemDespesa IS NOT NULL THEN
+    error := 7;
+    error_message := 'Não foi feito despesa de importação da nota: ' || notaSemDespesa;
+  END IF;
+
+END IF;
 
 ----------------------------------------------------------------------------------------------
 
