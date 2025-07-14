@@ -2633,7 +2633,7 @@ INNER JOIN SAIDA_INSUMO S ON
 	AND S."WhsCode" = E."Warehouse"
 WHERE
 	"TransType" = '18'
-	AND E."DocDate" > '2025-03-23'
+	AND E."DocDate" > '2025-07-14'
 GROUP BY 
 	E."ItemCode"
 	),
