@@ -2399,7 +2399,7 @@ IF :object_type = '18' and (:transaction_type = 'A' OR :transaction_type = 'U') 
         error_message := 'Verifique campo de Data de Vencimento ou Prestações, não é permitido datas retroativas!';
     END IF;
 
-/*
+
 
 IF EXISTS (
   SELECT
@@ -2442,7 +2442,7 @@ IF EXISTS (
 ) THEN error:= 7;
 error_message:= 'Infome um CTE Valido!.';
 END IF;
-*/
+
 
 
 IF EXISTS(
@@ -2550,7 +2550,7 @@ error_message := 'Desvio de custo muito alto!';
 END IF;
 END IF;
 
-IF :object_type in('60') and  (:transaction_type = 'A') and 1 = 2 THEN 
+IF :object_type in('60') and  (:transaction_type = 'A')  THEN 
 
 IF NOT EXISTS(
 	WITH 
@@ -2592,9 +2592,12 @@ INNER JOIN PCH1 L ON
 	N."DocEntry" = L."DocEntry"
 INNER JOIN ESTOQUE E ON
 	N."DocEntry" = E."DocEntry"
+LEFT JOIN pch12 ON N."DocEntry" = PCH12."DocEntry"
 WHERE
 	N.CANCELED = 'N'
 	AND L."Usage" = '15'
+	AND PCH12."Incoterms" = 1
+	AND N."Model" = 39
 	)
 	SELECT 
 	1
@@ -2634,7 +2637,7 @@ WHERE
 GROUP BY 
 	E."ItemCode"
 	),
-	NOTA AS (
+		NOTA AS (
 SELECT 
 	E."DocEntry",
 	N."DocNum",
@@ -2645,9 +2648,13 @@ INNER JOIN PCH1 L ON
 	N."DocEntry" = L."DocEntry"
 INNER JOIN ESTOQUE E ON
 	N."DocEntry" = E."DocEntry"
+LEFT JOIN pch12 ON N."DocEntry" = PCH12."DocEntry"
 WHERE
 	N.CANCELED = 'N'
 	AND L."Usage" = '15'
+	AND PCH12."Incoterms" = 1
+	AND N."Model" = 39
+	
 	)
 	SELECT 
 	"DocNum"
