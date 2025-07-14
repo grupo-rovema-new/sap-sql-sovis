@@ -2550,6 +2550,7 @@ error_message := 'Desvio de custo muito alto!';
 END IF;
 END IF;
 
+
 IF :object_type = '60' AND :transaction_type = 'A' THEN
 
   -- só uma vez a CTE, sem duplicar
@@ -2594,6 +2595,7 @@ IF :object_type = '60' AND :transaction_type = 'A' THEN
   END IF;
 
 END IF;
+
 
 ----------------------------------------------------------------------------------------------
 
