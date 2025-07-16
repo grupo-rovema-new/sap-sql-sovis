@@ -2415,6 +2415,7 @@ IF EXISTS (
     AND NOTA."U_TX_TagCTe" IS NULL
     AND NOTA."CANCELED" = 'N'
     AND NOTA."DocEntry" = :list_of_cols_val_tab_del
+    AND NOT LINHA."ItemCode" = 'INS0000221' 
 ) THEN error:= 7;
 error_message:= 'Nota sem CTE! Favor informe o CTE.';
 END IF;
@@ -2431,13 +2432,15 @@ IF EXISTS (
     AND NOTA."Model" = 39
     AND NOTA."CANCELED" = 'N'
     AND NOTA."DocEntry" = :list_of_cols_val_tab_del
-    AND EXISTS (
+    AND NOT LINHA."ItemCode" = 'INS0000221' 
+    AND NOT EXISTS (
       SELECT
         1
       FROM
         OPCH NOTA1
       WHERE
         NOTA1."U_ChaveAcesso" = NOTA."U_TX_TagCTe"
+        AND NOTA1."Model" = 45
     )
 ) THEN error:= 7;
 error_message:= 'Infome um CTE Valido!.';
@@ -2579,6 +2582,7 @@ IF :object_type = '60' AND :transaction_type = 'A' THEN
     WHERE N."CANCELED" = 'N'
       AND L."Usage"    = '15'
       AND PCH12."Incoterms" = 1
+      AND NOT L."ItemCode" = 'INS0000221' 
       AND N."Model"    = 39
   )
 
