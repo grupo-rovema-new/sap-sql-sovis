@@ -2583,7 +2583,9 @@ IF :object_type = '60' AND :transaction_type = 'A' THEN
     WHERE N."CANCELED" = 'N'
       AND L."Usage"    = '15'
       AND PCH12."Incoterms" = 1
+
       AND NOT L."ItemCode" = 'INS0000221' 
+
       AND N."Model"    = 39
   )
 
