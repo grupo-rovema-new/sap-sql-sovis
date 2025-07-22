@@ -2557,7 +2557,6 @@ END IF;
 
 IF :object_type = '60' AND :transaction_type = 'A' THEN
 
-
     IF EXISTS (
         WITH SAIDA_INSUMO AS (
             SELECT L."ItemCode", L."WhsCode"
