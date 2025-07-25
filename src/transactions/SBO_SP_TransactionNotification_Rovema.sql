@@ -441,7 +441,22 @@ THEN
     error := 7;
     error_message := 'Diferença entre frete e total de despesas encontrada.';
 END IF;
-
+  IF EXISTS (
+       SELECT 1
+        FROM V_FAT_ENTREGA_DIFERENCAS V
+        JOIN DLN1 D ON D."BaseEntry" = V."DocEntry"
+        WHERE D."DocEntry" = :list_of_cols_val_tab_del
+          AND (
+              V."DIFTOTAL" < -1 OR
+              V."DIFFRETE" < -1
+          )
+          LIMIT 1
+          
+    )
+    THEN
+        error:= 7;
+        error_message:= 'Nota com valor maior que o da mãe!';
+    END IF;
 END IF;
 
 -----------------------------------------------------------------------------------------------------------
