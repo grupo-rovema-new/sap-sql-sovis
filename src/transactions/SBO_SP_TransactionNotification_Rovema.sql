@@ -1671,6 +1671,17 @@ IF EXISTS (
   error         := 7;
   error_message := 'Essa condição de pagamento não está liberada.';
 END IF;
+  IF EXISTS(
+	SELECT 1 FROM ORDR
+	WHERE  NOT EXISTS(
+	SELECT 1 FROM  WTM1 WHERE "UserID"  = ORDR."UserSign" AND "WtmCode" = 26
+	)
+	AND "DocEntry" = :list_of_cols_val_tab_del
+	)
+	THEN 
+	   error := 7;
+	   error_message := 'Voce não esta na alçada de credito, favor entrar em contato com a TI';
+	END IF;
 END IF;
 IF :object_type = '13' and (:transaction_type = 'A') then 
   IF EXISTS(
@@ -1907,6 +1918,8 @@ IF EXISTS (
   error         := 7;
   error_message := 'Essa condição de pagamento não está liberada.';
 END IF;
+
+
 END IF;
 -----------------------------------------------------------------------------------------------------------
 
@@ -2321,6 +2334,19 @@ IF EXISTS (
 ) THEN error:= 7;
 error_message:= 'CST errado!';
 END IF;
+IF EXISTS (
+	SELECT 1 FROM OINV o 
+	INNER JOIN inv1 l ON o."DocEntry" = l."DocEntry" 
+	LEFT JOIN OUSG U ON L."Usage" = U.ID
+	WHERE o."DocEntry" = :list_of_cols_val_tab_del
+	AND o.CANCELED = 'N'
+	AND U."U_SEMPedido" = 'NAO'
+	AND l."BaseEntry" IS NULL
+)
+  THEN
+  error:= 7;
+  error_message := 'Essa utilização não permite criar nota sem pedido de venda';
+  END IF;
 END IF;
 ------------------TRAVA PEDIDO DE COMPRA - CAMPO CONTA DO RAZAO ------------------------
 IF :object_type = '22'
@@ -2656,7 +2682,6 @@ IF :object_type = '60' AND :transaction_type = 'A' THEN
         error_message := 'Não foi feito despesa de importação da nota: ' || notaSemDespesa;
 
     END IF;
-
 END IF;
 
 
