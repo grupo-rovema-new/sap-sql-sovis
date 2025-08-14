@@ -405,7 +405,6 @@ IF :object_type = '15' and (:transaction_type = 'A') then
 		END IF;	
 	END IF;
 END IF;
-
 -- SAIDA DE MERCADORIA
 IF :object_type = '60' and (:transaction_type = 'A') then 
 
