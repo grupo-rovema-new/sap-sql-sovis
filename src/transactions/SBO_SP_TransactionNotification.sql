@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE SBO_SP_TransactionNotification
+CREATE OR REPLACER PROCEDURE SBO_SP_TransactionNotification
 (
 	in object_type nvarchar(30), 				-- SBO Object Type
 	in transaction_type nchar(1),			-- [A]dd, [U]pdate, [D]elete, [C]ancel, C[L]ose
@@ -416,7 +416,11 @@ IF EXISTS (
      		JOIN OINM T1 ON T1."ItemCode" = T0."ItemCode" AND T1."Warehouse" = T0."WhsCode" 
     	WHERE
     		T0."DocEntry"  = :list_of_cols_val_tab_del
+
     		AND T1."DocDate" <= T0."DocDate" 
+
+    		AND T1."DocDate" = T0."DocDate" 
+
     		AND "BaseEntry" IS NULL
 		GROUP BY
 			T0."ItemCode",
