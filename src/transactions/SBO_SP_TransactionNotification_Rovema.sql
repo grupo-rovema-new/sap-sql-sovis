@@ -1922,7 +1922,36 @@ IF EXISTS (
   error         := 7;
   error_message := 'Essa condição de pagamento não está liberada.';
 END IF;
-
+ IF EXISTS(
+	SELECT 
+1
+	FROM 
+	OINV N
+	INNER JOIN INV1 L ON N."DocEntry" = L."DocEntry" 
+	WHERE L."Usage" IN (5,110,130,129)
+	AND ROUND(L."INMPrice",2) <> ROUND(L."StockPrice",2) 
+	AND N.CANCELED = 'N'
+	AND N."DocEntry" = :list_of_cols_val_tab_del
+	LIMIT 1
+)
+THEN
+SELECT 
+	L."ItemCode",
+	ROUND(L."INMPrice",2),
+	ROUND(L."PriceBefDi",2)
+	INTO itemCode,precoNota,precoEstoque
+	FROM 
+	OINV N
+	INNER JOIN INV1 L ON N."DocEntry" = L."DocEntry" 
+	WHERE L."Usage" IN (5,110,130,129)
+	AND ROUND(L."INMPrice",2) <> ROUND(L."StockPrice",2) 
+	AND N.CANCELED = 'N'
+	AND N."DocEntry" = :list_of_cols_val_tab_del
+	LIMIT 1;
+	
+			error := 7;
+	    	error_message := 'Preço unitario diferente do estoque ' || 'Item: ' || itemcode || 'preco nota ' || precoNota || ' preco estoque ' || precoEstoque; 
+ END IF;
 
 END IF;
 -----------------------------------------------------------------------------------------------------------
