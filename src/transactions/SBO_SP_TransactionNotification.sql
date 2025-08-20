@@ -1,4 +1,4 @@
-CREATE OR REPLACER PROCEDURE SBO_SP_TransactionNotification
+CREATE OR REPLACE PROCEDURE SBO_SP_TransactionNotification
 (
 	in object_type nvarchar(30), 				-- SBO Object Type
 	in transaction_type nchar(1),			-- [A]dd, [U]pdate, [D]elete, [C]ancel, C[L]ose
@@ -108,49 +108,8 @@ if  (:object_type = '13' or :object_type = '18' or :object_type = '15' or :objec
 	END if;
 END if;
 
----------------------------------------NF de Entrada e Recebimento JÁ EXISTE----SUZI---06/03/2023------------------------------------------------------------------------------------------------------
-if :object_type = '18' Or :object_type = '20'  and (:transaction_type = 'A')  then
- 	if (:object_type = '18')  then
-		
-		Select 
-			count(1) 
-				into error
-		From OPCH T0
-		Where 
-			T0."DocEntry" = :list_of_cols_val_tab_del and T0."CANCELED" = 'N' And 
-			EXISTS(Select T10."DocEntry" From OPCH T10 
-					Where T10."DocEntry" <> T0."DocEntry" And T10."Serial" = T0."Serial" 
-					And T10."CardCode" = T0."CardCode"
-					And T10."Model" = T0."Model"
-				And T10."SeriesStr" = T0."SeriesStr"
-					and T10."CANCELED" = 'N');
-		 
-		IF(:error > 0) THEN        
-			error := 1;
-         	error_message := 'Documento nota fiscal já existe';  
-		End if;
-	End IF; 
-	
+           
 
-	if (:object_type = '20')  then
-		
-		Select 
-			count(1) 
-			into error
-		From OPDN T0
-		Where 
-			T0."DocEntry" = :list_of_cols_val_tab_del and T0."CANCELED" = 'N' And 
-			EXISTS(Select T10."DocEntry" From OPDN T10 
-					Where T10."DocEntry" <> T0."DocEntry" And T10."Serial" = T0."Serial" 
-					And T10."CardCode" = T0."CardCode"
-					and T10."CANCELED" = 'N');
-		 
-		IF(:error > 0) THEN        
-		error := 1;
-         	error_message := 'Documento nota fiscal já existe';  
-		End if;
-	End IF;                
-END IF;
 IF :object_type = '18' and (:transaction_type = 'A') then 
 
 	Select 
