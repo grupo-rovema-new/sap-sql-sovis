@@ -855,6 +855,7 @@ SELECT
 			EXISTS(Select T10."DocEntry" From OPCH T10 
 					Where T10."DocEntry" <> T0."DocEntry" And T10."Serial" = T0."Serial" 
 					And T10."CardCode" = T0."CardCode"
+					AND T10."CardName" = T0."CardName"
 					And T10."Model" = T0."Model"
 				And T10."SeriesStr" = T0."SeriesStr"
 					and T10."CANCELED" = 'N'
@@ -862,6 +863,7 @@ SELECT
 					Select T10."DocEntry" From OPDN T10 
 					Where T10."DocEntry" <> T0."DocEntry" And T10."Serial" = T0."Serial" 
 					And T10."CardCode" = T0."CardCode"
+					AND T10."CardName" = T0."CardName"
 					And T10."Model" = T0."Model"
 				And T10."SeriesStr" = T0."SeriesStr"
 					and T10."CANCELED" = 'N'
@@ -1254,6 +1256,7 @@ IF EXISTS(
 			EXISTS(Select T10."DocEntry" From OPDN T10 
 					Where T10."DocEntry" <> T0."DocEntry" And T10."Serial" = T0."Serial" 
 					And T10."CardCode" = T0."CardCode"
+					AND T10."CardName" = T0."CardName"
 					And T10."Model" = T0."Model"
 				And T10."SeriesStr" = T0."SeriesStr"
 					and T10."CANCELED" = 'N'
@@ -1261,6 +1264,7 @@ IF EXISTS(
 					Select T10."DocEntry" From OPCH T10 
 					Where T10."DocEntry" <> T0."DocEntry" And T10."Serial" = T0."Serial" 
 					And T10."CardCode" = T0."CardCode"
+					AND T10."CardName" = T0."CardName"
 					And T10."Model" = T0."Model"
 				And T10."SeriesStr" = T0."SeriesStr"
 					and T10."CANCELED" = 'N')
