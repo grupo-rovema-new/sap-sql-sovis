@@ -376,6 +376,7 @@ IF EXISTS (
     	WHERE
     		T0."DocEntry"  = :list_of_cols_val_tab_del
     		AND T1."DocDate" <= T0."DocDate" 
+
     		AND "BaseEntry" IS NULL
 		GROUP BY
 			T0."ItemCode",
