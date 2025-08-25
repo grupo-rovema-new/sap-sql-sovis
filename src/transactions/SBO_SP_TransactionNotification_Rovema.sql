@@ -1853,7 +1853,7 @@ IF
 	WHERE
 		NOTA."DocEntry" = :list_of_cols_val_tab_del
 		AND NOTA."CANCELED" = 'N'
-		AND LINHA."Usage" IN('12','129')
+		AND LINHA."Usage" IN(129,130)
 		AND LINHA."U_LBR_Destinacao" <> 'DESPESA'
 )
 THEN 
