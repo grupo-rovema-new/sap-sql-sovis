@@ -384,8 +384,9 @@ END IF;
 	FROM 
 	ODLN N
 	INNER JOIN DLN1 L ON N."DocEntry" = L."DocEntry" 
+	INNER JOIN OITW D ON D."ItemCode" = L."ItemCode" AND D."WhsCode" = L."WhsCode" 
 	WHERE L."Usage" IN (5,110)
-	AND ROUND(L."INMPrice",2) <> ROUND(L."StockPrice",2) 
+	AND ROUND(L."INMPrice",2) <> ROUND(D."AvgPrice",2) 
 	AND N.CANCELED = 'N'
 	AND N."DocEntry" = :list_of_cols_val_tab_del
 	LIMIT 1
@@ -394,13 +395,14 @@ THEN
 SELECT 
 	L."ItemCode",
 	ROUND(L."INMPrice",2),
-	ROUND(L."PriceBefDi",2)
+	ROUND(D."AvgPrice",2) 
 	INTO itemCode,precoNota,precoEstoque
 	FROM 
 	ODLN N
 	INNER JOIN DLN1 L ON N."DocEntry" = L."DocEntry" 
+	INNER JOIN OITW D ON D."ItemCode" = L."ItemCode" AND D."WhsCode" = L."WhsCode" 
 	WHERE L."Usage" IN (5,110)
-	AND ROUND(L."INMPrice",2) <> ROUND(L."StockPrice",2) 
+	AND ROUND(L."INMPrice",2) <> ROUND(D."AvgPrice",2) 
 	AND N.CANCELED = 'N'
 	AND N."DocEntry" = :list_of_cols_val_tab_del
 	LIMIT 1;
@@ -1894,22 +1896,6 @@ THEN
     error_message := 'Diferença entre frete e total de despesas encontrada.';
 END IF;
 
- IF EXISTS(
-	SELECT 
-	1
-	FROM 
-	OINV N
-	INNER JOIN INV1 L ON N."DocEntry" = L."DocEntry" 
-	INNER JOIN OITW E ON L."ItemCode" = E."ItemCode"  AND L."WhsCode" = E."WhsCode" 
-	WHERE L."Usage" = 129
-	AND ROUND(L."Price",2) <> ROUND(E."AvgPrice",2) 
-	AND N.CANCELED = 'N'
-	AND N."DocEntry" = :list_of_cols_val_tab_del
-)
-THEN
-			error := 7;
-	    	error_message := 'Preço unitario diferente do estoque'; 
-END IF;
 IF EXISTS (
   SELECT 1
   FROM "OINV" o
@@ -1922,7 +1908,38 @@ IF EXISTS (
   error         := 7;
   error_message := 'Essa condição de pagamento não está liberada.';
 END IF;
-
+ IF EXISTS(
+	SELECT 
+    1
+	FROM 
+	OINV N
+	INNER JOIN INV1 L ON N."DocEntry" = L."DocEntry" 
+	INNER JOIN OITW D ON D."ItemCode" = L."ItemCode" AND D."WhsCode" = L."WhsCode" 
+	WHERE L."Usage" IN (5,110,130,129)
+	AND ROUND(L."INMPrice",2) <>  ROUND(D."AvgPrice",2) 
+	AND N.CANCELED = 'N'
+	AND N."DocEntry" = :list_of_cols_val_tab_del
+	LIMIT 1
+)
+THEN
+SELECT 
+	L."ItemCode",
+	ROUND(L."INMPrice",2),
+	ROUND(D."AvgPrice",2) 
+	INTO itemCode,precoNota,precoEstoque
+	FROM 
+	OINV N
+	INNER JOIN INV1 L ON N."DocEntry" = L."DocEntry" 
+	INNER JOIN OITW D ON D."ItemCode" = L."ItemCode" AND D."WhsCode" = L."WhsCode" 
+	WHERE L."Usage" IN (5,110,130,129)
+	AND ROUND(L."INMPrice",2) <> ROUND(D."AvgPrice",2) 
+	AND N.CANCELED = 'N'
+	AND N."DocEntry" = :list_of_cols_val_tab_del
+	LIMIT 1;
+	
+			error := 7;
+	    	error_message := 'Preço unitario diferente do estoque ' || 'Item: ' || itemcode || 'preco nota ' || precoNota || ' preco estoque ' || precoEstoque; 
+ END IF;
 
 END IF;
 -----------------------------------------------------------------------------------------------------------

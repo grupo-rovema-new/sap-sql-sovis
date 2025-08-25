@@ -375,10 +375,7 @@ IF EXISTS (
      		JOIN OINM T1 ON T1."ItemCode" = T0."ItemCode" AND T1."Warehouse" = T0."WhsCode" 
     	WHERE
     		T0."DocEntry"  = :list_of_cols_val_tab_del
-
     		AND T1."DocDate" <= T0."DocDate" 
-
-    		AND T1."DocDate" = T0."DocDate" 
 
     		AND "BaseEntry" IS NULL
 		GROUP BY
