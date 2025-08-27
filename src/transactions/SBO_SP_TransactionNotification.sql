@@ -372,12 +372,12 @@ IF EXISTS (
     	 	1
      	FROM 
      		IGE1 T0 
-     		JOIN OINM T1 ON T1."ItemCode" = T0."ItemCode" AND T1."Warehouse" = T0."WhsCode" 
+     		LEFT JOIN  OINM T1 ON T1."ItemCode" = T0."ItemCode" AND T1."Warehouse" = T0."WhsCode" 
     	WHERE
     		T0."DocEntry"  = :list_of_cols_val_tab_del
     		AND T1."DocDate" <= T0."DocDate" 
-
-    		AND "BaseEntry" IS NULL
+    		AND NOT (T1."TransType" = 60 AND T1."CreatedBy" = T0."DocEntry")
+    	    AND T0."BaseEntry" IS NULL
 		GROUP BY
 			T0."ItemCode",
 			T0."Quantity"
@@ -387,26 +387,24 @@ IF EXISTS (
 	  )THEN        
 
 			SELECT 
-				(T0."ItemCode") 
+				 T1."ItemCode" 
 				INTO XITEM
 			FROM 
 				IGE1 T0 
-     			JOIN OINM T1 ON T1."ItemCode" = T0."ItemCode" AND T1."Warehouse" = T0."WhsCode" 
+     			LEFT JOIN  OINM T1 ON T1."ItemCode" = T0."ItemCode" AND T1."Warehouse" = T0."WhsCode" 
     		WHERE
     			T0."DocEntry"  = :list_of_cols_val_tab_del
     			AND T1."DocDate" <= T0."DocDate" 
-    			AND "BaseEntry" IS NULL
+    			AND NOT (T1."TransType" = 60 AND T1."CreatedBy" = T0."DocEntry")
+    			AND T0."BaseEntry" IS NULL
 			GROUP BY
 				T0."ItemCode",
 				T0."Quantity"
 	     	HAVING 
     	 		SUM(T1."InQty" - T1."OutQty") - T0."Quantity" < 0
          	LIMIT 1;
-			
-         
 				error := 7;
-			
-         		error_message := CONCAT('O Item ficará com estoque negativo: ', XITEM) ;  
+         		error_message := CONCAT('O Item ficará com estoque negativo: ', XITEM ) ;  
 
 	  	END IF;
 	  END IF;
