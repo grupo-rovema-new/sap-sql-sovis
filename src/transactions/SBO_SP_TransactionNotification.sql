@@ -234,8 +234,11 @@ IF :object_type = '59' and (:transaction_type = 'A' OR :transaction_type = 'U') 
 		count(1) 
 		into error1
 		From IGN1 T0 
+		LEFT JOIN OITM T1 ON T0."ItemCode" = T1."ItemCode"
 		Where 
-			T0."DocEntry"  = :list_of_cols_val_tab_del AND IFNULL("Price",0) = 0;			
+			T0."DocEntry"  = :list_of_cols_val_tab_del 
+            AND IFNULL("Price",0) = 0 
+            AND T1."ItmsGrpCod" <> 210;			
 
 		IF(:error1 > 0) THEN        
 			error := 1;
