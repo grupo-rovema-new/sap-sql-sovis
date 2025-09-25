@@ -1915,7 +1915,7 @@ END IF;
 	OINV N
 	INNER JOIN INV1 L ON N."DocEntry" = L."DocEntry" 
 	INNER JOIN OITW D ON D."ItemCode" = L."ItemCode" AND D."WhsCode" = L."WhsCode" 
-	WHERE L."Usage" IN (5,110,130,129)
+	WHERE L."Usage" IN (5,110,130,129,11)
 	AND ROUND(L."INMPrice",2) <>  ROUND(D."AvgPrice",2) 
 	AND N.CANCELED = 'N'
 	AND N."DocEntry" = :list_of_cols_val_tab_del
@@ -1931,7 +1931,7 @@ SELECT
 	OINV N
 	INNER JOIN INV1 L ON N."DocEntry" = L."DocEntry" 
 	INNER JOIN OITW D ON D."ItemCode" = L."ItemCode" AND D."WhsCode" = L."WhsCode" 
-	WHERE L."Usage" IN (5,110,130,129)
+	WHERE L."Usage" IN (5,110,130,129,11)
 	AND ROUND(L."INMPrice",2) <> ROUND(D."AvgPrice",2) 
 	AND N.CANCELED = 'N'
 	AND N."DocEntry" = :list_of_cols_val_tab_del
@@ -2781,8 +2781,44 @@ END IF;
 
 ----------------------------------------------------------------------------------------------
 
-
-
+IF :object_type = '18' and (:transaction_type = 'A') THEN
+	IF  EXISTS (
+	SELECT 1
+    FROM OPCH
+    INNER JOIN PCH1 ON OPCH."DocEntry" = PCH1."DocEntry"
+    WHERE 
+    	OPCH."DocEntry" = :list_of_cols_val_tab_del
+	    AND OPCH."CANCELED" = 'N'
+	    AND PCH1."Usage" in(57,73)
+    	AND 
+		    NOT EXISTS (
+		    SELECT 1 FROM 
+		    PCH21 WHERE PCH21."DocEntry" = :list_of_cols_val_tab_del
+		    )
+    )
+    
+	THEN
+		error := 7;
+    	error_message := 'Colocar referencia da nota';  
+	END if;
+	
+		IF  EXISTS (
+	SELECT 1
+    FROM OPCH
+    INNER JOIN PCH1 ON OPCH."DocEntry" = PCH1."DocEntry"
+    WHERE 
+    	OPCH."DocEntry" = :list_of_cols_val_tab_del
+	    AND OPCH."CANCELED" = 'N'
+	    AND PCH1."Usage" IN (57)
+	    AND PCH1."WhsCode" <> '500.11'
+    )
+    
+	THEN
+		error := 7;
+    	error_message := 'Essa utilização deve ser usado o Depósito 500.11';  
+	END if;
+END if;
+-----------------------------------------------------------------------------------------------
 IF :object_type in('23') and  (:transaction_type = 'A' or :transaction_type = 'U') AND 1=2 THEN 
 	SELECT 
 		CASE :object_type
