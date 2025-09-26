@@ -67,7 +67,7 @@ IF :object_type = '13' AND (:transaction_type = 'A' OR :transaction_type = 'U') 
 END IF;
 
 ----------------------------CAMPOS DE USUARIOS INDICADOR DA NATUREZA DO FRETE-----------------------------------
-IF :object_type = '20' AND (:transaction_type = 'A' OR :transaction_type = 'U') THEN
+IF :object_type = '18' AND (:transaction_type = 'A' OR :transaction_type = 'U') THEN
 IF EXISTS (SELECT 1 FROM PCH1 WHERE "CSTfCOFINS" = 50 AND "CSTfPIS" = 50 AND "Usage" = 24 AND "DocEntry" = :list_of_cols_val_tab_del) THEN
 UPDATE OPCH SET "U_TX_IndNatFrete" = 9 WHERE OPCH."DocEntry" = :list_of_cols_val_tab_del;
 END IF;
