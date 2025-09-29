@@ -2706,6 +2706,22 @@ IF :object_type = '60' AND :transaction_type = 'A' THEN
 END IF;
 
 
+IF :object_type = '59' AND :transaction_type = 'A' THEN
+	IF EXISTS(
+		SELECT 1 FROM IGN1 i 
+		WHERE 
+		i."DocEntry" =  :list_of_cols_val_tab_del
+		AND i."WhsCode" = '500.30'
+		AND NOT EXISTS(SELECT 1 FROM IGN21 WHERE "DocEntry" = :list_of_cols_val_tab_del)
+		)
+		THEN
+		 error := 7;
+         error_message := 'Favor colocar referencia da nota de remessa demonstração';
+
+END IF;
+END IF;
+
+
 ----------------------------------------------------------------------------------------------
 ---------------------------Despesa de importaçao----------------------------------------------------------------
 if  :object_type = '69' and (:transaction_type = 'A') THEN
