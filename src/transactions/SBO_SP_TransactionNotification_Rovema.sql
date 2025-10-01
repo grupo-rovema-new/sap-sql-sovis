@@ -2833,6 +2833,48 @@ IF :object_type = '18' and (:transaction_type = 'A') THEN
 		error := 7;
     	error_message := 'Essa utilização deve ser usado o Depósito 500.11';  
 	END if;
+	
+	IF EXISTS(
+	SELECT 
+		1
+	FROM 
+		OPCH N
+	INNER JOIN PCH1 L 
+		ON N."DocEntry" = L."DocEntry" 
+	INNER JOIN OITW D 
+		ON D."ItemCode" = L."ItemCode" 
+		AND D."WhsCode" = '500.30'
+	WHERE L."Usage" IN (73)
+	  AND ROUND(L."INMPrice",2) <> ROUND(D."AvgPrice",2) 
+	  AND N.CANCELED = 'N'
+	  AND N."DocEntry" = :list_of_cols_val_tab_del
+	LIMIT 1
+)
+THEN
+	SELECT 
+		L."ItemCode",
+		ROUND(L."INMPrice",2),
+		ROUND(D."AvgPrice",2) 
+	INTO itemCode, precoNota, precoEstoque
+	FROM 
+		OPCH N
+	INNER JOIN PCH1 L 
+		ON N."DocEntry" = L."DocEntry" 
+	INNER JOIN OITW D 
+		ON D."ItemCode" = L."ItemCode" 
+		AND D."WhsCode" = '500.30'
+	WHERE L."Usage" IN (73)
+	  AND ROUND(L."INMPrice",2) <> ROUND(D."AvgPrice",2) 
+	  AND N.CANCELED = 'N'
+	  AND N."DocEntry" = :list_of_cols_val_tab_del
+	LIMIT 1;
+
+	error := 7;
+	error_message := 'Preço unitário diferente do estoque ' 
+		|| 'Item: ' || itemCode 
+		|| ' preco nota ' || precoNota 
+		|| ' preco estoque ' || precoEstoque; 
+END IF;
 END if;
 -----------------------------------------------------------------------------------------------
 IF :object_type in('23') and  (:transaction_type = 'A' or :transaction_type = 'U') AND 1=2 THEN 
