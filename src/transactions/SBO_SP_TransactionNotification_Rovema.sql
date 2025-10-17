@@ -2484,27 +2484,30 @@ IF EXISTS (
 error_message:= 'Nota sem CTE! Favor informe o CTE.';
 END IF;
 IF EXISTS (
-  SELECT
+SELECT
     1
-  FROM
+FROM
     OPCH NOTA
-    left JOIN PCH1 LINHA ON NOTA."DocEntry" = LINHA."DocEntry"
-    LEFT JOIN pch12 ON NOTA."DocEntry" = PCH12."DocEntry"
-  WHERE
+    LEFT JOIN PCH1 LINHA ON NOTA."DocEntry" = LINHA."DocEntry"
+    LEFT JOIN PCH12 ON NOTA."DocEntry" = PCH12."DocEntry"
+WHERE
     PCH12."Incoterms" = 1
     AND LINHA."Usage" = 15
     AND NOTA."Model" = 39
     AND NOTA."CANCELED" = 'N'
     AND NOTA."DocEntry" = :list_of_cols_val_tab_del
-    AND NOT LINHA."ItemCode" = 'INS0000221' 
+    AND LINHA."ItemCode" <> 'INS0000221'
     AND NOT EXISTS (
-      SELECT
-        1
-      FROM
-        OPCH NOTA1
-      WHERE
-        NOTA1."U_ChaveAcesso" = NOTA."U_TX_TagCTe"
-        AND NOTA1."Model" = 45
+        SELECT
+            1
+        FROM
+            OPCH NOTA1
+        WHERE
+            (
+                (NOTA1."U_ChaveAcesso" = NOTA."U_TX_TagCTe" AND NOTA1."Model" = 45)
+                OR
+                (TO_NVARCHAR(NOTA1."Serial") = NOTA."U_TX_TagCTe" AND NOTA1."Model" = 46)
+            )
     )
 ) THEN error:= 7;
 error_message:= 'Infome um CTE Valido!.';
