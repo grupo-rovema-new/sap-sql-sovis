@@ -1680,9 +1680,9 @@ END IF;
   IF EXISTS(
 	SELECT 1 FROM ORDR
 	WHERE  NOT EXISTS(
-	SELECT 1 FROM  WTM1 WHERE "UserID"  = ORDR."UserSign" AND "WtmCode" = 26
-	)
+	SELECT 1 FROM  WTM1 WHERE "UserID"  = ORDR."UserSign" AND "WtmCode" = 26)
 	AND "DocEntry" = :list_of_cols_val_tab_del
+	AND ORDR."UserSign" NOT IN (1)
 	)
 	THEN 
 	   error := 7;
@@ -2904,6 +2904,6 @@ IF :object_type in('23') and  (:transaction_type = 'A' or :transaction_type = 'U
 		error := 334;	
 	END if;
 end if;
-
+ 
 
 end;
