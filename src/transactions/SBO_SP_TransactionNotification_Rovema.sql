@@ -2485,7 +2485,7 @@ error_message:= 'Nota sem CTE! Favor informe o CTE.';
 END IF;
 IF EXISTS (
 SELECT
-    1
+   1
 FROM
     OPCH NOTA
     LEFT JOIN PCH1 LINHA ON NOTA."DocEntry" = LINHA."DocEntry"
@@ -2505,10 +2505,11 @@ WHERE
         WHERE
             (
                 (NOTA1."U_ChaveAcesso" = NOTA."U_TX_TagCTe" AND NOTA1."Model" = 45)
-                OR
-                (TO_NVARCHAR(NOTA1."Serial") = NOTA."U_TX_TagCTe" AND NOTA1."Model" = 46)
+                OR (TO_NVARCHAR(NOTA1."DocEntry") = TO_NVARCHAR(NOTA."U_TX_TagCTe") 
+                AND NOTA1."Model" = 46)
+
             )
-    )
+)
 ) THEN error:= 7;
 error_message:= 'Infome um CTE Valido!.';
 END IF;
@@ -2735,8 +2736,7 @@ IF EXISTS (
 	  CTE."DocNum" AS "CTeDocNum",
 	  O."DocDate"  AS "DataOIPF",
 	  NF."DocDate" AS "DataEntrada",
-	  CTE."DocDate"AS "DataCTe",
-	  cte."DocNum" 
+	  CTE."DocDate"AS "DataCTe"
 	FROM OIPF O
 	INNER JOIN IPF1 I 
 	  ON O."DocEntry" = I."DocEntry"
@@ -2747,17 +2747,20 @@ IF EXISTS (
 	  ON PL."DocEntry"  = NF."DocEntry"
 	 AND NF."CANCELED"  = 'N'
 	LEFT JOIN OPCH CTE 
-	  ON CTE."U_ChaveAcesso" = NF."U_TX_TagCTe"
-	 AND CTE."Model"         = 45
-	 AND CTE."CANCELED"      = 'N'
+	  ON (
+			(CTE."U_ChaveAcesso" = NF."U_TX_TagCTe" AND CTE."Model" = 45)
+			OR 
+			(TO_NVARCHAR(CTE."DocEntry") = NF."U_TX_TagCTe" AND CTE."Model" = 46)
+		 )
+	 AND CTE."CANCELED" = 'N'
 	WHERE 
 	   O."DocEntry"  = :list_of_cols_val_tab_del
 	  AND O."DocDate" <> CTE."DocDate"
 )
 THEN 
     error := 7;
-	error_message := 'A data esta diferente do CTE!';
-  END IF;
+	error_message := 'A data está diferente do CTE!';
+END IF;
 
 
 SELECT 
@@ -2774,26 +2777,30 @@ SELECT
        WHERE "DocEntry" = CTE."DocEntry"
     ), 0)
   - O."CostSum"
-INTO v_frete_sem_imp,v_diff
+INTO v_frete_sem_imp, v_diff
 FROM OIPF O
-JOIN IPF1 I      ON O."DocEntry" = I."DocEntry"
-LEFT JOIN PCH1 PL ON I."BaseEntry" = PL."DocEntry"
-                 AND I."ItemCode"  = PL."ItemCode"
-LEFT JOIN OPCH NF ON PL."DocEntry"  = NF."DocEntry"
-                 AND NF."CANCELED"  = 'N'
+JOIN IPF1 I      
+  ON O."DocEntry" = I."DocEntry"
+LEFT JOIN PCH1 PL 
+  ON I."BaseEntry" = PL."DocEntry"
+ AND I."ItemCode"  = PL."ItemCode"
+LEFT JOIN OPCH NF 
+  ON PL."DocEntry"  = NF."DocEntry"
+ AND NF."CANCELED"  = 'N'
 LEFT JOIN OPCH CTE
-               ON CTE."U_ChaveAcesso" = NF."U_TX_TagCTe"
-              AND CTE."Model"         = 45
-              AND CTE."CANCELED"      = 'N'
+  ON (
+        (CTE."U_ChaveAcesso" = NF."U_TX_TagCTe" AND CTE."Model" = 45)
+     OR (TO_NVARCHAR(CTE."DocEntry") = NF."U_TX_TagCTe" AND CTE."Model" = 46)
+     )
+ AND CTE."CANCELED" = 'N'
 LEFT JOIN PCH1 CTELINHA
-               ON CTELINHA."DocEntry" = CTE."DocEntry"
+  ON CTELINHA."DocEntry" = CTE."DocEntry"
 WHERE O."DocEntry" = :list_of_cols_val_tab_del
-LIMIT 1;  -- garante só 1 linha
+LIMIT 1;
 
 IF v_diff <> 0 THEN
-  error         = 7;
-  error_message = 'O valor do frete está errado! Valor correto: '
-                || v_frete_sem_imp;
+  error         := 7;
+  error_message := 'O valor do frete está errado! Valor correto: ' || v_frete_sem_imp;
 END IF;
 END IF;
 
