@@ -1680,9 +1680,9 @@ END IF;
   IF EXISTS(
 	SELECT 1 FROM ORDR
 	WHERE  NOT EXISTS(
-	SELECT 1 FROM  WTM1 WHERE "UserID"  = ORDR."UserSign" AND "WtmCode" = 26
-	)
+	SELECT 1 FROM  WTM1 WHERE "UserID"  = ORDR."UserSign" AND "WtmCode" = 26)
 	AND "DocEntry" = :list_of_cols_val_tab_del
+	AND ORDR."UserSign" NOT IN (1)
 	)
 	THEN 
 	   error := 7;
@@ -2484,28 +2484,32 @@ IF EXISTS (
 error_message:= 'Nota sem CTE! Favor informe o CTE.';
 END IF;
 IF EXISTS (
-  SELECT
-    1
-  FROM
+SELECT
+   1
+FROM
     OPCH NOTA
-    left JOIN PCH1 LINHA ON NOTA."DocEntry" = LINHA."DocEntry"
-    LEFT JOIN pch12 ON NOTA."DocEntry" = PCH12."DocEntry"
-  WHERE
+    LEFT JOIN PCH1 LINHA ON NOTA."DocEntry" = LINHA."DocEntry"
+    LEFT JOIN PCH12 ON NOTA."DocEntry" = PCH12."DocEntry"
+WHERE
     PCH12."Incoterms" = 1
     AND LINHA."Usage" = 15
     AND NOTA."Model" = 39
     AND NOTA."CANCELED" = 'N'
     AND NOTA."DocEntry" = :list_of_cols_val_tab_del
-    AND NOT LINHA."ItemCode" = 'INS0000221' 
+    AND LINHA."ItemCode" <> 'INS0000221'
     AND NOT EXISTS (
-      SELECT
-        1
-      FROM
-        OPCH NOTA1
-      WHERE
-        NOTA1."U_ChaveAcesso" = NOTA."U_TX_TagCTe"
-        AND NOTA1."Model" = 45
-    )
+        SELECT
+            1
+        FROM
+            OPCH NOTA1
+        WHERE
+            (
+                (NOTA1."U_ChaveAcesso" = NOTA."U_TX_TagCTe" AND NOTA1."Model" = 45)
+                OR (TO_NVARCHAR(NOTA1."DocEntry") = TO_NVARCHAR(NOTA."U_TX_TagCTe") 
+                AND NOTA1."Model" = 46)
+
+            )
+)
 ) THEN error:= 7;
 error_message:= 'Infome um CTE Valido!.';
 END IF;
@@ -2732,8 +2736,7 @@ IF EXISTS (
 	  CTE."DocNum" AS "CTeDocNum",
 	  O."DocDate"  AS "DataOIPF",
 	  NF."DocDate" AS "DataEntrada",
-	  CTE."DocDate"AS "DataCTe",
-	  cte."DocNum" 
+	  CTE."DocDate"AS "DataCTe"
 	FROM OIPF O
 	INNER JOIN IPF1 I 
 	  ON O."DocEntry" = I."DocEntry"
@@ -2744,17 +2747,20 @@ IF EXISTS (
 	  ON PL."DocEntry"  = NF."DocEntry"
 	 AND NF."CANCELED"  = 'N'
 	LEFT JOIN OPCH CTE 
-	  ON CTE."U_ChaveAcesso" = NF."U_TX_TagCTe"
-	 AND CTE."Model"         = 45
-	 AND CTE."CANCELED"      = 'N'
+	  ON (
+			(CTE."U_ChaveAcesso" = NF."U_TX_TagCTe" AND CTE."Model" = 45)
+			OR 
+			(TO_NVARCHAR(CTE."DocEntry") = NF."U_TX_TagCTe" AND CTE."Model" = 46)
+		 )
+	 AND CTE."CANCELED" = 'N'
 	WHERE 
 	   O."DocEntry"  = :list_of_cols_val_tab_del
 	  AND O."DocDate" <> CTE."DocDate"
 )
 THEN 
     error := 7;
-	error_message := 'A data esta diferente do CTE!';
-  END IF;
+	error_message := 'A data está diferente do CTE!';
+END IF;
 
 
 SELECT 
@@ -2771,26 +2777,30 @@ SELECT
        WHERE "DocEntry" = CTE."DocEntry"
     ), 0)
   - O."CostSum"
-INTO v_frete_sem_imp,v_diff
+INTO v_frete_sem_imp, v_diff
 FROM OIPF O
-JOIN IPF1 I      ON O."DocEntry" = I."DocEntry"
-LEFT JOIN PCH1 PL ON I."BaseEntry" = PL."DocEntry"
-                 AND I."ItemCode"  = PL."ItemCode"
-LEFT JOIN OPCH NF ON PL."DocEntry"  = NF."DocEntry"
-                 AND NF."CANCELED"  = 'N'
+JOIN IPF1 I      
+  ON O."DocEntry" = I."DocEntry"
+LEFT JOIN PCH1 PL 
+  ON I."BaseEntry" = PL."DocEntry"
+ AND I."ItemCode"  = PL."ItemCode"
+LEFT JOIN OPCH NF 
+  ON PL."DocEntry"  = NF."DocEntry"
+ AND NF."CANCELED"  = 'N'
 LEFT JOIN OPCH CTE
-               ON CTE."U_ChaveAcesso" = NF."U_TX_TagCTe"
-              AND CTE."Model"         = 45
-              AND CTE."CANCELED"      = 'N'
+  ON (
+        (CTE."U_ChaveAcesso" = NF."U_TX_TagCTe" AND CTE."Model" = 45)
+     OR (TO_NVARCHAR(CTE."DocEntry") = NF."U_TX_TagCTe" AND CTE."Model" = 46)
+     )
+ AND CTE."CANCELED" = 'N'
 LEFT JOIN PCH1 CTELINHA
-               ON CTELINHA."DocEntry" = CTE."DocEntry"
+  ON CTELINHA."DocEntry" = CTE."DocEntry"
 WHERE O."DocEntry" = :list_of_cols_val_tab_del
-LIMIT 1;  -- garante só 1 linha
+LIMIT 1;
 
 IF v_diff <> 0 THEN
-  error         = 7;
-  error_message = 'O valor do frete está errado! Valor correto: '
-                || v_frete_sem_imp;
+  error         := 7;
+  error_message := 'O valor do frete está errado! Valor correto: ' || v_frete_sem_imp;
 END IF;
 END IF;
 
@@ -2901,6 +2911,6 @@ IF :object_type in('23') and  (:transaction_type = 'A' or :transaction_type = 'U
 		error := 334;	
 	END if;
 end if;
-
+ 
 
 end;
