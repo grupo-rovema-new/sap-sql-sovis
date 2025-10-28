@@ -32,20 +32,43 @@ IF :object_type IN('14') AND :transaction_type = 'A' then
 	END if;
 
 	SELECT
-		sum(ROUND((item."U_preco_negociado" * item."Quantity") / (pedido."DocTotal" - COALESCE(frete."LineTotal", 0)), 2) / item."Quantity" * COALESCE(frete."LineTotal", 0) * devItem."Quantity") AS "freteItemDev",
-		sum(COALESCE(devFrete."LineTotal", 0))
+		sum(docItem."Quantity"*contrato."U_valorFrete"*(item."U_quantity"*item."U_precoNegociado"/(SELECT sum("U_quantity"*"U_precoNegociado") FROM "@AR_CF_LINHA" WHERE "DocEntry" = contrato."DocEntry"))/item."U_quantity") "sugerido",
+		sum(COALESCE(docFrete."LineTotal", 0)) AS "current"
 	INTO
 		totalFrete, freteAtual
 	FROM 
 		"ORDR" pedido
-		INNER JOIN "RDR1" item ON pedido."DocEntry" = item."DocEntry"
 		INNER JOIN "@AR_CONTRATO_FUTURO" contrato ON contrato."U_orderDocEntry"  = pedido."DocEntry" 
-		LEFT JOIN "RDR3" frete ON pedido."DocEntry" = frete."DocEntry"
-		INNER JOIN "ORIN" devolucao ON devolucao."U_venda_futura" = contrato."DocEntry"
-		INNER JOIN "RIN1" devItem ON devItem."DocEntry" = devolucao."DocEntry" AND devItem."ItemCode" = item."ItemCode"
-		LEFT JOIN "RIN3"  devFrete ON devFrete."DocEntry" = devolucao."DocEntry"
+		INNER JOIN "@AR_CF_LINHA" item ON item."DocEntry" = contrato."DocEntry"
+		INNER JOIN "ORIN" currentDocument ON currentDocument."U_venda_futura" = contrato."DocEntry"
+		INNER JOIN "RIN1" docItem ON docItem."DocEntry" = currentDocument."DocEntry" AND docItem."ItemCode" = item."U_itemCode"
+		LEFT JOIN "RIN3"  docFrete ON docFrete."DocEntry" = currentDocument."DocEntry"
 	WHERE
-		devolucao."DocEntry" = :list_of_cols_val_tab_del;
+		currentDocument."DocEntry" = :list_of_cols_val_tab_del;
+		
+	IF totalFrete <> freteAtual THEN
+		error := '88';
+    	error_message := 'O frete deve ser proporcional ao contrato. Sugestão '|| totalFrete;
+	END if;
+END IF;
+
+
+IF :object_type IN('13') AND :transaction_type IN('A') then
+
+	SELECT
+		sum(docItem."Quantity"*contrato."U_valorFrete"*(item."U_quantity"*item."U_precoNegociado"/(SELECT sum("U_quantity"*"U_precoNegociado") FROM "@AR_CF_LINHA" WHERE "DocEntry" = contrato."DocEntry"))/item."U_quantity") "sugerido",
+		sum(COALESCE(docFrete."LineTotal", 0)) AS "current"
+	INTO
+		totalFrete, freteAtual
+	FROM 
+		"ORDR" pedido
+		INNER JOIN "@AR_CONTRATO_FUTURO" contrato ON contrato."U_orderDocEntry"  = pedido."DocEntry" 
+		INNER JOIN "@AR_CF_LINHA" item ON item."DocEntry" = contrato."DocEntry"
+		INNER JOIN "OINV" currentDocument ON currentDocument."U_venda_futura" = contrato."DocEntry"
+		INNER JOIN "INV1" docItem ON docItem."DocEntry" = currentDocument."DocEntry" AND docItem."ItemCode" = item."U_itemCode"
+		LEFT JOIN "INV3"  docFrete ON docFrete."DocEntry" = currentDocument."DocEntry"
+	WHERE
+		currentDocument."DocEntry" = :list_of_cols_val_tab_del;
 		
 	IF totalFrete <> freteAtual THEN
 		error := '88';
