@@ -108,49 +108,8 @@ if  (:object_type = '13' or :object_type = '18' or :object_type = '15' or :objec
 	END if;
 END if;
 
----------------------------------------NF de Entrada e Recebimento JÁ EXISTE----SUZI---06/03/2023------------------------------------------------------------------------------------------------------
-if :object_type = '18' Or :object_type = '20'  and (:transaction_type = 'A')  then
- 	if (:object_type = '18')  then
-		
-		Select 
-			count(1) 
-				into error
-		From OPCH T0
-		Where 
-			T0."DocEntry" = :list_of_cols_val_tab_del and T0."CANCELED" = 'N' And 
-			EXISTS(Select T10."DocEntry" From OPCH T10 
-					Where T10."DocEntry" <> T0."DocEntry" And T10."Serial" = T0."Serial" 
-					And T10."CardCode" = T0."CardCode"
-					And T10."Model" = T0."Model"
-				And T10."SeriesStr" = T0."SeriesStr"
-					and T10."CANCELED" = 'N');
-		 
-		IF(:error > 0) THEN        
-			error := 1;
-         	error_message := 'Documento nota fiscal já existe';  
-		End if;
-	End IF; 
-	
+           
 
-	if (:object_type = '20')  then
-		
-		Select 
-			count(1) 
-			into error
-		From OPDN T0
-		Where 
-			T0."DocEntry" = :list_of_cols_val_tab_del and T0."CANCELED" = 'N' And 
-			EXISTS(Select T10."DocEntry" From OPDN T10 
-					Where T10."DocEntry" <> T0."DocEntry" And T10."Serial" = T0."Serial" 
-					And T10."CardCode" = T0."CardCode"
-					and T10."CANCELED" = 'N');
-		 
-		IF(:error > 0) THEN        
-		error := 1;
-         	error_message := 'Documento nota fiscal já existe';  
-		End if;
-	End IF;                
-END IF;
 IF :object_type = '18' and (:transaction_type = 'A') then 
 
 	Select 
@@ -275,8 +234,11 @@ IF :object_type = '59' and (:transaction_type = 'A' OR :transaction_type = 'U') 
 		count(1) 
 		into error1
 		From IGN1 T0 
+		LEFT JOIN OITM T1 ON T0."ItemCode" = T1."ItemCode"
 		Where 
-			T0."DocEntry"  = :list_of_cols_val_tab_del AND IFNULL("Price",0) = 0;			
+			T0."DocEntry"  = :list_of_cols_val_tab_del 
+            AND IFNULL("Price",0) = 0 
+            AND T1."ItmsGrpCod" <> 210;			
 
 		IF(:error1 > 0) THEN        
 			error := 1;
@@ -405,6 +367,50 @@ IF :object_type = '15' and (:transaction_type = 'A') then
 		END IF;	
 	END IF;
 END IF;
+-- SAIDA DE MERCADORIA
+IF :object_type = '60' and (:transaction_type = 'A') then 
+
+IF EXISTS (
+		SELECT 
+    	 	1
+     	FROM 
+     		IGE1 T0 
+     		LEFT JOIN  OINM T1 ON T1."ItemCode" = T0."ItemCode" AND T1."Warehouse" = T0."WhsCode" 
+    	WHERE
+    		T0."DocEntry"  = :list_of_cols_val_tab_del
+    		AND T1."DocDate" <= T0."DocDate" 
+    		AND NOT (T1."TransType" = 60 AND T1."CreatedBy" = T0."DocEntry")
+    	    AND T0."BaseEntry" IS NULL
+		GROUP BY
+			T0."ItemCode",
+			T0."Quantity"
+     	HAVING 
+     		SUM(T1."InQty" - T1."OutQty") - T0."Quantity" < 0
+
+	  )THEN        
+
+			SELECT 
+				 T1."ItemCode" 
+				INTO XITEM
+			FROM 
+				IGE1 T0 
+     			LEFT JOIN  OINM T1 ON T1."ItemCode" = T0."ItemCode" AND T1."Warehouse" = T0."WhsCode" 
+    		WHERE
+    			T0."DocEntry"  = :list_of_cols_val_tab_del
+    			AND T1."DocDate" <= T0."DocDate" 
+    			AND NOT (T1."TransType" = 60 AND T1."CreatedBy" = T0."DocEntry")
+    			AND T0."BaseEntry" IS NULL
+			GROUP BY
+				T0."ItemCode",
+				T0."Quantity"
+	     	HAVING 
+    	 		SUM(T1."InQty" - T1."OutQty") - T0."Quantity" < 0
+         	LIMIT 1;
+				error := 7;
+         		error_message := CONCAT('O Item ficará com estoque negativo: ', XITEM ) ;  
+
+	  	END IF;
+	  END IF;
 
 select :error, SUBSTRING (:error_message,0,255) AS error_message FROM dummy;
 

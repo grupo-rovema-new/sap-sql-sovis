@@ -28,8 +28,10 @@ begin
 -- SAIDA DE MERCADORIA
 IF :object_type = '60' and (:transaction_type = 'A') then 
 
-    --TRAVA PARA NÃO PERMITIR SAÍDA DE MERCADORIA QUE DEIXE O ITEM COM ESTOQUE NEGATIVO COM DATA RETROATIVA.
+    --TRAVA PARA NÃO PERMITIR SAÍDA DE MERCADORIA QUE DEIXE O ITEM COM ESTOQUE NEGATIVO COM DATA RETROATIVA PARA ITENS SEM ORDEM DE PRODUÇÃO.
     --PAULO 15/06/2025 
+    SELECT COUNT(*) INTO XCOUNT FROM IGE1 WHERE "DocEntry" = :list_of_cols_val_tab_del AND "BaseType" IS NULL;
+
 	SELECT 
      	Count(T0."ItemCode")
      	INTO
@@ -45,7 +47,7 @@ IF :object_type = '60' and (:transaction_type = 'A') then
      HAVING 
      	SUM(T1."InQty" - T1."OutQty") - T0."Quantity" < 0;
 
-	  IF(:error1 > 0) THEN        
+	  IF(:error1 > 0) AND XCOUNT > 0 THEN        
 
 		SELECT 
 			(T0."ItemCode") 
