@@ -848,37 +848,44 @@ SELECT
    		error := 7;
     	error_message := 'O desconto deve ser informado na linha'; 
  END IF;
- IF EXISTS(
-	Select 
-		1
-		From OPCH T0
-		Where 
-			T0."DocEntry" = :list_of_cols_val_tab_del and T0."CANCELED" = 'N' And 
-			EXISTS(Select T10."DocEntry" From OPCH T10 
-					Where T10."DocEntry" <> T0."DocEntry" And T10."Serial" = T0."Serial" 
-					And T10."CardCode" = T0."CardCode"
-					AND T10."CardName" = T0."CardName"
-					And T10."Model" = T0."Model"
-				And T10."SeriesStr" = T0."SeriesStr"
-					and T10."CANCELED" = 'N'
-					UNION 
-					Select T10."DocEntry" From OPDN T10 
-					Where T10."DocEntry" <> T0."DocEntry" And T10."Serial" = T0."Serial" 
-					And T10."CardCode" = T0."CardCode"
-					AND T10."CardName" = T0."CardName"
-					And T10."Model" = T0."Model"
-				And T10."SeriesStr" = T0."SeriesStr"
-					and T10."CANCELED" = 'N'
-					
-					)
-			)
-		 
-		THEN        
-			error := 1;
-         	error_message := 'Documento nota fiscal já existe';  
-		
-         
-  End if;
+ IF EXISTS (
+    SELECT 1
+    FROM OPCH T0
+    WHERE 
+        T0."DocEntry" = :list_of_cols_val_tab_del 
+        AND T0."CANCELED" = 'N' 
+        AND EXISTS (
+            SELECT 1 
+            FROM OPCH T10 
+            WHERE 
+                T10."DocEntry" <> T0."DocEntry"
+                AND T10."Serial"    = T0."Serial"
+                AND T10."CardCode"  = T0."CardCode"
+                AND T10."CardName"  = T0."CardName"
+                AND T10."Model"     = T0."Model"
+                AND COALESCE(NULLIF(T10."SeriesStr", ''), 'NO_SERIES') =
+                    COALESCE(NULLIF(T0."SeriesStr", ''), 'NO_SERIES')
+                AND T10."CANCELED" = 'N'
+
+            UNION ALL
+
+            SELECT 1
+            FROM OPDN T10
+            WHERE 
+                T10."DocEntry" <> T0."DocEntry"
+                AND T10."Serial"    = T0."Serial"
+                AND T10."CardCode"  = T0."CardCode"
+                AND T10."CardName"  = T0."CardName"
+                AND T10."Model"     = T0."Model"
+                AND COALESCE(NULLIF(T10."SeriesStr", ''), 'NO_SERIES') =
+                    COALESCE(NULLIF(T0."SeriesStr", ''), 'NO_SERIES')
+                AND T10."CANCELED" = 'N'
+        )
+)
+THEN
+    error := 1;
+    error_message := 'Documento nota fiscal já existe';
+END IF;
  
 IF EXISTS(
 SELECT
@@ -1260,7 +1267,8 @@ IF EXISTS(
 					And T10."CardCode" = T0."CardCode"
 					AND T10."CardName" = T0."CardName"
 					And T10."Model" = T0."Model"
-				And T10."SeriesStr" = T0."SeriesStr"
+				AND COALESCE(NULLIF(T10."SeriesStr", ''), 'NO_SERIES') =
+                    COALESCE(NULLIF(T0."SeriesStr", ''), 'NO_SERIES')
 					and T10."CANCELED" = 'N'
 					UNION 
 					Select T10."DocEntry" From OPCH T10 
@@ -1268,7 +1276,8 @@ IF EXISTS(
 					And T10."CardCode" = T0."CardCode"
 					AND T10."CardName" = T0."CardName"
 					And T10."Model" = T0."Model"
-				And T10."SeriesStr" = T0."SeriesStr"
+				AND COALESCE(NULLIF(T10."SeriesStr", ''), 'NO_SERIES') =
+                    COALESCE(NULLIF(T0."SeriesStr", ''), 'NO_SERIES')
 					and T10."CANCELED" = 'N')
 			)
 		 
