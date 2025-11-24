@@ -2053,7 +2053,7 @@ LEFT JOIN OUSG UT ON
 WHERE
 	LNS."FreeChrgBP" = 'N'
 	AND T2."Model" IN (39, 54)
-		AND NF."StatusId" <> 4
+		AND (NF."StatusId" <> 4 OR NF."StatusId" IS NULL)
 		AND T0."DocEntry" = :list_of_cols_val_tab_del
 		AND T1."InvType" = 13
 )
@@ -2086,7 +2086,7 @@ LEFT JOIN OUSG UT ON
 WHERE
 	LNE."FreeChrgBP" = 'N'
 	AND T2."Model" IN (39, 54)
-		AND NF."StatusId" <> 4
+		AND (NF."StatusId" <> 4 OR NF."StatusId" IS NULL)
 		AND T0."DocEntry" = :list_of_cols_val_tab_del
 		AND T1."InvType" = 13
 )
