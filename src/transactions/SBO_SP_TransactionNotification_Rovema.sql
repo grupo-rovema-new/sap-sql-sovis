@@ -2886,6 +2886,57 @@ THEN
 		|| ' preco estoque ' || precoEstoque; 
 END IF;
 END if;
+------------------CAMPO DESCONTO % NEGATIVA - PEDIDO DE VENDA-----------------------------
+IF :object_type = '17' AND (:transaction_type = 'U'	OR :transaction_type = 'A') THEN
+IF EXISTS (
+SELECT
+	1
+FROM
+	ORDR
+INNER JOIN RDR1 ON
+	ORDR."DocEntry" = RDR1."DocEntry"
+WHERE
+	RDR1."DiscPrcnt" < 0  
+	AND ORDR."DocEntry" = :list_of_cols_val_tab_del
+) THEN 
+	error := 3;
+	error_message := 'O campo de Desconto na linha está com valor negativo!';
+END IF;
+END IF;
+-------------------CAMPO DESCONTO % NEGATIVA - NF SAÍDA E FUTURA---------------------------
+IF :object_type = '13' AND (:transaction_type = 'U'	OR :transaction_type = 'A') THEN	
+IF EXISTS (
+SELECT
+	1
+FROM
+	OINV
+INNER JOIN INV1 ON
+	OINV."DocEntry" = INV1."DocEntry"
+WHERE
+	INV1."DiscPrcnt" < 0
+	AND OINV."DocEntry" = :list_of_cols_val_tab_del
+) THEN 
+	error := 3;
+	error_message := 'O campo de Desconto na linha está com valor negativo!';
+END IF;
+END IF;
+-------------------CAMPO DESCONTO % NEGATIVA - ENTREGA-------------------------------------
+IF :object_type = '15' AND (:transaction_type = 'U'	OR :transaction_type = 'A') THEN	
+IF EXISTS (
+SELECT
+	1
+FROM
+	ODLN
+INNER JOIN DLN1 ON
+	ODLN."DocEntry" = DLN1."DocEntry"
+WHERE
+	DLN1."DiscPrcnt" < 0
+	AND ODLN."DocEntry" = :list_of_cols_val_tab_del
+) THEN 
+	error := 3;
+	error_message := 'O campo de Desconto na linha está com valor negativo!';
+END IF;
+END IF;
 -----------------------------------------------------------------------------------------------
 IF :object_type in('23') and  (:transaction_type = 'A' or :transaction_type = 'U') AND 1=2 THEN 
 	SELECT 
