@@ -541,6 +541,41 @@ IF EXISTS (
     	error_message := 'Favor colocar a sequencia como FIN'; 
 
 end if;
+    IF EXISTS(
+		SELECT
+				1
+				From "ORIN" T0						
+				Where 
+					T0."Model" = 0 AND
+					T0.CANCELED = 'N' and
+					T0."DocEntry" = :list_of_cols_val_tab_del
+					
+		) 
+
+     THEN       
+			error := 7;
+         	error_message := 'Informe o modelo.';  
+	 END IF;
+     
+     IF EXISTS(
+SELECT
+		1
+		From "ORIN" T0	
+		INNER JOIN RIN1 T1 ON T0."DocEntry" = T1."DocEntry"
+		Where 
+			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136) AND 
+			T0."Model" = 39 AND 
+			T0."SeqCode" = '-2' AND
+			T0."CANCELED" = 'N' AND
+			(T0."U_ChaveAcesso" = '' OR T0."U_ChaveAcesso" IS NULL)  AND 
+			T0."DocEntry" = :list_of_cols_val_tab_del
+			
+) 
+
+       	 Then       
+			error := 7;
+         	error_message := 'E necessario chave de acesso';  
+	End If;
 END if;
 
 ---------------------------------------------------------------------------------------
@@ -610,9 +645,44 @@ if  :object_type = '16' and (:transaction_type = 'A'or :transaction_type = 'U') 
 		AND T0."Model" = 39 
 	)
 	THEN 
-	error := 7;
-	error_message := 'Favor colocar natureza de operação';
- END IF;
+		error := 7;
+		error_message := 'Favor colocar natureza de operação';
+    END IF;
+    IF EXISTS(
+		SELECT
+				1
+				From "ORDN" T0						
+				Where 
+					T0."Model" = 0 AND
+					T0.CANCELED = 'N' and
+					T0."DocEntry" = :list_of_cols_val_tab_del
+					
+		) 
+
+     THEN       
+			error := 7;
+         	error_message := 'Informe o modelo.';  
+	 END IF;
+     
+     IF EXISTS(
+SELECT
+		1
+		From "ORDN" T0	
+		INNER JOIN RDN1 T1 ON T0."DocEntry" = T1."DocEntry"
+		Where 
+			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136) AND 
+			T0."Model" = 39 AND 
+			T0."SeqCode" = '-2' AND
+			T0."CANCELED" = 'N' AND
+			(T0."U_ChaveAcesso" = '' OR T0."U_ChaveAcesso" IS NULL)  AND 
+			T0."DocEntry" = :list_of_cols_val_tab_del
+			
+) 
+
+       	 Then       
+			error := 7;
+         	error_message := 'E necessario chave de acesso';  
+	End If;
 END if;
 ----------------------------------------------------------------------------------------
 if  :object_type = '21' and (:transaction_type = 'A') THEN
@@ -823,7 +893,7 @@ SELECT
 		INNER JOIN PCH1 T1 ON T0."DocEntry" = T1."DocEntry"
 		Where 
 			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136) AND 
-			T0."Model" <> 39 AND 
+			T0."Model" = 39 AND 
 			T0."SeqCode" = '-2' AND
 			T0."CANCELED" = 'N' AND
 			(T0."U_ChaveAcesso" = '' OR T0."U_ChaveAcesso" IS NULL)  AND 
@@ -848,37 +918,44 @@ SELECT
    		error := 7;
     	error_message := 'O desconto deve ser informado na linha'; 
  END IF;
- IF EXISTS(
-	Select 
-		1
-		From OPCH T0
-		Where 
-			T0."DocEntry" = :list_of_cols_val_tab_del and T0."CANCELED" = 'N' And 
-			EXISTS(Select T10."DocEntry" From OPCH T10 
-					Where T10."DocEntry" <> T0."DocEntry" And T10."Serial" = T0."Serial" 
-					And T10."CardCode" = T0."CardCode"
-					AND T10."CardName" = T0."CardName"
-					And T10."Model" = T0."Model"
-				And T10."SeriesStr" = T0."SeriesStr"
-					and T10."CANCELED" = 'N'
-					UNION 
-					Select T10."DocEntry" From OPDN T10 
-					Where T10."DocEntry" <> T0."DocEntry" And T10."Serial" = T0."Serial" 
-					And T10."CardCode" = T0."CardCode"
-					AND T10."CardName" = T0."CardName"
-					And T10."Model" = T0."Model"
-				And T10."SeriesStr" = T0."SeriesStr"
-					and T10."CANCELED" = 'N'
-					
-					)
-			)
-		 
-		THEN        
-			error := 1;
-         	error_message := 'Documento nota fiscal já existe';  
-		
-         
-  End if;
+ IF EXISTS (
+    SELECT 1
+    FROM OPCH T0
+    WHERE 
+        T0."DocEntry" = :list_of_cols_val_tab_del 
+        AND T0."CANCELED" = 'N' 
+        AND EXISTS (
+            SELECT 1 
+            FROM OPCH T10 
+            WHERE 
+                T10."DocEntry" <> T0."DocEntry"
+                AND T10."Serial"    = T0."Serial"
+                AND T10."CardCode"  = T0."CardCode"
+                AND T10."CardName"  = T0."CardName"
+                AND T10."Model"     = T0."Model"
+                AND COALESCE(NULLIF(T10."SeriesStr", ''), 'NO_SERIES') =
+                    COALESCE(NULLIF(T0."SeriesStr", ''), 'NO_SERIES')
+                AND T10."CANCELED" = 'N'
+
+            UNION ALL
+
+            SELECT 1
+            FROM OPDN T10
+            WHERE 
+                T10."DocEntry" <> T0."DocEntry"
+                AND T10."Serial"    = T0."Serial"
+                AND T10."CardCode"  = T0."CardCode"
+                AND T10."CardName"  = T0."CardName"
+                AND T10."Model"     = T0."Model"
+                AND COALESCE(NULLIF(T10."SeriesStr", ''), 'NO_SERIES') =
+                    COALESCE(NULLIF(T0."SeriesStr", ''), 'NO_SERIES')
+                AND T10."CANCELED" = 'N'
+        )
+)
+THEN
+    error := 1;
+    error_message := 'Documento nota fiscal já existe';
+END IF;
  
 IF EXISTS(
 SELECT
@@ -1260,7 +1337,8 @@ IF EXISTS(
 					And T10."CardCode" = T0."CardCode"
 					AND T10."CardName" = T0."CardName"
 					And T10."Model" = T0."Model"
-				And T10."SeriesStr" = T0."SeriesStr"
+				AND COALESCE(NULLIF(T10."SeriesStr", ''), 'NO_SERIES') =
+                    COALESCE(NULLIF(T0."SeriesStr", ''), 'NO_SERIES')
 					and T10."CANCELED" = 'N'
 					UNION 
 					Select T10."DocEntry" From OPCH T10 
@@ -1268,7 +1346,8 @@ IF EXISTS(
 					And T10."CardCode" = T0."CardCode"
 					AND T10."CardName" = T0."CardName"
 					And T10."Model" = T0."Model"
-				And T10."SeriesStr" = T0."SeriesStr"
+				AND COALESCE(NULLIF(T10."SeriesStr", ''), 'NO_SERIES') =
+                    COALESCE(NULLIF(T0."SeriesStr", ''), 'NO_SERIES')
 					and T10."CANCELED" = 'N')
 			)
 		 
