@@ -459,6 +459,19 @@ END IF;
         error:= 7;
         error_message:= 'Nota com valor maior que o da mãe!';
     END IF;
+    	 IF EXISTS (
+	 	SELECT 1  FROM ODLN 
+			WHERE 
+			"Model" IN (39,46,54)
+			AND "SeqCode" NOT IN (-1,-2)
+			AND CANCELED = 'N'
+			AND "DocDate" <> "CreateDate" 
+			AND "DocEntry" = :list_of_cols_val_tab_del
+			)	
+				THEN 
+				error := 7;
+		    	error_message := 'Data inválida: documentos para SEFAZ devem ter data de hoje.';
+	 END IF;
 END IF;
 
 -----------------------------------------------------------------------------------------------------------
@@ -576,6 +589,19 @@ SELECT
 			error := 7;
          	error_message := 'E necessario chave de acesso';  
 	End If;
+	 IF EXISTS (
+	 	SELECT 1  FROM ORIN 
+			WHERE 
+			"Model" IN (39,46,54)
+			AND "SeqCode" NOT IN (-1,-2)
+			AND CANCELED = 'N'
+			AND "DocDate" <> "CreateDate" 
+			AND "DocEntry" = :list_of_cols_val_tab_del
+			)	
+				THEN 
+				error := 7;
+		    	error_message := 'Data inválida: documentos para SEFAZ devem ter data de hoje.';
+	 END IF;
 END if;
 
 ---------------------------------------------------------------------------------------
@@ -683,6 +709,19 @@ SELECT
 			error := 7;
          	error_message := 'E necessario chave de acesso';  
 	End If;
+       	 	 IF EXISTS (
+	 	SELECT 1  FROM ORDN 
+			WHERE 
+			"Model" IN (39,46,54)
+			AND "SeqCode" NOT IN (-1,-2)
+			AND CANCELED = 'N'
+			AND "DocDate" <> "CreateDate" 
+			AND "DocEntry" = :list_of_cols_val_tab_del
+			)	
+				THEN 
+				error := 7;
+		    	error_message := 'Data inválida: documentos para SEFAZ devem ter data de hoje.';
+	 END IF;
 END if;
 ----------------------------------------------------------------------------------------
 if  :object_type = '21' and (:transaction_type = 'A') THEN
