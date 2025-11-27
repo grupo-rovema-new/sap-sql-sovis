@@ -459,6 +459,19 @@ END IF;
         error:= 7;
         error_message:= 'Nota com valor maior que o da mãe!';
     END IF;
+    	 IF EXISTS (
+	 	SELECT 1  FROM ODLN 
+			WHERE 
+			"Model" IN (39,46,54)
+			AND "SeqCode" NOT IN (-1,-2)
+			AND CANCELED = 'N'
+			AND "DocDate" <> "CreateDate" 
+			AND "DocEntry" = :list_of_cols_val_tab_del
+			)	
+				THEN 
+				error := 7;
+		    	error_message := 'Data inválida: documentos para SEFAZ devem ter data de hoje.';
+	 END IF;
 END IF;
 
 -----------------------------------------------------------------------------------------------------------
@@ -541,6 +554,54 @@ IF EXISTS (
     	error_message := 'Favor colocar a sequencia como FIN'; 
 
 end if;
+    IF EXISTS(
+		SELECT
+				1
+				From "ORIN" T0						
+				Where 
+					T0."Model" = 0 AND
+					T0.CANCELED = 'N' and
+					T0."DocEntry" = :list_of_cols_val_tab_del
+					
+		) 
+
+     THEN       
+			error := 7;
+         	error_message := 'Informe o modelo.';  
+	 END IF;
+     
+     IF EXISTS(
+SELECT
+		1
+		From "ORIN" T0	
+		INNER JOIN RIN1 T1 ON T0."DocEntry" = T1."DocEntry"
+		Where 
+			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136) AND 
+			T0."Model" = 39 AND 
+			T0."SeqCode" = '-2' AND
+			T0."CANCELED" = 'N' AND
+			(T0."U_ChaveAcesso" = '' OR T0."U_ChaveAcesso" IS NULL)  AND 
+			T0."DocEntry" = :list_of_cols_val_tab_del
+			
+) 
+
+       	 Then       
+			error := 7;
+         	error_message := 'E necessario chave de acesso';  
+	End If;
+	 IF EXISTS (
+	 	SELECT 1  FROM ORIN 
+			WHERE 
+			"Model" IN (39,46,54)
+			AND "SeqCode" NOT IN (-1,-2)
+			AND CANCELED = 'N'
+			AND "DocDate" <> "CreateDate" 
+			AND "DocEntry" = :list_of_cols_val_tab_del
+			)	
+				THEN 
+				error := 7;
+		    	error_message := 'Data inválida: documentos para SEFAZ devem ter data de hoje.';
+	 END IF;
 END if;
 
 ---------------------------------------------------------------------------------------
@@ -610,9 +671,57 @@ if  :object_type = '16' and (:transaction_type = 'A'or :transaction_type = 'U') 
 		AND T0."Model" = 39 
 	)
 	THEN 
-	error := 7;
-	error_message := 'Favor colocar natureza de operação';
- END IF;
+		error := 7;
+		error_message := 'Favor colocar natureza de operação';
+    END IF;
+    IF EXISTS(
+		SELECT
+				1
+				From "ORDN" T0						
+				Where 
+					T0."Model" = 0 AND
+					T0.CANCELED = 'N' and
+					T0."DocEntry" = :list_of_cols_val_tab_del
+					
+		) 
+
+     THEN       
+			error := 7;
+         	error_message := 'Informe o modelo.';  
+	 END IF;
+     
+     IF EXISTS(
+SELECT
+		1
+		From "ORDN" T0	
+		INNER JOIN RDN1 T1 ON T0."DocEntry" = T1."DocEntry"
+		Where 
+			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136) AND 
+			T0."Model" = 39 AND 
+			T0."SeqCode" = '-2' AND
+			T0."CANCELED" = 'N' AND
+			(T0."U_ChaveAcesso" = '' OR T0."U_ChaveAcesso" IS NULL)  AND 
+			T0."DocEntry" = :list_of_cols_val_tab_del
+			
+) 
+
+       	 Then       
+			error := 7;
+         	error_message := 'E necessario chave de acesso';  
+	End If;
+       	 	 IF EXISTS (
+	 	SELECT 1  FROM ORDN 
+			WHERE 
+			"Model" IN (39,46,54)
+			AND "SeqCode" NOT IN (-1,-2)
+			AND CANCELED = 'N'
+			AND "DocDate" <> "CreateDate" 
+			AND "DocEntry" = :list_of_cols_val_tab_del
+			)	
+				THEN 
+				error := 7;
+		    	error_message := 'Data inválida: documentos para SEFAZ devem ter data de hoje.';
+	 END IF;
 END if;
 ----------------------------------------------------------------------------------------
 if  :object_type = '21' and (:transaction_type = 'A') THEN
@@ -768,7 +877,7 @@ SELECT
 		INNER JOIN PCH1 T1 ON T0."DocEntry" = T1."DocEntry" 
 		Where 
 			T1."Usage" = 14 and
-			T0."Model" NOT IN (19,18) and
+			T0."Model" NOT IN (19,18,58) and
 			T0."CANCELED" = 'N' and
 			T0."DocEntry" = :list_of_cols_val_tab_del 
 			
@@ -776,7 +885,7 @@ SELECT
 
        	 Then       
 			error := 7;
-         	error_message := 'Nota de telecomunicação deve ser modelo 21 ou modelo 22';  
+         	error_message := 'Nota de telecomunicação deve ser modelo 21, modelo 22 ou NFCom (62)';  
 	End If;
 IF EXISTS(
 SELECT
@@ -823,7 +932,7 @@ SELECT
 		INNER JOIN PCH1 T1 ON T0."DocEntry" = T1."DocEntry"
 		Where 
 			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136) AND 
-			T0."Model" <> 39 AND 
+			T0."Model" = 39 AND 
 			T0."SeqCode" = '-2' AND
 			T0."CANCELED" = 'N' AND
 			(T0."U_ChaveAcesso" = '' OR T0."U_ChaveAcesso" IS NULL)  AND 
@@ -848,37 +957,44 @@ SELECT
    		error := 7;
     	error_message := 'O desconto deve ser informado na linha'; 
  END IF;
- IF EXISTS(
-	Select 
-		1
-		From OPCH T0
-		Where 
-			T0."DocEntry" = :list_of_cols_val_tab_del and T0."CANCELED" = 'N' And 
-			EXISTS(Select T10."DocEntry" From OPCH T10 
-					Where T10."DocEntry" <> T0."DocEntry" And T10."Serial" = T0."Serial" 
-					And T10."CardCode" = T0."CardCode"
-					AND T10."CardName" = T0."CardName"
-					And T10."Model" = T0."Model"
-				And T10."SeriesStr" = T0."SeriesStr"
-					and T10."CANCELED" = 'N'
-					UNION 
-					Select T10."DocEntry" From OPDN T10 
-					Where T10."DocEntry" <> T0."DocEntry" And T10."Serial" = T0."Serial" 
-					And T10."CardCode" = T0."CardCode"
-					AND T10."CardName" = T0."CardName"
-					And T10."Model" = T0."Model"
-				And T10."SeriesStr" = T0."SeriesStr"
-					and T10."CANCELED" = 'N'
-					
-					)
-			)
-		 
-		THEN        
-			error := 1;
-         	error_message := 'Documento nota fiscal já existe';  
-		
-         
-  End if;
+ IF EXISTS (
+    SELECT 1
+    FROM OPCH T0
+    WHERE 
+        T0."DocEntry" = :list_of_cols_val_tab_del 
+        AND T0."CANCELED" = 'N' 
+        AND EXISTS (
+            SELECT 1 
+            FROM OPCH T10 
+            WHERE 
+                T10."DocEntry" <> T0."DocEntry"
+                AND T10."Serial"    = T0."Serial"
+                AND T10."CardCode"  = T0."CardCode"
+                AND T10."CardName"  = T0."CardName"
+                AND T10."Model"     = T0."Model"
+                AND COALESCE(NULLIF(T10."SeriesStr", ''), 'NO_SERIES') =
+                    COALESCE(NULLIF(T0."SeriesStr", ''), 'NO_SERIES')
+                AND T10."CANCELED" = 'N'
+
+            UNION ALL
+
+            SELECT 1
+            FROM OPDN T10
+            WHERE 
+                T10."DocEntry" <> T0."DocEntry"
+                AND T10."Serial"    = T0."Serial"
+                AND T10."CardCode"  = T0."CardCode"
+                AND T10."CardName"  = T0."CardName"
+                AND T10."Model"     = T0."Model"
+                AND COALESCE(NULLIF(T10."SeriesStr", ''), 'NO_SERIES') =
+                    COALESCE(NULLIF(T0."SeriesStr", ''), 'NO_SERIES')
+                AND T10."CANCELED" = 'N'
+        )
+)
+THEN
+    error := 1;
+    error_message := 'Documento nota fiscal já existe';
+END IF;
  
 IF EXISTS(
 SELECT
@@ -1226,7 +1342,7 @@ SELECT
 		INNER JOIN PDN1 T1 ON T0."DocEntry" = T1."DocEntry" 
 		Where 
 			T1."Usage" = 14 and
-			T0."Model" NOT IN (19,18) and
+			T0."Model" NOT IN (19,18,58) and
 			T0."CANCELED" = 'N' and
 			T0."DocEntry" = :list_of_cols_val_tab_del 
 			
@@ -1234,7 +1350,7 @@ SELECT
 
        	 Then       
 			error := 7;
-         	error_message := 'Nota de telecomunicação deve ser modelo 21 ou modelo 22';  
+         	error_message := 'Nota de telecomunicação deve ser modelo 21, modelo 22 ou NFCom (62)';  
 	End If;
 IF EXISTS(
 	SELECT 
@@ -1260,7 +1376,8 @@ IF EXISTS(
 					And T10."CardCode" = T0."CardCode"
 					AND T10."CardName" = T0."CardName"
 					And T10."Model" = T0."Model"
-				And T10."SeriesStr" = T0."SeriesStr"
+				AND COALESCE(NULLIF(T10."SeriesStr", ''), 'NO_SERIES') =
+                    COALESCE(NULLIF(T0."SeriesStr", ''), 'NO_SERIES')
 					and T10."CANCELED" = 'N'
 					UNION 
 					Select T10."DocEntry" From OPCH T10 
@@ -1268,7 +1385,8 @@ IF EXISTS(
 					And T10."CardCode" = T0."CardCode"
 					AND T10."CardName" = T0."CardName"
 					And T10."Model" = T0."Model"
-				And T10."SeriesStr" = T0."SeriesStr"
+				AND COALESCE(NULLIF(T10."SeriesStr", ''), 'NO_SERIES') =
+                    COALESCE(NULLIF(T0."SeriesStr", ''), 'NO_SERIES')
 					and T10."CANCELED" = 'N')
 			)
 		 
@@ -1940,7 +2058,19 @@ SELECT
 			error := 7;
 	    	error_message := 'Preço unitario diferente do estoque ' || 'Item: ' || itemcode || 'preco nota ' || precoNota || ' preco estoque ' || precoEstoque; 
  END IF;
-
+	 IF EXISTS (
+	 	SELECT 1  FROM OINV 
+			WHERE 
+			"Model" IN (39,46,54)
+			AND "SeqCode" NOT IN (-1,-2)
+			AND CANCELED = 'N'
+			AND "DocDate" <> "CreateDate" 
+			AND "DocEntry" = :list_of_cols_val_tab_del
+			)	
+				THEN 
+				error := 7;
+		    	error_message := 'Data inválida: documentos para SEFAZ devem ter data de hoje.';
+	 END IF;
 END IF;
 -----------------------------------------------------------------------------------------------------------
 
@@ -2044,7 +2174,7 @@ LEFT JOIN OUSG UT ON
 WHERE
 	LNS."FreeChrgBP" = 'N'
 	AND T2."Model" IN (39, 54)
-		AND NF."StatusId" <> 4
+		AND (NF."StatusId" <> 4 OR NF."StatusId" IS NULL)
 		AND T0."DocEntry" = :list_of_cols_val_tab_del
 		AND T1."InvType" = 13
 )
@@ -2077,7 +2207,7 @@ LEFT JOIN OUSG UT ON
 WHERE
 	LNE."FreeChrgBP" = 'N'
 	AND T2."Model" IN (39, 54)
-		AND NF."StatusId" <> 4
+		AND (NF."StatusId" <> 4 OR NF."StatusId" IS NULL)
 		AND T0."DocEntry" = :list_of_cols_val_tab_del
 		AND T1."InvType" = 13
 )
@@ -2886,6 +3016,57 @@ THEN
 		|| ' preco estoque ' || precoEstoque; 
 END IF;
 END if;
+------------------CAMPO DESCONTO % NEGATIVA - PEDIDO DE VENDA-----------------------------
+IF :object_type = '17' AND (:transaction_type = 'U'	OR :transaction_type = 'A') THEN
+IF EXISTS (
+SELECT
+	1
+FROM
+	ORDR
+INNER JOIN RDR1 ON
+	ORDR."DocEntry" = RDR1."DocEntry"
+WHERE
+	RDR1."DiscPrcnt" < 0  
+	AND ORDR."DocEntry" = :list_of_cols_val_tab_del
+) THEN 
+	error := 3;
+	error_message := 'O campo de Desconto na linha está com valor negativo!';
+END IF;
+END IF;
+-------------------CAMPO DESCONTO % NEGATIVA - NF SAÍDA E FUTURA---------------------------
+IF :object_type = '13' AND (:transaction_type = 'U'	OR :transaction_type = 'A') THEN	
+IF EXISTS (
+SELECT
+	1
+FROM
+	OINV
+INNER JOIN INV1 ON
+	OINV."DocEntry" = INV1."DocEntry"
+WHERE
+	INV1."DiscPrcnt" < 0
+	AND OINV."DocEntry" = :list_of_cols_val_tab_del
+) THEN 
+	error := 3;
+	error_message := 'O campo de Desconto na linha está com valor negativo!';
+END IF;
+END IF;
+-------------------CAMPO DESCONTO % NEGATIVA - ENTREGA-------------------------------------
+IF :object_type = '15' AND (:transaction_type = 'U'	OR :transaction_type = 'A') THEN	
+IF EXISTS (
+SELECT
+	1
+FROM
+	ODLN
+INNER JOIN DLN1 ON
+	ODLN."DocEntry" = DLN1."DocEntry"
+WHERE
+	DLN1."DiscPrcnt" < 0
+	AND ODLN."DocEntry" = :list_of_cols_val_tab_del
+) THEN 
+	error := 3;
+	error_message := 'O campo de Desconto na linha está com valor negativo!';
+END IF;
+END IF;
 -----------------------------------------------------------------------------------------------
 IF :object_type in('23') and  (:transaction_type = 'A' or :transaction_type = 'U') AND 1=2 THEN 
 	SELECT 

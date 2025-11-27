@@ -16,6 +16,7 @@ error3 int;
 error4 int;
 erroAdiantamento int;
 XITEM nvarchar (255);
+
 XCOUNT int;	-- Error string to be displayed
 error_message nvarchar (255); 		-- Error string to be displayed
 currDbNameForTaxOne nvarchar(128);
@@ -207,7 +208,7 @@ Call SBO_SP_TRANSACTIONNOTIFICATION_Liberali(object_type,transaction_type,num_of
 Call SBO_SP_TRANSACTIONNOTIFICATION_ROVEMA(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 Call SBO_SP_Validacao_Bloqueio_Periodo_Contabil(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 Call SBO_SP_VALIDACAO_POR_UTILIZACAO(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
-Call SBO_SP_TransactionNotification_Katrid(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
+--Call SBO_SP_TransactionNotification_Katrid(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 Call SBO_SP_VALIDACAO_PRODUCAO(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 Call SBO_SP_VALIDACAO_VENDA_FUTURA(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 
@@ -367,7 +368,7 @@ IF :object_type = '15' and (:transaction_type = 'A') then
 		END IF;	
 	END IF;
 END IF;
--- SAIDA DE MERCADORIA
+ --SAIDA DE MERCADORIA
 IF :object_type = '60' and (:transaction_type = 'A') then 
 
 IF EXISTS (
@@ -375,12 +376,12 @@ IF EXISTS (
     	 	1
      	FROM 
      		IGE1 T0 
-     		LEFT JOIN  OINM T1 ON T1."ItemCode" = T0."ItemCode" AND T1."Warehouse" = T0."WhsCode" 
+     		JOIN OINM T1 ON T1."ItemCode" = T0."ItemCode" AND T1."Warehouse" = T0."WhsCode" 
     	WHERE
     		T0."DocEntry"  = :list_of_cols_val_tab_del
     		AND T1."DocDate" <= T0."DocDate" 
+    		AND T0."BaseEntry" IS NULL
     		AND NOT (T1."TransType" = 60 AND T1."CreatedBy" = T0."DocEntry")
-    	    AND T0."BaseEntry" IS NULL
 		GROUP BY
 			T0."ItemCode",
 			T0."Quantity"
@@ -390,11 +391,11 @@ IF EXISTS (
 	  )THEN        
 
 			SELECT 
-				 T1."ItemCode" 
+				T0."ItemCode"
 				INTO XITEM
 			FROM 
 				IGE1 T0 
-     			LEFT JOIN  OINM T1 ON T1."ItemCode" = T0."ItemCode" AND T1."Warehouse" = T0."WhsCode" 
+     			JOIN OINM T1 ON T1."ItemCode" = T0."ItemCode" AND T1."Warehouse" = T0."WhsCode" 
     		WHERE
     			T0."DocEntry"  = :list_of_cols_val_tab_del
     			AND T1."DocDate" <= T0."DocDate" 
