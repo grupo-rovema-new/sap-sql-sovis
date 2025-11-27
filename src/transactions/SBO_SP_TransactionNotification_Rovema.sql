@@ -2019,7 +2019,19 @@ SELECT
 			error := 7;
 	    	error_message := 'Preço unitario diferente do estoque ' || 'Item: ' || itemcode || 'preco nota ' || precoNota || ' preco estoque ' || precoEstoque; 
  END IF;
-
+	 IF EXISTS (
+	 	SELECT 1  FROM OINV 
+			WHERE 
+			"Model" IN (39,46,54)
+			AND "SeqCode" NOT IN (-1,-2)
+			AND CANCELED = 'N'
+			AND "DocDate" <> "CreateDate" 
+			AND "DocEntry" = :list_of_cols_val_tab_del
+			)	
+				THEN 
+				error := 7;
+		    	error_message := 'Data inválida: documentos para SEFAZ devem ter data de hoje.';
+	 END IF;
 END IF;
 -----------------------------------------------------------------------------------------------------------
 
