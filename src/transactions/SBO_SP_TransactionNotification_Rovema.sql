@@ -877,7 +877,7 @@ SELECT
 		INNER JOIN PCH1 T1 ON T0."DocEntry" = T1."DocEntry" 
 		Where 
 			T1."Usage" = 14 and
-			T0."Model" NOT IN (19,18) and
+			T0."Model" NOT IN (19,18,58) and
 			T0."CANCELED" = 'N' and
 			T0."DocEntry" = :list_of_cols_val_tab_del 
 			
@@ -885,7 +885,7 @@ SELECT
 
        	 Then       
 			error := 7;
-         	error_message := 'Nota de telecomunicação deve ser modelo 21 ou modelo 22';  
+         	error_message := 'Nota de telecomunicação deve ser modelo 21, modelo 22 ou NFCom (62)';  
 	End If;
 IF EXISTS(
 SELECT
@@ -1342,7 +1342,7 @@ SELECT
 		INNER JOIN PDN1 T1 ON T0."DocEntry" = T1."DocEntry" 
 		Where 
 			T1."Usage" = 14 and
-			T0."Model" NOT IN (19,18) and
+			T0."Model" NOT IN (19,18,58) and
 			T0."CANCELED" = 'N' and
 			T0."DocEntry" = :list_of_cols_val_tab_del 
 			
@@ -1350,7 +1350,7 @@ SELECT
 
        	 Then       
 			error := 7;
-         	error_message := 'Nota de telecomunicação deve ser modelo 21 ou modelo 22';  
+         	error_message := 'Nota de telecomunicação deve ser modelo 21, modelo 22 ou NFCom (62)';  
 	End If;
 IF EXISTS(
 	SELECT 
