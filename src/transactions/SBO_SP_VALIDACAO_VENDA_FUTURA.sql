@@ -91,9 +91,10 @@ IF :object_type IN('24','46') then
     	error_message := 'Não e permitido efeturar contas a receber de uma reclassificação';
 	END if;
 END IF;
+
+
 	
     IF :object_type = '23' AND ( :transaction_type = 'A' OR :transaction_type = 'U') THEN
-
     	DECLARE v_isbn    VARCHAR(20) = '';
     
     	DECLARE v_contract_docentry INT;
@@ -187,6 +188,25 @@ END IF;
 	
 			END IF;
 		END FOR;
-      
+	
+		IF( NOT EXISTS(
+				SELECT
+					boletos.*
+				FROM
+					ODPI adiantamento
+					INNER JOIN "IV_IB_BillOfExchange" boletos ON 
+						ADIANTAMENTO."DocEntry" = boletos."DocEntry" 
+						AND boletos."DocType" = adiantamento."ObjType"
+				WHERE
+					adiantamento."U_venda_futura" = (SELECT "U_venda_futura" FROM OQUT WHERE OQUT."DocEntry" = :list_of_cols_val_tab_del)
+					AND "OurNumber" IS NOT NULL
+				) 
+				AND
+				EXISTS(SELECT "U_venda_futura" FROM OQUT WHERE OQUT."DocEntry" = :list_of_cols_val_tab_del AND "U_venda_futura" IS NOT NULL)
+				) THEN
+				
+				error := '88';
+		    	error_message := 'É necessario emitir os boletos do contrato antes das entregas';
+			END IF;
     END IF;
 END;
