@@ -560,6 +560,7 @@ end if;
 				From "ORIN" T0						
 				Where 
 					T0."Model" = 0 AND
+					T0."SeqCode" <> 1 AND 
 					T0.CANCELED = 'N' and
 					T0."DocEntry" = :list_of_cols_val_tab_del
 					
