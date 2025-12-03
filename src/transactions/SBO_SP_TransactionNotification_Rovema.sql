@@ -2165,7 +2165,7 @@ LEFT JOIN RCT2 T1 ON
 	T1."DocNum" = T0."DocEntry"
 LEFT JOIN OINV T2 ON
 	T2."DocEntry" = T1."DocEntry"
-INNER JOIN "Process" NF ON
+LEFT JOIN "Process" NF ON
 	T2."DocEntry" = NF."DocEntry"
 	AND T2."ObjType" = NF."DocType"
 LEFT JOIN INV1 LNS ON
@@ -2198,7 +2198,7 @@ LEFT JOIN VPM2 T1 ON
 	T1."DocNum" = T0."DocEntry"
 LEFT JOIN OPCH T2 ON
 	T2."DocEntry" = T1."DocEntry"
-INNER JOIN "Process" NF ON
+LEFT JOIN "Process" NF ON
 	T2."DocEntry" = NF."DocEntry"
 	AND T2."ObjType" = NF."DocType"
 LEFT JOIN PCH1 LNE ON
