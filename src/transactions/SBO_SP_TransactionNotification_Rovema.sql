@@ -877,8 +877,8 @@ SELECT
 		From "OPCH" T0		
 		INNER JOIN PCH1 T1 ON T0."DocEntry" = T1."DocEntry" 
 		Where 
-			T1."Usage" = 14 and
-			T0."Model" NOT IN (19,18,58) and
+			T1."Usage" <> 14 and
+			T0."Model" IN (19,18,58) and
 			T0."CANCELED" = 'N' and
 			T0."DocEntry" = :list_of_cols_val_tab_del 
 			
@@ -1342,8 +1342,8 @@ SELECT
 		From "OPDN" T0		
 		INNER JOIN PDN1 T1 ON T0."DocEntry" = T1."DocEntry" 
 		Where 
-			T1."Usage" = 14 and
-			T0."Model" NOT IN (19,18,58) and
+			T1."Usage" <> 14 and
+			T0."Model" IN (19,18,58) and
 			T0."CANCELED" = 'N' and
 			T0."DocEntry" = :list_of_cols_val_tab_del 
 			
