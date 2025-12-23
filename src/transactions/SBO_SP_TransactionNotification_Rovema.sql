@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE SBO_SP_TransactionNotification_Rovema
+CREATE OR replace PROCEDURE SBO_SP_TransactionNotification_Rovema
 
 (
 	in object_type nvarchar(30), 				-- SBO Object Type
@@ -877,10 +877,10 @@ SELECT
 		From "OPCH" T0		
 		INNER JOIN PCH1 T1 ON T0."DocEntry" = T1."DocEntry" 
 		Where 
-			T1."Usage" = 14 and
-			T0."Model" NOT IN (19,18,58) and
-			T0."CANCELED" = 'N' and
-			T0."DocEntry" = :list_of_cols_val_tab_del 
+			T0."Model" IN (19,18,58)
+			AND T1."Usage" <> 14 
+			AND T0."CANCELED" = 'N'
+			AND T0."DocEntry" = :list_of_cols_val_tab_del 
 			
 ) 
 
@@ -1341,11 +1341,11 @@ SELECT
 		1
 		From "OPDN" T0		
 		INNER JOIN PDN1 T1 ON T0."DocEntry" = T1."DocEntry" 
-		Where 
-			T1."Usage" = 14 and
-			T0."Model" NOT IN (19,18,58) and
-			T0."CANCELED" = 'N' and
-			T0."DocEntry" = :list_of_cols_val_tab_del 
+		WHERE
+			T0."Model" IN (19,18,58)
+			AND T1."Usage" <> 14 
+			AND T0."CANCELED" = 'N'
+			AND T0."DocEntry" = :list_of_cols_val_tab_del 
 			
 ) 
 
@@ -2165,7 +2165,7 @@ LEFT JOIN RCT2 T1 ON
 	T1."DocNum" = T0."DocEntry"
 LEFT JOIN OINV T2 ON
 	T2."DocEntry" = T1."DocEntry"
-INNER JOIN "Process" NF ON
+LEFT JOIN "Process" NF ON
 	T2."DocEntry" = NF."DocEntry"
 	AND T2."ObjType" = NF."DocType"
 LEFT JOIN INV1 LNS ON
@@ -2175,6 +2175,7 @@ LEFT JOIN OUSG UT ON
 WHERE
 	LNS."FreeChrgBP" = 'N'
 	AND T2."Model" IN (39, 54)
+	AND T2."SeqCode" <> -1
 		AND (NF."StatusId" <> 4 OR NF."StatusId" IS NULL)
 		AND T0."DocEntry" = :list_of_cols_val_tab_del
 		AND T1."InvType" = 13
@@ -2198,7 +2199,7 @@ LEFT JOIN VPM2 T1 ON
 	T1."DocNum" = T0."DocEntry"
 LEFT JOIN OPCH T2 ON
 	T2."DocEntry" = T1."DocEntry"
-INNER JOIN "Process" NF ON
+LEFT JOIN "Process" NF ON
 	T2."DocEntry" = NF."DocEntry"
 	AND T2."ObjType" = NF."DocType"
 LEFT JOIN PCH1 LNE ON
@@ -2208,6 +2209,7 @@ LEFT JOIN OUSG UT ON
 WHERE
 	LNE."FreeChrgBP" = 'N'
 	AND T2."Model" IN (39, 54)
+	AND T2."SeqCode" <> -1
 		AND (NF."StatusId" <> 4 OR NF."StatusId" IS NULL)
 		AND T0."DocEntry" = :list_of_cols_val_tab_del
 		AND T1."InvType" = 13
