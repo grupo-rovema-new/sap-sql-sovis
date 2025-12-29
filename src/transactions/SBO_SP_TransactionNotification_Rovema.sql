@@ -1710,30 +1710,30 @@ IF  :object_type = '23' AND (:transaction_type = 'U' OR :transaction_type = 'A')
 -------------------------PEDIDO DE VENDA------------------------------------------
 IF  :object_type = '17' and (:transaction_type = 'A' OR :transaction_type = 'U') then
 	
- IF  EXISTS(
-	SELECT
-		sum("U_TX_VlDeL") AS "soma",
-		sum("U_TX_VlDeL")-n."DiscSum"
-	FROM
-		RDR4 t
-		INNER JOIN ORDR n on(t."DocEntry" = n."DocEntry")
-	WHERE 
-		t."DocEntry" = :list_of_cols_val_tab_del
-		AND t."staType" in(28)
-		AND n."CANCELED" = 'N'
-	GROUP BY 
-		n."DiscSum",
-		t."DocEntry",
-		n."UserSign",
-		"U_pedido_update"
-	
-	HAVING 
-			((sum("U_TX_VlDeL")-n."DiscSum") >= 0.05 OR (sum("U_TX_VlDeL")-n."DiscSum") <= -0.05) AND  ("U_pedido_update" = '0' AND n."UserSign" <> 162)
-	)
-		THEN 
-		error := 7;
-		error_message:= 'Não permitido desconto divergente do valor do impoto desonerado';
-	END IF;
+-- IF  EXISTS(
+--	SELECT
+--		sum("U_TX_VlDeL") AS "soma",
+--		sum("U_TX_VlDeL")-n."DiscSum"
+--	FROM
+--		RDR4 t
+--		INNER JOIN ORDR n on(t."DocEntry" = n."DocEntry")
+--	WHERE 
+--		t."DocEntry" = :list_of_cols_val_tab_del
+--		AND t."staType" in(28)
+--		AND n."CANCELED" = 'N'
+--	GROUP BY 
+--		n."DiscSum",
+--		t."DocEntry",
+--		n."UserSign",
+--		"U_pedido_update"
+--	
+--	HAVING 
+--			((sum("U_TX_VlDeL")-n."DiscSum") >= 0.05 OR (sum("U_TX_VlDeL")-n."DiscSum") <= -0.05) AND  ("U_pedido_update" = '0' AND n."UserSign" <> 162)
+--	)
+--		THEN 
+--		error := 7;
+--		error_message:= 'Não permitido desconto divergente do valor do impoto desonerado';
+--	END IF;
   IF EXISTS(
 	SELECT 
 		1
