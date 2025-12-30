@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE SBO_SP_TransactionNotification_Rovema
+CREATE OR replace PROCEDURE SBO_SP_TransactionNotification_Rovema
 
 (
 	in object_type nvarchar(30), 				-- SBO Object Type
@@ -877,10 +877,10 @@ SELECT
 		From "OPCH" T0		
 		INNER JOIN PCH1 T1 ON T0."DocEntry" = T1."DocEntry" 
 		Where 
-			T1."Usage" <> 14 and
-			T0."Model" IN (19,18,58) and
-			T0."CANCELED" = 'N' and
-			T0."DocEntry" = :list_of_cols_val_tab_del 
+			T0."Model" IN (19,18,58)
+			AND T1."Usage" <> 14 
+			AND T0."CANCELED" = 'N'
+			AND T0."DocEntry" = :list_of_cols_val_tab_del 
 			
 ) 
 
@@ -1341,11 +1341,11 @@ SELECT
 		1
 		From "OPDN" T0		
 		INNER JOIN PDN1 T1 ON T0."DocEntry" = T1."DocEntry" 
-		Where 
-			T1."Usage" <> 14 and
-			T0."Model" IN (19,18,58) and
-			T0."CANCELED" = 'N' and
-			T0."DocEntry" = :list_of_cols_val_tab_del 
+		WHERE
+			T0."Model" IN (19,18,58)
+			AND T1."Usage" <> 14 
+			AND T0."CANCELED" = 'N'
+			AND T0."DocEntry" = :list_of_cols_val_tab_del 
 			
 ) 
 
@@ -1710,30 +1710,30 @@ IF  :object_type = '23' AND (:transaction_type = 'U' OR :transaction_type = 'A')
 -------------------------PEDIDO DE VENDA------------------------------------------
 IF  :object_type = '17' and (:transaction_type = 'A' OR :transaction_type = 'U') then
 	
- IF  EXISTS(
-	SELECT
-		sum("U_TX_VlDeL") AS "soma",
-		sum("U_TX_VlDeL")-n."DiscSum"
-	FROM
-		RDR4 t
-		INNER JOIN ORDR n on(t."DocEntry" = n."DocEntry")
-	WHERE 
-		t."DocEntry" = :list_of_cols_val_tab_del
-		AND t."staType" in(28)
-		AND n."CANCELED" = 'N'
-	GROUP BY 
-		n."DiscSum",
-		t."DocEntry",
-		n."UserSign",
-		"U_pedido_update"
-	
-	HAVING 
-			((sum("U_TX_VlDeL")-n."DiscSum") >= 0.05 OR (sum("U_TX_VlDeL")-n."DiscSum") <= -0.05) AND  ("U_pedido_update" = '0' AND n."UserSign" <> 162)
-	)
-		THEN 
-		error := 7;
-		error_message:= 'Não permitido desconto divergente do valor do impoto desonerado';
-	END IF;
+-- IF  EXISTS(
+--	SELECT
+--		sum("U_TX_VlDeL") AS "soma",
+--		sum("U_TX_VlDeL")-n."DiscSum"
+--	FROM
+--		RDR4 t
+--		INNER JOIN ORDR n on(t."DocEntry" = n."DocEntry")
+--	WHERE 
+--		t."DocEntry" = :list_of_cols_val_tab_del
+--		AND t."staType" in(28)
+--		AND n."CANCELED" = 'N'
+--	GROUP BY 
+--		n."DiscSum",
+--		t."DocEntry",
+--		n."UserSign",
+--		"U_pedido_update"
+--	
+--	HAVING 
+--			((sum("U_TX_VlDeL")-n."DiscSum") >= 0.05 OR (sum("U_TX_VlDeL")-n."DiscSum") <= -0.05) AND  ("U_pedido_update" = '0' AND n."UserSign" <> 162)
+--	)
+--		THEN 
+--		error := 7;
+--		error_message:= 'Não permitido desconto divergente do valor do impoto desonerado';
+--	END IF;
   IF EXISTS(
 	SELECT 
 		1
@@ -2175,6 +2175,7 @@ LEFT JOIN OUSG UT ON
 WHERE
 	LNS."FreeChrgBP" = 'N'
 	AND T2."Model" IN (39, 54)
+	AND T2."SeqCode" <> -1
 		AND (NF."StatusId" <> 4 OR NF."StatusId" IS NULL)
 		AND T0."DocEntry" = :list_of_cols_val_tab_del
 		AND T1."InvType" = 13
@@ -2208,6 +2209,7 @@ LEFT JOIN OUSG UT ON
 WHERE
 	LNE."FreeChrgBP" = 'N'
 	AND T2."Model" IN (39, 54)
+	AND T2."SeqCode" <> -1
 		AND (NF."StatusId" <> 4 OR NF."StatusId" IS NULL)
 		AND T0."DocEntry" = :list_of_cols_val_tab_del
 		AND T1."InvType" = 13

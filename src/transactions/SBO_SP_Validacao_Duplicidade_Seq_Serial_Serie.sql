@@ -57,11 +57,11 @@ BEGIN
     IF :object_type = '16' THEN       -- DEVOLUÇÃO ENTREGA
         pTblSuffix := 'ORDN';
     END IF;
-
+/*
     IF :object_type = '18' THEN       -- NF ENTRADA
         pTblSuffix := 'OPCH';
     END IF;
-
+*/
     IF :object_type = '19' THEN       -- DEVOLUÇÃO NF ENTRADA
         pTblSuffix := 'ORPC';
     END IF;
@@ -138,15 +138,16 @@ BEGIN
             TO_NVARCHAR("SeriesStr")
         FROM "ORDN"
         WHERE "CANCELED" = 'N'
+        AND  "SeqCode" NOT IN (-2,-1)
         UNION ALL
-        SELECT 
+        /*SELECT 
             TO_NVARCHAR("SeqCode"),
             TO_NVARCHAR("Serial"),
             TO_NVARCHAR("SeriesStr")
         FROM "OPCH"
         WHERE "CANCELED" = 'N'
         AND  "SeqCode" NOT IN (-2,-1)
-        UNION ALL
+        UNION ALL*/
         SELECT 
             TO_NVARCHAR("SeqCode"),
             TO_NVARCHAR("Serial"),
