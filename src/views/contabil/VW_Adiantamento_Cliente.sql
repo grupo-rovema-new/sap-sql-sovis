@@ -84,5 +84,4 @@ CREATE OR REPLACE VIEW "VW_Adiantamento_Cliente" AS
 WHERE D."DocEntry" IS NOT NULL
 AND DE.CANCELED = 'N'
 AND ADD."DocEntry" IS NOT NULL
-
 );

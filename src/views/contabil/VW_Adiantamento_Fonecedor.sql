@@ -28,6 +28,7 @@ FROM "ODPO" O) UNION ALL (SELECT
 FROM "ODPO" O
 JOIN "PCH9" P9 ON P9."BaseAbs" = O."DocEntry"
 JOIN "OPCH" P  ON P."DocEntry" = P9."DocEntry"
+
   AND COALESCE(P."CANCELED",'N') = 'N')) UNION ALL (SELECT
     O."DocEntry"  AS "AdiantDocEntry",
     O."CardCode"  AS "CardCode",
@@ -74,3 +75,4 @@ WHERE D."DocEntry" IS NOT NULL
 AND DE.CANCELED = 'N'
 AND ADD."DocEntry" IS NOT NULL
 ));
+
