@@ -212,6 +212,7 @@ Call SBO_SP_TransactionNotification_Katrid(object_type,transaction_type,num_of_c
 Call SBO_SP_VALIDACAO_PRODUCAO(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 Call SBO_SP_VALIDACAO_VENDA_FUTURA(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 CALL SBO_SP_Validacao_Duplicidade_Seq_Serial_Serie(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
+CALL SBO_SP_VALIDACAO_DESPESA_ADICIONAL(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 
 -- LANÇAMENTO CONTABIL MANUAL
 IF :object_type = '30' and (:transaction_type = 'A' OR :transaction_type = 'U') then 
