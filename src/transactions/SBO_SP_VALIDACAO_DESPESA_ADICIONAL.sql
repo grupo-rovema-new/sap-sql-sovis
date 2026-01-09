@@ -166,10 +166,12 @@ IF :object_type = '18' and (:transaction_type = 'A' OR :transaction_type = 'U') 
 	            1
 	        FROM
 	            OPCH NOTA1
+	            INNER JOIN PCH1 LINHA1 ON NOTA1."DocEntry" = LINHA1."DocEntry" 
 	        WHERE
 	            (
 	                (TO_NVARCHAR(NOTA1."DocEntry") = TO_NVARCHAR(REF."RefDocEntr") 
-	                AND NOTA1."Model" in (46,45,152))
+	                AND LINHA1."Usage" IN (24,34,152)
+	                AND NOTA1."Model" in (46,45))
 	                AND NOTA1."CANCELED" = 'N'
 	
 	            )
@@ -201,9 +203,8 @@ IF :object_type = '18' and (:transaction_type = 'A' OR :transaction_type = 'U') 
 	        WHERE
 	            (
 	                (TO_NVARCHAR(NOTA1."DocEntry") = TO_NVARCHAR(REF."RefDocEntr") 
-	                AND NOTA1."Model" in (46,45))
+	               )
 	                AND NOTA1."CANCELED" = 'N'
-	                AND LINHA1."Usage" IN (24,34)
 	                AND NOTA1."DocDate" = NOTA."DocDate"
 	
 	            )
