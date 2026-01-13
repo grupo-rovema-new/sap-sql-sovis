@@ -1,5 +1,5 @@
 CREATE OR REPLACE VIEW CR_TITULOSDESDOBRADO AS
-((SELECT
+SELECT
 	T0."DocEntry",
 	T0."DocNum",
 	COUNT(T2."DocNum") AS "NumDesdobr"
@@ -14,7 +14,7 @@ INNER JOIN "RCT2" T1 ON
 INNER JOIN "ORCT" T2 ON
 		T2."DocEntry" = T1."DocNum"
 	AND T2."Canceled" = 'N'
-GROUP BY T0."DocEntry",T0."DocNum"
+GROUP BY T0."DocEntry",T0."DocNum" 
 
 UNION 
 
@@ -37,5 +37,25 @@ INNER JOIN "ORCT" T2 ON
 	AND T2."Canceled" = 'N'
 GROUP BY
 	T0."DocEntry",
-	T0."DocNum"))
+	T0."DocNum"
+	
+UNION 
 
+SELECT
+	--Fatura de Adiantamento de clientes - Nova Venda Futura
+	T0."DocEntry",
+	T0."DocNum",
+	COUNT(T2."DocNum") AS "NumDesdobr"
+FROM
+	"@AR_CONTRATO_FUTURO" acf
+LEFT JOIN ODPI T0 ON 
+	acf."DocEntry" = T0."U_venda_futura"
+INNER JOIN "RCT2" T1 ON
+		T0."DocEntry" = T1."DocEntry"
+	AND T1."InvType" = 203
+INNER JOIN "ORCT" T2 ON
+		T0."ReceiptNum" = T2."DocEntry"
+	AND T2."Canceled" = 'N'
+GROUP BY
+	T0."DocEntry",
+	T0."DocNum";
