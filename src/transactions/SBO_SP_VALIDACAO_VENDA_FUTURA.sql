@@ -200,11 +200,11 @@ END IF;
 				WHERE
 					adiantamento."U_venda_futura" = (SELECT "U_venda_futura" FROM OQUT WHERE OQUT."DocEntry" = :list_of_cols_val_tab_del)
 					AND "OurNumber" IS NOT NULL
+					AND boletos."Status" NOT IN (0,5)
 				) 
 				AND
 				EXISTS(SELECT "U_venda_futura" FROM OQUT WHERE OQUT."DocEntry" = :list_of_cols_val_tab_del AND "U_venda_futura" IS NOT NULL)
-				) THEN
-				
+			) THEN
 				error := '88';
 		    	error_message := 'É necessario emitir os boletos do contrato antes das entregas';
 			END IF;
