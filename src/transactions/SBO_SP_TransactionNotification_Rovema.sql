@@ -172,7 +172,7 @@ IF EXISTS (
   AND OINV."CardCode" = 'CLI0003676'
   AND OINV."BPLId" = 11
   AND OINV."DocEntry" = :list_of_cols_val_tab_del
-  AND OINV."SeqCode" NOT IN (-1,-2)
+  AND OINV."SeqCode" NOT IN (-1,-2,29)
   
 ) THEN
 	      
@@ -190,7 +190,7 @@ IF EXISTS (
   AND OINV."CardCode" = 'CLI0003695'
   AND OINV."BPLId" = 4 
   AND OINV."DocEntry" = :list_of_cols_val_tab_del
-  AND OINV."SeqCode" NOT IN (-1,-2)
+  AND OINV."SeqCode" NOT IN (-1,-2,29)
   
 ) THEN
 	      
@@ -208,7 +208,7 @@ IF EXISTS (
   AND OINV."CardCode" = 'CLI0004114'
   AND OINV."BPLId" = 18
   AND OINV."DocEntry" = :list_of_cols_val_tab_del
-  AND OINV."SeqCode" NOT IN (-1,-2)
+  AND OINV."SeqCode" NOT IN (-1,-2,29)
   
 ) THEN
 	      
@@ -226,7 +226,7 @@ IF EXISTS (
   AND OINV."CardCode" = 'CLI0004242'
   AND OINV."BPLId" = 17
   AND OINV."DocEntry" = :list_of_cols_val_tab_del
-  AND OINV."SeqCode" NOT IN (-1,-2)
+  AND OINV."SeqCode" NOT IN (-1,-2,29)
   
 ) THEN
 	      
@@ -912,7 +912,7 @@ SELECT
 		INNER JOIN PCH1 T1 ON T0."DocEntry" = T1."DocEntry"
 		Where 
 			T0."DocType" <> 'S' AND 
-			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136) AND 
+			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136,152) AND 
 			T0."Model" <> 39 AND 
 			T0."CANCELED" = 'N' and
 			T0."DocEntry" = :list_of_cols_val_tab_del
@@ -930,7 +930,7 @@ SELECT
 		From "OPCH" T0	
 		INNER JOIN PCH1 T1 ON T0."DocEntry" = T1."DocEntry"
 		Where 
-			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136) AND 
+			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136,152) AND 
 			T0."Model" = 39 AND 
 			T0."SeqCode" = '-2' AND
 			T0."CANCELED" = 'N' AND
