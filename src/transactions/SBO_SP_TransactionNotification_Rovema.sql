@@ -20,10 +20,8 @@ query nvarchar(255);
 debug nvarchar(200);
 precoNota nvarchar(255);
 precoEstoque nvarchar(255);
-notaSemDespesa nvarchar(255);
 itemCode nvarchar(255);
-v_frete_sem_imp DECIMAL(15,2);
-v_diff DECIMAL(15,2);
+
 begin
 
 erroAdiantamento := 0;
@@ -174,7 +172,7 @@ IF EXISTS (
   AND OINV."CardCode" = 'CLI0003676'
   AND OINV."BPLId" = 11
   AND OINV."DocEntry" = :list_of_cols_val_tab_del
-  AND OINV."SeqCode" <> 29
+  AND OINV."SeqCode" NOT IN (-1,-2,29)
   
 ) THEN
 	      
@@ -192,7 +190,7 @@ IF EXISTS (
   AND OINV."CardCode" = 'CLI0003695'
   AND OINV."BPLId" = 4 
   AND OINV."DocEntry" = :list_of_cols_val_tab_del
-  AND OINV."SeqCode" <> 29
+  AND OINV."SeqCode" NOT IN (-1,-2,29)
   
 ) THEN
 	      
@@ -210,7 +208,7 @@ IF EXISTS (
   AND OINV."CardCode" = 'CLI0004114'
   AND OINV."BPLId" = 18
   AND OINV."DocEntry" = :list_of_cols_val_tab_del
-  AND OINV."SeqCode" <> 29
+  AND OINV."SeqCode" NOT IN (-1,-2,29)
   
 ) THEN
 	      
@@ -228,7 +226,7 @@ IF EXISTS (
   AND OINV."CardCode" = 'CLI0004242'
   AND OINV."BPLId" = 17
   AND OINV."DocEntry" = :list_of_cols_val_tab_del
-  AND OINV."SeqCode" <> 29
+  AND OINV."SeqCode" NOT IN (-1,-2,29)
   
 ) THEN
 	      
@@ -914,7 +912,7 @@ SELECT
 		INNER JOIN PCH1 T1 ON T0."DocEntry" = T1."DocEntry"
 		Where 
 			T0."DocType" <> 'S' AND 
-			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136) AND 
+			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136,152) AND 
 			T0."Model" <> 39 AND 
 			T0."CANCELED" = 'N' and
 			T0."DocEntry" = :list_of_cols_val_tab_del
@@ -932,7 +930,7 @@ SELECT
 		From "OPCH" T0	
 		INNER JOIN PCH1 T1 ON T0."DocEntry" = T1."DocEntry"
 		Where 
-			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136) AND 
+			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136,152) AND 
 			T0."Model" = 39 AND 
 			T0."SeqCode" = '-2' AND
 			T0."CANCELED" = 'N' AND
@@ -2598,56 +2596,6 @@ IF :object_type = '18' and (:transaction_type = 'A' OR :transaction_type = 'U') 
 
 
 
-IF EXISTS (
-  SELECT
-    1
-  FROM
-    OPCH NOTA
-    left JOIN PCH1 LINHA ON NOTA."DocEntry" = LINHA."DocEntry"
-    LEFT JOIN pch12 ON NOTA."DocEntry" = PCH12."DocEntry"
-  WHERE
-    PCH12."Incoterms" = 1
-    AND LINHA."Usage" = 15
-    AND NOTA."Model" = 39
-    AND NOTA."U_TX_TagCTe" IS NULL
-    AND NOTA."CANCELED" = 'N'
-    AND NOTA."DocEntry" = :list_of_cols_val_tab_del
-    AND NOT LINHA."ItemCode" = 'INS0000221' 
-) THEN error:= 7;
-error_message:= 'Nota sem CTE! Favor informe o CTE.';
-END IF;
-IF EXISTS (
-SELECT
-   1
-FROM
-    OPCH NOTA
-    LEFT JOIN PCH1 LINHA ON NOTA."DocEntry" = LINHA."DocEntry"
-    LEFT JOIN PCH12 ON NOTA."DocEntry" = PCH12."DocEntry"
-WHERE
-    PCH12."Incoterms" = 1
-    AND LINHA."Usage" = 15
-    AND NOTA."Model" = 39
-    AND NOTA."CANCELED" = 'N'
-    AND NOTA."DocEntry" = :list_of_cols_val_tab_del
-    AND LINHA."ItemCode" <> 'INS0000221'
-    AND NOT EXISTS (
-        SELECT
-            1
-        FROM
-            OPCH NOTA1
-        WHERE
-            (
-                (NOTA1."U_ChaveAcesso" = NOTA."U_TX_TagCTe" AND NOTA1."Model" = 45)
-                OR (TO_NVARCHAR(NOTA1."DocEntry") = TO_NVARCHAR(NOTA."U_TX_TagCTe") 
-                AND NOTA1."Model" = 46)
-
-            )
-)
-) THEN error:= 7;
-error_message:= 'Infome um CTE Valido!.';
-END IF;
-
-
 
 IF EXISTS(
 WITH
@@ -2754,94 +2702,6 @@ error_message := 'Desvio de custo muito alto!';
 END IF;
 END IF;
 
-IF :object_type = '60' AND :transaction_type = 'A' THEN
-
-    IF EXISTS (
-        WITH SAIDA_INSUMO AS (
-            SELECT L."ItemCode", L."WhsCode"
-              FROM OIGE N
-              JOIN IGE1 L ON N."DocEntry" = L."DocEntry"
-             WHERE L."DocEntry" = :list_of_cols_val_tab_del
-        ),
-        ESTOQUE AS (
-            SELECT MAX(E."CreatedBy") AS "DocEntry", E."ItemCode"
-              FROM OINM E
-              JOIN SAIDA_INSUMO S 
-                ON E."ItemCode"  = S."ItemCode"
-               AND E."Warehouse" = S."WhsCode"
-             WHERE E."TransType" = '18'
-               AND E."DocDate"   > '2025-07-14'
-             GROUP BY E."ItemCode"
-        ),
-        NOTA AS (
-            SELECT N."DocEntry", N."DocNum", L."ItemCode"
-              FROM OPCH N
-              JOIN PCH1 L       ON N."DocEntry" = L."DocEntry"
-              JOIN ESTOQUE E    ON N."DocEntry" = E."DocEntry"
-              LEFT JOIN PCH12 P ON N."DocEntry" = P."DocEntry"
-             WHERE N."CANCELED"   = 'N'
-               AND L."Usage"      = '15'
-               AND P."Incoterms"  = 1
-               AND N."Model"      = 39
-               AND L."ItemCode" <> 'INS0000221'
-               AND NOT EXISTS (
-                   SELECT 1 
-                     FROM IPF1 DI
-                    WHERE DI."BaseEntry" = N."DocEntry"
-                      AND DI."ItemCode" = L."ItemCode"
-               )
-        )
-        SELECT 1 FROM NOTA
-    ) THEN
-
-        SELECT "DocNum"
-          INTO notaSemDespesa
-          FROM (
-            WITH SAIDA_INSUMO AS (
-                SELECT L."ItemCode", L."WhsCode"
-                  FROM OIGE N
-                  JOIN IGE1 L ON N."DocEntry" = L."DocEntry"
-                 WHERE L."DocEntry" = :list_of_cols_val_tab_del
-            ),
-            ESTOQUE AS (
-                SELECT MAX(E."CreatedBy") AS "DocEntry", E."ItemCode"
-                  FROM OINM E
-                  JOIN SAIDA_INSUMO S 
-                    ON E."ItemCode"  = S."ItemCode"
-                   AND E."Warehouse" = S."WhsCode"
-                 WHERE E."TransType" = '18'
-                   AND E."DocDate"   > '2025-07-14'
-                 GROUP BY E."ItemCode"
-            ),
-            NOTA AS (
-                SELECT N."DocEntry", N."DocNum", L."ItemCode"
-                  FROM OPCH N
-                  JOIN PCH1 L       ON N."DocEntry" = L."DocEntry"
-                  JOIN ESTOQUE E    ON N."DocEntry" = E."DocEntry"
-                  LEFT JOIN PCH12 P ON N."DocEntry" = P."DocEntry"
-                 WHERE N."CANCELED"   = 'N'
-                   AND L."Usage"      = '15'
-                   AND P."Incoterms"  = 1
-                   AND N."Model"      = 39
-                   AND L."ItemCode" <> 'INS0000221'
-                       AND NOT EXISTS (
-                   SELECT 1 
-                     FROM IPF1 DI
-                    WHERE DI."BaseEntry" = N."DocEntry"
-                      AND DI."ItemCode" = L."ItemCode"
-               )
-            )
-            SELECT "DocNum"
-              FROM NOTA
-             ORDER BY "DocNum"
-             LIMIT 1
-        );
-        error := 7;
-        error_message := 'Não foi feito despesa de importação da nota: ' || notaSemDespesa;
-
-    END IF;
-END IF;
-
 
 IF :object_type = '59' AND :transaction_type = 'A' THEN
 	IF EXISTS(
@@ -2860,82 +2720,7 @@ END IF;
 
 
 ----------------------------------------------------------------------------------------------
----------------------------Despesa de importaçao----------------------------------------------------------------
-if  :object_type = '69' and (:transaction_type = 'A') THEN
-IF EXISTS (
-	SELECT 
-	  O."DocNum"   AS "OrdemOIPF",
-	  NF."DocNum"  AS "NotaEntrada",
-	  CTE."DocNum" AS "CTeDocNum",
-	  O."DocDate"  AS "DataOIPF",
-	  NF."DocDate" AS "DataEntrada",
-	  CTE."DocDate"AS "DataCTe"
-	FROM OIPF O
-	INNER JOIN IPF1 I 
-	  ON O."DocEntry" = I."DocEntry"
-	LEFT JOIN PCH1 PL 
-	  ON I."BaseEntry" = PL."DocEntry"
-	 AND I."ItemCode"  = PL."ItemCode"
-	LEFT JOIN OPCH NF 
-	  ON PL."DocEntry"  = NF."DocEntry"
-	 AND NF."CANCELED"  = 'N'
-	LEFT JOIN OPCH CTE 
-	  ON (
-			(CTE."U_ChaveAcesso" = NF."U_TX_TagCTe" AND CTE."Model" = 45)
-			OR 
-			(TO_NVARCHAR(CTE."DocEntry") = NF."U_TX_TagCTe" AND CTE."Model" = 46)
-		 )
-	 AND CTE."CANCELED" = 'N'
-	WHERE 
-	   O."DocEntry"  = :list_of_cols_val_tab_del
-	  AND O."DocDate" <> CTE."DocDate"
-)
-THEN 
-    error := 7;
-	error_message := 'A data está diferente do CTE!';
-END IF;
 
-
-SELECT 
-  CTELINHA."LineTotal"
-  - IFNULL((
-      SELECT SUM("TaxSumSys")
-        FROM PCH4
-       WHERE "DocEntry" = CTE."DocEntry"
-    ), 0),
-     CTELINHA."LineTotal"
-  - IFNULL((
-      SELECT SUM("TaxSumSys")
-        FROM PCH4
-       WHERE "DocEntry" = CTE."DocEntry"
-    ), 0)
-  - O."CostSum"
-INTO v_frete_sem_imp, v_diff
-FROM OIPF O
-JOIN IPF1 I      
-  ON O."DocEntry" = I."DocEntry"
-LEFT JOIN PCH1 PL 
-  ON I."BaseEntry" = PL."DocEntry"
- AND I."ItemCode"  = PL."ItemCode"
-LEFT JOIN OPCH NF 
-  ON PL."DocEntry"  = NF."DocEntry"
- AND NF."CANCELED"  = 'N'
-LEFT JOIN OPCH CTE
-  ON (
-        (CTE."U_ChaveAcesso" = NF."U_TX_TagCTe" AND CTE."Model" = 45)
-     OR (TO_NVARCHAR(CTE."DocEntry") = NF."U_TX_TagCTe" AND CTE."Model" = 46)
-     )
- AND CTE."CANCELED" = 'N'
-LEFT JOIN PCH1 CTELINHA
-  ON CTELINHA."DocEntry" = CTE."DocEntry"
-WHERE O."DocEntry" = :list_of_cols_val_tab_del
-LIMIT 1;
-
-IF v_diff <> 0 THEN
-  error         := 7;
-  error_message := 'O valor do frete está errado! Valor correto: ' || v_frete_sem_imp;
-END IF;
-END IF;
 
 
 ----------------------------------------------------------------------------------------------
