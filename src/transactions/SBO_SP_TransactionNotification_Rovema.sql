@@ -286,9 +286,21 @@ IF EXISTS (
   GROUP BY c."InstNum"
   HAVING COUNT(inv6."InstlmntID") <> c."InstNum"  
 ) THEN
-  error         := 7;
+  error := 7;
   error_message := 'Número de parcelas diferente da condição de pagamento!';
 END IF;
+ IF EXISTS (
+ 	SELECT 1  
+ 	FROM OINV
+	INNER JOIN INV9 AD ON OINV."DocEntry" = AD."DocEntry" 
+	WHERE "DocTotal" < 0
+	AND "SeqCode" <> 29
+	AND CANCELED = 'N'
+	AND OINV."DocEntry"   = :list_of_cols_val_tab_del
+ ) THEN
+  error:= 7;
+  error_message := 'Valor do adiantamento maior que o da nota.';
+	END IF;
 End If;
 -----------------------------------------------------------------------------------------------
 IF :object_type = '15' and ( :transaction_type = 'A') then
