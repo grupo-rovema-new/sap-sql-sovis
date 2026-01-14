@@ -969,8 +969,8 @@ SELECT
                 T10."DocEntry" <> T0."DocEntry"
                 AND T10."Serial"    = T0."Serial"
                 AND T10."CardCode"  = T0."CardCode"
-                AND T10."CardName"  = T0."CardName"
                 AND T10."Model"     = T0."Model"
+                AND T10."DocTotal" = T0."DocTotal"
                 AND COALESCE(NULLIF(T10."SeriesStr", ''), 'NO_SERIES') =
                     COALESCE(NULLIF(T0."SeriesStr", ''), 'NO_SERIES')
                 AND T10."CANCELED" = 'N'
@@ -983,8 +983,8 @@ SELECT
                 T10."DocEntry" <> T0."DocEntry"
                 AND T10."Serial"    = T0."Serial"
                 AND T10."CardCode"  = T0."CardCode"
-                AND T10."CardName"  = T0."CardName"
                 AND T10."Model"     = T0."Model"
+                AND T10."DocTotal" = T0."DocTotal"
                 AND COALESCE(NULLIF(T10."SeriesStr", ''), 'NO_SERIES') =
                     COALESCE(NULLIF(T0."SeriesStr", ''), 'NO_SERIES')
                 AND T10."CANCELED" = 'N'
@@ -1373,8 +1373,8 @@ IF EXISTS(
 			EXISTS(Select T10."DocEntry" From OPDN T10 
 					Where T10."DocEntry" <> T0."DocEntry" And T10."Serial" = T0."Serial" 
 					And T10."CardCode" = T0."CardCode"
-					AND T10."CardName" = T0."CardName"
 					And T10."Model" = T0."Model"
+					AND T10."DocTotal" = T0."DocTotal"
 				AND COALESCE(NULLIF(T10."SeriesStr", ''), 'NO_SERIES') =
                     COALESCE(NULLIF(T0."SeriesStr", ''), 'NO_SERIES')
 					and T10."CANCELED" = 'N'
@@ -1382,8 +1382,8 @@ IF EXISTS(
 					Select T10."DocEntry" From OPCH T10 
 					Where T10."DocEntry" <> T0."DocEntry" And T10."Serial" = T0."Serial" 
 					And T10."CardCode" = T0."CardCode"
-					AND T10."CardName" = T0."CardName"
 					And T10."Model" = T0."Model"
+					AND T10."DocTotal" = T0."DocTotal"
 				AND COALESCE(NULLIF(T10."SeriesStr", ''), 'NO_SERIES') =
                     COALESCE(NULLIF(T0."SeriesStr", ''), 'NO_SERIES')
 					and T10."CANCELED" = 'N')
