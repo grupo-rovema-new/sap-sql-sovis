@@ -21,7 +21,7 @@ debug nvarchar(200);
 precoNota nvarchar(255);
 precoEstoque nvarchar(255);
 itemCode nvarchar(255);
-
+v_expected_cost DECIMAL(19,6);
 begin
 
 erroAdiantamento := 0;
@@ -286,9 +286,21 @@ IF EXISTS (
   GROUP BY c."InstNum"
   HAVING COUNT(inv6."InstlmntID") <> c."InstNum"  
 ) THEN
-  error         := 7;
+  error := 7;
   error_message := 'Número de parcelas diferente da condição de pagamento!';
 END IF;
+ IF EXISTS (
+ 	SELECT 1  
+ 	FROM OINV
+	INNER JOIN INV9 AD ON OINV."DocEntry" = AD."DocEntry" 
+	WHERE "DocTotal" < 0
+	AND "SeqCode" <> 29
+	AND CANCELED = 'N'
+	AND OINV."DocEntry"   = :list_of_cols_val_tab_del
+ ) THEN
+  error:= 7;
+  error_message := 'Valor do adiantamento maior que o da nota.';
+	END IF;
 End If;
 -----------------------------------------------------------------------------------------------
 IF :object_type = '15' and ( :transaction_type = 'A') then
@@ -601,6 +613,86 @@ SELECT
 				error := 7;
 		    	error_message := 'Data inválida: documentos para SEFAZ devem ter data de hoje.';
 	 END IF;
+  IF EXISTS(
+       	  SELECT
+			   1
+		  FROM 
+			ORIN D
+			INNER JOIN RIN1 DL ON D."DocEntry" = DL."DocEntry"  
+			INNER JOIN OITM ITEM ON DL."ItemCode" = ITEM."ItemCode" AND ITEM."InvntItem" = 'Y'
+			INNER JOIN OWHS DEPOSITO ON DEPOSITO."WhsCode" = DL."WhsCode" AND DEPOSITO."Nettable" = 'Y'
+			WHERE
+			DL."StockPrice" = 0
+			AND D."DocEntry" = :list_of_cols_val_tab_del
+			AND D.CANCELED = 'N'
+			AND "EnSetCost" = 'N'
+			AND DL."Usage" NOT IN (16,54)
+       	 )
+       	 THEN 
+				error := 7;
+		    	error_message := 'Custo de estoque zerado na linha do documento. O item não possui custo médio válido no depósito.';
+	 END IF;
+     
+  
+IF EXISTS (
+    SELECT 1
+    FROM ORIN D
+    INNER JOIN RIN1 DL ON D."DocEntry" = DL."DocEntry"
+    LEFT JOIN RIN21 REF
+        ON D."DocEntry" = REF."DocEntry"
+       AND REF."RefObjType" IN (13, 15)
+    WHERE
+        D."DocEntry" = :list_of_cols_val_tab_del
+        AND DL."EnSetCost" = 'Y'
+        AND D."CANCELED" = 'N'
+        AND DL."RetCost" = 0
+        AND DL."Usage" NOT IN (16, 54)
+        AND COALESCE(REF."RefObjType", DL."BaseType") IN (13, 15)
+)
+THEN
+
+    SELECT
+        DL."ItemCode",
+        CASE
+            WHEN COALESCE(REF."RefObjType", DL."BaseType") = 13 THEN I13."StockPrice"
+            WHEN COALESCE(REF."RefObjType", DL."BaseType") = 15 THEN L15."StockPrice"
+        END AS "ExpectedCost"
+    INTO itemcode, v_expected_cost
+    FROM ORIN D
+    INNER JOIN RIN1 DL
+        ON D."DocEntry" = DL."DocEntry"
+    LEFT JOIN RIN21 REF
+        ON D."DocEntry" = REF."DocEntry"
+       AND REF."RefObjType" IN (13, 15)
+
+    LEFT JOIN INV1 I13
+        ON COALESCE(REF."RefObjType", DL."BaseType") = 13
+       AND I13."DocEntry" = COALESCE(REF."RefDocEntr", DL."BaseEntry")
+       AND I13."ItemCode" = DL."ItemCode"
+
+    LEFT JOIN DLN1 L15
+        ON COALESCE(REF."RefObjType", DL."BaseType") = 15
+       AND L15."DocEntry" = COALESCE(REF."RefDocEntr", DL."BaseEntry")
+       AND L15."ItemCode" = DL."ItemCode"
+
+    WHERE
+        D."DocEntry" = :list_of_cols_val_tab_del
+        AND DL."EnSetCost" = 'Y'
+        AND D."CANCELED" = 'N'
+        AND DL."RetCost" = 0
+        AND DL."Usage" NOT IN (16, 54)
+        AND COALESCE(REF."RefObjType", DL."BaseType") IN (13, 15)
+
+    LIMIT 1;
+
+    IF :v_expected_cost IS NOT NULL AND :v_expected_cost <> 0 THEN
+        error := 7;
+        error_message :=
+            'Custo diferente da referência. Item: ' || :itemcode ||
+            ' | Custo esperado: ' || TO_NVARCHAR(ROUND(:v_expected_cost, 4));
+    END IF;
+END IF;
+     
 END if;
 
 ---------------------------------------------------------------------------------------
@@ -721,6 +813,81 @@ SELECT
 				error := 7;
 		    	error_message := 'Data inválida: documentos para SEFAZ devem ter data de hoje.';
 	 END IF;
+   	IF EXISTS(
+	    SELECT 1
+	    FROM ORDN D
+	    INNER JOIN RDN1 DL ON D."DocEntry" = DL."DocEntry"
+	    INNER JOIN OITM ITEM ON DL."ItemCode" = ITEM."ItemCode" AND ITEM."InvntItem" = 'Y'
+	    INNER JOIN OWHS DEPOSITO ON DEPOSITO."WhsCode" = DL."WhsCode" AND DEPOSITO."Nettable" = 'Y'
+	    WHERE
+	        DL."StockPrice" = 0
+	        AND D."DocEntry" = :list_of_cols_val_tab_del
+	        AND D."CANCELED" = 'N'
+	        AND DL."EnSetCost" = 'N'
+	        AND DL."Usage" NOT IN (16,54)
+)
+	THEN
+    error := 7;
+    error_message := 'Custo de estoque zerado na devolução. Item sem custo médio válido no depósito.';
+END IF;
+
+IF EXISTS (
+    SELECT 1
+    FROM ORDN D
+    INNER JOIN RDN1 DL ON D."DocEntry" = DL."DocEntry"
+    LEFT JOIN RDN21 REF
+        ON D."DocEntry" = REF."DocEntry"
+       AND REF."RefObjType" IN (13, 15)
+    WHERE
+        D."DocEntry" = :list_of_cols_val_tab_del
+        AND DL."EnSetCost" = 'Y'
+        AND D."CANCELED" = 'N'
+        AND DL."RetCost" = 0
+        AND DL."Usage" NOT IN (16, 54)
+        AND COALESCE(REF."RefObjType", DL."BaseType") IN (13, 15)
+)
+THEN
+
+    SELECT
+        DL."ItemCode",
+        CASE
+            WHEN COALESCE(REF."RefObjType", DL."BaseType") = 13 THEN I13."StockPrice"
+            WHEN COALESCE(REF."RefObjType", DL."BaseType") = 15 THEN L15."StockPrice"
+        END AS "ExpectedCost"
+    INTO itemcode, v_expected_cost
+    FROM ORDN D
+    INNER JOIN RDN1 DL ON D."DocEntry" = DL."DocEntry"
+    LEFT JOIN RDN21 REF
+        ON D."DocEntry" = REF."DocEntry"
+       AND REF."RefObjType" IN (13, 15)
+
+    LEFT JOIN INV1 I13
+        ON COALESCE(REF."RefObjType", DL."BaseType") = 13
+       AND I13."DocEntry" = COALESCE(REF."RefDocEntr", DL."BaseEntry")
+       AND I13."ItemCode" = DL."ItemCode"
+
+    LEFT JOIN DLN1 L15
+        ON COALESCE(REF."RefObjType", DL."BaseType") = 15
+       AND L15."DocEntry" = COALESCE(REF."RefDocEntr", DL."BaseEntry")
+       AND L15."ItemCode" = DL."ItemCode"
+
+    WHERE
+        D."DocEntry" = :list_of_cols_val_tab_del
+        AND DL."EnSetCost" = 'Y'
+        AND D."CANCELED" = 'N'
+        AND DL."RetCost" = 0
+        AND DL."Usage" NOT IN (16, 54)
+        AND COALESCE(REF."RefObjType", DL."BaseType") IN (13, 15)
+    LIMIT 1;
+
+    IF :v_expected_cost IS NOT NULL AND :v_expected_cost <> 0 THEN
+        error := 7;
+        error_message :=
+            'Custo diferente da referência na devolução (ORDN). Item: ' || :itemcode ||
+            ' | Custo esperado: ' || TO_NVARCHAR(ROUND(:v_expected_cost, 4));
+    END IF;
+END IF;
+       	 
 END if;
 ----------------------------------------------------------------------------------------
 if  :object_type = '21' and (:transaction_type = 'A') THEN
@@ -969,8 +1136,8 @@ SELECT
                 T10."DocEntry" <> T0."DocEntry"
                 AND T10."Serial"    = T0."Serial"
                 AND T10."CardCode"  = T0."CardCode"
-                AND T10."CardName"  = T0."CardName"
                 AND T10."Model"     = T0."Model"
+                AND T10."DocTotal" = T0."DocTotal"
                 AND COALESCE(NULLIF(T10."SeriesStr", ''), 'NO_SERIES') =
                     COALESCE(NULLIF(T0."SeriesStr", ''), 'NO_SERIES')
                 AND T10."CANCELED" = 'N'
@@ -983,8 +1150,8 @@ SELECT
                 T10."DocEntry" <> T0."DocEntry"
                 AND T10."Serial"    = T0."Serial"
                 AND T10."CardCode"  = T0."CardCode"
-                AND T10."CardName"  = T0."CardName"
                 AND T10."Model"     = T0."Model"
+                AND T10."DocTotal" = T0."DocTotal"
                 AND COALESCE(NULLIF(T10."SeriesStr", ''), 'NO_SERIES') =
                     COALESCE(NULLIF(T0."SeriesStr", ''), 'NO_SERIES')
                 AND T10."CANCELED" = 'N'
@@ -1373,8 +1540,8 @@ IF EXISTS(
 			EXISTS(Select T10."DocEntry" From OPDN T10 
 					Where T10."DocEntry" <> T0."DocEntry" And T10."Serial" = T0."Serial" 
 					And T10."CardCode" = T0."CardCode"
-					AND T10."CardName" = T0."CardName"
 					And T10."Model" = T0."Model"
+					AND T10."DocTotal" = T0."DocTotal"
 				AND COALESCE(NULLIF(T10."SeriesStr", ''), 'NO_SERIES') =
                     COALESCE(NULLIF(T0."SeriesStr", ''), 'NO_SERIES')
 					and T10."CANCELED" = 'N'
@@ -1382,8 +1549,8 @@ IF EXISTS(
 					Select T10."DocEntry" From OPCH T10 
 					Where T10."DocEntry" <> T0."DocEntry" And T10."Serial" = T0."Serial" 
 					And T10."CardCode" = T0."CardCode"
-					AND T10."CardName" = T0."CardName"
 					And T10."Model" = T0."Model"
+					AND T10."DocTotal" = T0."DocTotal"
 				AND COALESCE(NULLIF(T10."SeriesStr", ''), 'NO_SERIES') =
                     COALESCE(NULLIF(T0."SeriesStr", ''), 'NO_SERIES')
 					and T10."CANCELED" = 'N')
