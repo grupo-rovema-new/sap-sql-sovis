@@ -1,4 +1,4 @@
-CREATE OR replace PROCEDURE SBO_SP_TransactionNotification_Rovema
+CREATE OR REPLACE PROCEDURE SBO_SP_TransactionNotification_Rovema
 
 (
 	in object_type nvarchar(30), 				-- SBO Object Type
@@ -2786,6 +2786,7 @@ CUSTO_NOTA AS (
     WHERE
         PCH1."DocEntry" = :list_of_cols_val_tab_del
         AND OPCH."CANCELED" = 'N'
+        --AND OPCH."U_ROV_BYPASS" = 'Nao'
         AND PCH1."Usage" = 15
         AND OPCH."Model" = 39
         AND PCH1."ItemCode" NOT IN ('INS0000136')
@@ -2986,6 +2987,25 @@ WHERE
 ) THEN 
 	error := 3;
 	error_message := 'O campo de Desconto na linha está com valor negativo!';
+END IF;
+IF
+	EXISTS (
+	SELECT
+		1
+	FROM
+		RDR12
+	INNER JOIN ORDR ON
+		RDR12."DocEntry" = ORDR."DocEntry"
+	WHERE
+		ORDR."DocEntry" = :list_of_cols_val_tab_del
+		AND "U_LocalidadeS" IS NULL
+		AND ordr."TotalExpns" > 0
+		AND ORDR.CANCELED = 'N'
+		AND ordr."BPLId" IN (2,4,11,17,18)
+) THEN 
+	error := 7;
+
+error_message := 'O cliente está sem localidade cadastrada. Favor verificar o cadastro.';
 END IF;
 END IF;
 -------------------CAMPO DESCONTO % NEGATIVA - NF SAÍDA E FUTURA---------------------------
