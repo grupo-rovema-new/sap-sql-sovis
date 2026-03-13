@@ -692,7 +692,20 @@ THEN
             ' | Custo esperado: ' || TO_NVARCHAR(ROUND(:v_expected_cost, 4));
     END IF;
 END IF;
-     
+  IF EXISTS(
+       	  SELECT
+			   1
+		  FROM 
+			ORIN D
+			WHERE
+			D."Model" = 54
+			AND D."DocEntry" = :list_of_cols_val_tab_del
+			AND D.CANCELED = 'N'
+       	 )
+       	 THEN 
+				error := 7;
+		    	error_message := 'Não pode devolução com modelo NFC-E';
+	 END IF;     
 END if;
 
 ---------------------------------------------------------------------------------------
@@ -887,6 +900,20 @@ THEN
             ' | Custo esperado: ' || TO_NVARCHAR(ROUND(:v_expected_cost, 4));
     END IF;
 END IF;
+  IF EXISTS(
+       	  SELECT
+			   1
+		  FROM 
+			ORDN D
+			WHERE
+			D."Model" = 54
+			AND D."DocEntry" = :list_of_cols_val_tab_del
+			AND D.CANCELED = 'N'
+       	 )
+       	 THEN 
+				error := 7;
+		    	error_message := 'Não pode devolução com modelo NFC-E';
+	 END IF;
        	 
 END if;
 ----------------------------------------------------------------------------------------
