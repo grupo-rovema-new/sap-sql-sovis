@@ -900,6 +900,7 @@ THEN
             ' | Custo esperado: ' || TO_NVARCHAR(ROUND(:v_expected_cost, 4));
     END IF;
 END IF;
+
   IF EXISTS(
        	  SELECT
 			   1
