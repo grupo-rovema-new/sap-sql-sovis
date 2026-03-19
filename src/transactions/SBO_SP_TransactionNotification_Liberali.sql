@@ -15,7 +15,7 @@ AS
 
 begin
 
--------------------TRAVA ROMANEIO DE PESAGEM - B1ACM -------------------------------------
+-------------------TRAVA ROMANEIO DE PESAGEM - B1ACM -----------------------------------
 IF	:object_type = 'AMFS_UDO_RETR'	AND (:transaction_type = 'U' OR :transaction_type = 'A') THEN
 IF	EXISTS (
 		SELECT
@@ -29,6 +29,26 @@ IF	EXISTS (
 ) THEN 
 	error := 3;
 	error_message := 'Não é permitido adicionar o romaneio sem pesagem"';
+END IF;
+END IF;
+---------------TRAVA ROMANEIO x ENTREGA - CLI SOMENTE NF COM REFERENCIA ----------------
+IF	:object_type = '15'	AND (:transaction_type = 'U' OR :transaction_type = 'A') THEN
+IF EXISTS (
+	SELECT 
+		1
+    FROM ODLN T0
+    LEFT JOIN DLN21 T1 
+        ON T0."DocEntry" = T1."DocEntry"
+    LEFT JOIN "@AMFS_CNTR" T2
+        ON T0."U_LbrAmfsCodContrato" = T2."Code"
+    WHERE 
+        T0."DocEntry" = :list_of_cols_val_tab_del
+        AND T2."U_CodParceiroNegocio" LIKE 'CLI%'
+        AND T0."U_LbrAmfsCodContrato" IS NOT NULL
+        AND T1."DocEntry" IS NULL
+) THEN 
+	error := 3;
+	error_message := 'Parceiros CLI não é permitido gerar a NF sem referência! ';
 END IF;
 END IF;
 
