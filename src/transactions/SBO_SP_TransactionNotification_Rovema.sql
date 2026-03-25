@@ -1969,7 +1969,8 @@ IF  :object_type = '17' and (:transaction_type = 'A' OR :transaction_type = 'U')
 	INNER JOIN RDR1 T1 ON T0."DocEntry" = T1."DocEntry" 
 	 WHERE T1."U_preco_base"  <= 0 
 	 AND T0."BPLName" LIKE 'SUSTENNUTRI%'
-	AND  T0."DocEntry" = :list_of_cols_val_tab_del
+	 AND T0."DocEntry" = :list_of_cols_val_tab_del
+	 AND T0."U_venda_futura" IS null
 )
  THEN
 		      
@@ -2147,6 +2148,7 @@ WHERE
 	AND T0."U_CodOrigemAMFS" IS NULL
 	AND T0."DocEntry" = :list_of_cols_val_tab_del
 	AND T0."CANCELED" = 'N'
+	AND T0."U_venda_futura" IS null
 )
  THEN
 		      
