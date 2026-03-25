@@ -43,5 +43,5 @@ WHERE
 	FROM
 		EMPRESA e)
 	AND titulo."DocStatus" IN ('O','D')
-
+	AND PARCELA."Status" = 'O'
 	AND T2."DocDate" IS NULL;

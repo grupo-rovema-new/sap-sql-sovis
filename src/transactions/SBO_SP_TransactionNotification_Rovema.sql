@@ -20,10 +20,8 @@ query nvarchar(255);
 debug nvarchar(200);
 precoNota nvarchar(255);
 precoEstoque nvarchar(255);
-notaSemDespesa nvarchar(255);
 itemCode nvarchar(255);
-v_frete_sem_imp DECIMAL(15,2);
-v_diff DECIMAL(15,2);
+v_expected_cost DECIMAL(19,6);
 begin
 
 erroAdiantamento := 0;
@@ -174,7 +172,7 @@ IF EXISTS (
   AND OINV."CardCode" = 'CLI0003676'
   AND OINV."BPLId" = 11
   AND OINV."DocEntry" = :list_of_cols_val_tab_del
-  AND OINV."SeqCode" <> 29
+  AND OINV."SeqCode" NOT IN (-1,-2,29)
   
 ) THEN
 	      
@@ -192,7 +190,7 @@ IF EXISTS (
   AND OINV."CardCode" = 'CLI0003695'
   AND OINV."BPLId" = 4 
   AND OINV."DocEntry" = :list_of_cols_val_tab_del
-  AND OINV."SeqCode" <> 29
+  AND OINV."SeqCode" NOT IN (-1,-2,29)
   
 ) THEN
 	      
@@ -210,7 +208,7 @@ IF EXISTS (
   AND OINV."CardCode" = 'CLI0004114'
   AND OINV."BPLId" = 18
   AND OINV."DocEntry" = :list_of_cols_val_tab_del
-  AND OINV."SeqCode" <> 29
+  AND OINV."SeqCode" NOT IN (-1,-2,29)
   
 ) THEN
 	      
@@ -228,7 +226,7 @@ IF EXISTS (
   AND OINV."CardCode" = 'CLI0004242'
   AND OINV."BPLId" = 17
   AND OINV."DocEntry" = :list_of_cols_val_tab_del
-  AND OINV."SeqCode" <> 29
+  AND OINV."SeqCode" NOT IN (-1,-2,29)
   
 ) THEN
 	      
@@ -288,9 +286,21 @@ IF EXISTS (
   GROUP BY c."InstNum"
   HAVING COUNT(inv6."InstlmntID") <> c."InstNum"  
 ) THEN
-  error         := 7;
+  error := 7;
   error_message := 'Número de parcelas diferente da condição de pagamento!';
 END IF;
+ IF EXISTS (
+ 	SELECT 1  
+ 	FROM OINV
+	INNER JOIN INV9 AD ON OINV."DocEntry" = AD."DocEntry" 
+	WHERE "DocTotal" < 0
+	AND "SeqCode" <> 29
+	AND CANCELED = 'N'
+	AND OINV."DocEntry"   = :list_of_cols_val_tab_del
+ ) THEN
+  error:= 7;
+  error_message := 'Valor do adiantamento maior que o da nota.';
+	END IF;
 End If;
 -----------------------------------------------------------------------------------------------
 IF :object_type = '15' and ( :transaction_type = 'A') then
@@ -459,6 +469,19 @@ END IF;
         error:= 7;
         error_message:= 'Nota com valor maior que o da mãe!';
     END IF;
+    	 IF EXISTS (
+	 	SELECT 1  FROM ODLN 
+			WHERE 
+			"Model" IN (39,46,54)
+			AND "SeqCode" NOT IN (-1,-2)
+			AND CANCELED = 'N'
+			AND "DocDate" <> "CreateDate" 
+			AND "DocEntry" = :list_of_cols_val_tab_del
+			)	
+				THEN 
+				error := 7;
+		    	error_message := 'Data inválida: documentos para SEFAZ devem ter data de hoje.';
+	 END IF;
 END IF;
 
 -----------------------------------------------------------------------------------------------------------
@@ -541,6 +564,148 @@ IF EXISTS (
     	error_message := 'Favor colocar a sequencia como FIN'; 
 
 end if;
+    IF EXISTS(
+		SELECT
+				1
+				From "ORIN" T0						
+				Where 
+					T0."Model" = 0 AND
+					T0."SeqCode" <> 1 AND 
+					T0.CANCELED = 'N' and
+					T0."DocEntry" = :list_of_cols_val_tab_del
+					
+		) 
+
+     THEN       
+			error := 7;
+         	error_message := 'Informe o modelo.';  
+	 END IF;
+     
+     IF EXISTS(
+SELECT
+		1
+		From "ORIN" T0	
+		INNER JOIN RIN1 T1 ON T0."DocEntry" = T1."DocEntry"
+		Where 
+			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136) AND 
+			T0."Model" = 39 AND 
+			T0."SeqCode" = '-2' AND
+			T0."CANCELED" = 'N' AND
+			(T0."U_ChaveAcesso" = '' OR T0."U_ChaveAcesso" IS NULL)  AND 
+			T0."DocEntry" = :list_of_cols_val_tab_del
+			
+) 
+
+       	 Then       
+			error := 7;
+         	error_message := 'E necessario chave de acesso';  
+	End If;
+	 IF EXISTS (
+	 	SELECT 1  FROM ORIN 
+			WHERE 
+			"Model" IN (39,46,54)
+			AND "SeqCode" NOT IN (-1,-2)
+			AND CANCELED = 'N'
+			AND "DocDate" <> "CreateDate" 
+			AND "DocEntry" = :list_of_cols_val_tab_del
+			)	
+				THEN 
+				error := 7;
+		    	error_message := 'Data inválida: documentos para SEFAZ devem ter data de hoje.';
+	 END IF;
+  IF EXISTS(
+       	  SELECT
+			   1
+		  FROM 
+			ORIN D
+			INNER JOIN RIN1 DL ON D."DocEntry" = DL."DocEntry"  
+			INNER JOIN OITM ITEM ON DL."ItemCode" = ITEM."ItemCode" AND ITEM."InvntItem" = 'Y'
+			INNER JOIN OWHS DEPOSITO ON DEPOSITO."WhsCode" = DL."WhsCode" AND DEPOSITO."Nettable" = 'Y'
+			WHERE
+			DL."StockPrice" = 0
+			AND D."DocEntry" = :list_of_cols_val_tab_del
+			AND D.CANCELED = 'N'
+			AND "EnSetCost" = 'N'
+			AND DL."Usage" NOT IN (16,54)
+       	 )
+       	 THEN 
+				error := 7;
+		    	error_message := 'Custo de estoque zerado na linha do documento. O item não possui custo médio válido no depósito.';
+	 END IF;
+     
+  
+IF EXISTS (
+    SELECT 1
+    FROM ORIN D
+    INNER JOIN RIN1 DL ON D."DocEntry" = DL."DocEntry"
+    LEFT JOIN RIN21 REF
+        ON D."DocEntry" = REF."DocEntry"
+       AND REF."RefObjType" IN (13, 15)
+    WHERE
+        D."DocEntry" = :list_of_cols_val_tab_del
+        AND DL."EnSetCost" = 'Y'
+        AND D."CANCELED" = 'N'
+        AND DL."RetCost" = 0
+        AND DL."Usage" NOT IN (16, 54)
+        AND COALESCE(REF."RefObjType", DL."BaseType") IN (13, 15)
+)
+THEN
+
+    SELECT
+        DL."ItemCode",
+        CASE
+            WHEN COALESCE(REF."RefObjType", DL."BaseType") = 13 THEN I13."StockPrice"
+            WHEN COALESCE(REF."RefObjType", DL."BaseType") = 15 THEN L15."StockPrice"
+        END AS "ExpectedCost"
+    INTO itemcode, v_expected_cost
+    FROM ORIN D
+    INNER JOIN RIN1 DL
+        ON D."DocEntry" = DL."DocEntry"
+    LEFT JOIN RIN21 REF
+        ON D."DocEntry" = REF."DocEntry"
+       AND REF."RefObjType" IN (13, 15)
+
+    LEFT JOIN INV1 I13
+        ON COALESCE(REF."RefObjType", DL."BaseType") = 13
+       AND I13."DocEntry" = COALESCE(REF."RefDocEntr", DL."BaseEntry")
+       AND I13."ItemCode" = DL."ItemCode"
+
+    LEFT JOIN DLN1 L15
+        ON COALESCE(REF."RefObjType", DL."BaseType") = 15
+       AND L15."DocEntry" = COALESCE(REF."RefDocEntr", DL."BaseEntry")
+       AND L15."ItemCode" = DL."ItemCode"
+
+    WHERE
+        D."DocEntry" = :list_of_cols_val_tab_del
+        AND DL."EnSetCost" = 'Y'
+        AND D."CANCELED" = 'N'
+        AND DL."RetCost" = 0
+        AND DL."Usage" NOT IN (16, 54)
+        AND COALESCE(REF."RefObjType", DL."BaseType") IN (13, 15)
+
+    LIMIT 1;
+
+    IF :v_expected_cost IS NOT NULL AND :v_expected_cost <> 0 THEN
+        error := 7;
+        error_message :=
+            'Custo diferente da referência. Item: ' || :itemcode ||
+            ' | Custo esperado: ' || TO_NVARCHAR(ROUND(:v_expected_cost, 4));
+    END IF;
+END IF;
+  IF EXISTS(
+       	  SELECT
+			   1
+		  FROM 
+			ORIN D
+			WHERE
+			D."Model" = 54
+			AND D."DocEntry" = :list_of_cols_val_tab_del
+			AND D.CANCELED = 'N'
+       	 )
+       	 THEN 
+				error := 7;
+		    	error_message := 'Não pode devolução com modelo NFC-E';
+	 END IF;     
 END if;
 
 ---------------------------------------------------------------------------------------
@@ -610,9 +775,147 @@ if  :object_type = '16' and (:transaction_type = 'A'or :transaction_type = 'U') 
 		AND T0."Model" = 39 
 	)
 	THEN 
-	error := 7;
-	error_message := 'Favor colocar natureza de operação';
- END IF;
+		error := 7;
+		error_message := 'Favor colocar natureza de operação';
+    END IF;
+    IF EXISTS(
+		SELECT
+				1
+				From "ORDN" T0						
+				Where 
+					T0."Model" = 0 AND
+					T0.CANCELED = 'N' and
+					T0."DocEntry" = :list_of_cols_val_tab_del
+					
+		) 
+
+     THEN       
+			error := 7;
+         	error_message := 'Informe o modelo.';  
+	 END IF;
+     
+     IF EXISTS(
+SELECT
+		1
+		From "ORDN" T0	
+		INNER JOIN RDN1 T1 ON T0."DocEntry" = T1."DocEntry"
+		Where 
+			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136) AND 
+			T0."Model" = 39 AND 
+			T0."SeqCode" = '-2' AND
+			T0."CANCELED" = 'N' AND
+			(T0."U_ChaveAcesso" = '' OR T0."U_ChaveAcesso" IS NULL)  AND 
+			T0."DocEntry" = :list_of_cols_val_tab_del
+			
+) 
+
+       	 Then       
+			error := 7;
+         	error_message := 'E necessario chave de acesso';  
+	End If;
+       	 	 IF EXISTS (
+	 	SELECT 1  FROM ORDN 
+			WHERE 
+			"Model" IN (39,46,54)
+			AND "SeqCode" NOT IN (-1,-2)
+			AND CANCELED = 'N'
+			AND "DocDate" <> "CreateDate" 
+			AND "DocEntry" = :list_of_cols_val_tab_del
+			)	
+				THEN 
+				error := 7;
+		    	error_message := 'Data inválida: documentos para SEFAZ devem ter data de hoje.';
+	 END IF;
+   	IF EXISTS(
+	    SELECT 1
+	    FROM ORDN D
+	    INNER JOIN RDN1 DL ON D."DocEntry" = DL."DocEntry"
+	    INNER JOIN OITM ITEM ON DL."ItemCode" = ITEM."ItemCode" AND ITEM."InvntItem" = 'Y'
+	    INNER JOIN OWHS DEPOSITO ON DEPOSITO."WhsCode" = DL."WhsCode" AND DEPOSITO."Nettable" = 'Y'
+	    WHERE
+	        DL."StockPrice" = 0
+	        AND D."DocEntry" = :list_of_cols_val_tab_del
+	        AND D."CANCELED" = 'N'
+	        AND DL."EnSetCost" = 'N'
+	        AND DL."Usage" NOT IN (16,54)
+)
+	THEN
+    error := 7;
+    error_message := 'Custo de estoque zerado na devolução. Item sem custo médio válido no depósito.';
+END IF;
+
+IF EXISTS (
+    SELECT 1
+    FROM ORDN D
+    INNER JOIN RDN1 DL ON D."DocEntry" = DL."DocEntry"
+    LEFT JOIN RDN21 REF
+        ON D."DocEntry" = REF."DocEntry"
+       AND REF."RefObjType" IN (13, 15)
+    WHERE
+        D."DocEntry" = :list_of_cols_val_tab_del
+        AND DL."EnSetCost" = 'Y'
+        AND D."CANCELED" = 'N'
+        AND DL."RetCost" = 0
+        AND DL."Usage" NOT IN (16, 54)
+        AND COALESCE(REF."RefObjType", DL."BaseType") IN (13, 15)
+)
+THEN
+
+    SELECT
+        DL."ItemCode",
+        CASE
+            WHEN COALESCE(REF."RefObjType", DL."BaseType") = 13 THEN I13."StockPrice"
+            WHEN COALESCE(REF."RefObjType", DL."BaseType") = 15 THEN L15."StockPrice"
+        END AS "ExpectedCost"
+    INTO itemcode, v_expected_cost
+    FROM ORDN D
+    INNER JOIN RDN1 DL ON D."DocEntry" = DL."DocEntry"
+    LEFT JOIN RDN21 REF
+        ON D."DocEntry" = REF."DocEntry"
+       AND REF."RefObjType" IN (13, 15)
+
+    LEFT JOIN INV1 I13
+        ON COALESCE(REF."RefObjType", DL."BaseType") = 13
+       AND I13."DocEntry" = COALESCE(REF."RefDocEntr", DL."BaseEntry")
+       AND I13."ItemCode" = DL."ItemCode"
+
+    LEFT JOIN DLN1 L15
+        ON COALESCE(REF."RefObjType", DL."BaseType") = 15
+       AND L15."DocEntry" = COALESCE(REF."RefDocEntr", DL."BaseEntry")
+       AND L15."ItemCode" = DL."ItemCode"
+
+    WHERE
+        D."DocEntry" = :list_of_cols_val_tab_del
+        AND DL."EnSetCost" = 'Y'
+        AND D."CANCELED" = 'N'
+        AND DL."RetCost" = 0
+        AND DL."Usage" NOT IN (16, 54)
+        AND COALESCE(REF."RefObjType", DL."BaseType") IN (13, 15)
+    LIMIT 1;
+
+    IF :v_expected_cost IS NOT NULL AND :v_expected_cost <> 0 THEN
+        error := 7;
+        error_message :=
+            'Custo diferente da referência na devolução (ORDN). Item: ' || :itemcode ||
+            ' | Custo esperado: ' || TO_NVARCHAR(ROUND(:v_expected_cost, 4));
+    END IF;
+END IF;
+
+  IF EXISTS(
+       	  SELECT
+			   1
+		  FROM 
+			ORDN D
+			WHERE
+			D."Model" = 54
+			AND D."DocEntry" = :list_of_cols_val_tab_del
+			AND D.CANCELED = 'N'
+       	 )
+       	 THEN 
+				error := 7;
+		    	error_message := 'Não pode devolução com modelo NFC-E';
+	 END IF;
+       	 
 END if;
 ----------------------------------------------------------------------------------------
 if  :object_type = '21' and (:transaction_type = 'A') THEN
@@ -767,16 +1070,16 @@ SELECT
 		From "OPCH" T0		
 		INNER JOIN PCH1 T1 ON T0."DocEntry" = T1."DocEntry" 
 		Where 
-			T1."Usage" = 14 and
-			T0."Model" NOT IN (19,18) and
-			T0."CANCELED" = 'N' and
-			T0."DocEntry" = :list_of_cols_val_tab_del 
+			T0."Model" IN (19,18,58)
+			AND T1."Usage" <> 14 
+			AND T0."CANCELED" = 'N'
+			AND T0."DocEntry" = :list_of_cols_val_tab_del 
 			
 ) 
 
        	 Then       
 			error := 7;
-         	error_message := 'Nota de telecomunicação deve ser modelo 21 ou modelo 22';  
+         	error_message := 'Nota de telecomunicação deve ser modelo 21, modelo 22 ou NFCom (62)';  
 	End If;
 IF EXISTS(
 SELECT
@@ -804,7 +1107,7 @@ SELECT
 		INNER JOIN PCH1 T1 ON T0."DocEntry" = T1."DocEntry"
 		Where 
 			T0."DocType" <> 'S' AND 
-			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136) AND 
+			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136,152) AND 
 			T0."Model" <> 39 AND 
 			T0."CANCELED" = 'N' and
 			T0."DocEntry" = :list_of_cols_val_tab_del
@@ -822,8 +1125,8 @@ SELECT
 		From "OPCH" T0	
 		INNER JOIN PCH1 T1 ON T0."DocEntry" = T1."DocEntry"
 		Where 
-			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136) AND 
-			T0."Model" <> 39 AND 
+			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136,152) AND 
+			T0."Model" = 39 AND 
 			T0."SeqCode" = '-2' AND
 			T0."CANCELED" = 'N' AND
 			(T0."U_ChaveAcesso" = '' OR T0."U_ChaveAcesso" IS NULL)  AND 
@@ -848,37 +1151,44 @@ SELECT
    		error := 7;
     	error_message := 'O desconto deve ser informado na linha'; 
  END IF;
- IF EXISTS(
-	Select 
-		1
-		From OPCH T0
-		Where 
-			T0."DocEntry" = :list_of_cols_val_tab_del and T0."CANCELED" = 'N' And 
-			EXISTS(Select T10."DocEntry" From OPCH T10 
-					Where T10."DocEntry" <> T0."DocEntry" And T10."Serial" = T0."Serial" 
-					And T10."CardCode" = T0."CardCode"
-					AND T10."CardName" = T0."CardName"
-					And T10."Model" = T0."Model"
-				And T10."SeriesStr" = T0."SeriesStr"
-					and T10."CANCELED" = 'N'
-					UNION 
-					Select T10."DocEntry" From OPDN T10 
-					Where T10."DocEntry" <> T0."DocEntry" And T10."Serial" = T0."Serial" 
-					And T10."CardCode" = T0."CardCode"
-					AND T10."CardName" = T0."CardName"
-					And T10."Model" = T0."Model"
-				And T10."SeriesStr" = T0."SeriesStr"
-					and T10."CANCELED" = 'N'
-					
-					)
-			)
-		 
-		THEN        
-			error := 1;
-         	error_message := 'Documento nota fiscal já existe';  
-		
-         
-  End if;
+ IF EXISTS (
+    SELECT 1
+    FROM OPCH T0
+    WHERE 
+        T0."DocEntry" = :list_of_cols_val_tab_del 
+        AND T0."CANCELED" = 'N' 
+        AND EXISTS (
+            SELECT 1 
+            FROM OPCH T10 
+            WHERE 
+                T10."DocEntry" <> T0."DocEntry"
+                AND T10."Serial"    = T0."Serial"
+                AND T10."CardCode"  = T0."CardCode"
+                AND T10."Model"     = T0."Model"
+                AND T10."DocTotal" = T0."DocTotal"
+                AND COALESCE(NULLIF(T10."SeriesStr", ''), 'NO_SERIES') =
+                    COALESCE(NULLIF(T0."SeriesStr", ''), 'NO_SERIES')
+                AND T10."CANCELED" = 'N'
+
+            UNION ALL
+
+            SELECT 1
+            FROM OPDN T10
+            WHERE 
+                T10."DocEntry" <> T0."DocEntry"
+                AND T10."Serial"    = T0."Serial"
+                AND T10."CardCode"  = T0."CardCode"
+                AND T10."Model"     = T0."Model"
+                AND T10."DocTotal" = T0."DocTotal"
+                AND COALESCE(NULLIF(T10."SeriesStr", ''), 'NO_SERIES') =
+                    COALESCE(NULLIF(T0."SeriesStr", ''), 'NO_SERIES')
+                AND T10."CANCELED" = 'N'
+        )
+)
+THEN
+    error := 1;
+    error_message := 'Documento nota fiscal já existe';
+END IF;
  
 IF EXISTS(
 SELECT
@@ -1224,17 +1534,17 @@ SELECT
 		1
 		From "OPDN" T0		
 		INNER JOIN PDN1 T1 ON T0."DocEntry" = T1."DocEntry" 
-		Where 
-			T1."Usage" = 14 and
-			T0."Model" NOT IN (19,18) and
-			T0."CANCELED" = 'N' and
-			T0."DocEntry" = :list_of_cols_val_tab_del 
+		WHERE
+			T0."Model" IN (19,18,58)
+			AND T1."Usage" <> 14 
+			AND T0."CANCELED" = 'N'
+			AND T0."DocEntry" = :list_of_cols_val_tab_del 
 			
 ) 
 
        	 Then       
 			error := 7;
-         	error_message := 'Nota de telecomunicação deve ser modelo 21 ou modelo 22';  
+         	error_message := 'Nota de telecomunicação deve ser modelo 21, modelo 22 ou NFCom (62)';  
 	End If;
 IF EXISTS(
 	SELECT 
@@ -1258,17 +1568,19 @@ IF EXISTS(
 			EXISTS(Select T10."DocEntry" From OPDN T10 
 					Where T10."DocEntry" <> T0."DocEntry" And T10."Serial" = T0."Serial" 
 					And T10."CardCode" = T0."CardCode"
-					AND T10."CardName" = T0."CardName"
 					And T10."Model" = T0."Model"
-				And T10."SeriesStr" = T0."SeriesStr"
+					AND T10."DocTotal" = T0."DocTotal"
+				AND COALESCE(NULLIF(T10."SeriesStr", ''), 'NO_SERIES') =
+                    COALESCE(NULLIF(T0."SeriesStr", ''), 'NO_SERIES')
 					and T10."CANCELED" = 'N'
 					UNION 
 					Select T10."DocEntry" From OPCH T10 
 					Where T10."DocEntry" <> T0."DocEntry" And T10."Serial" = T0."Serial" 
 					And T10."CardCode" = T0."CardCode"
-					AND T10."CardName" = T0."CardName"
 					And T10."Model" = T0."Model"
-				And T10."SeriesStr" = T0."SeriesStr"
+					AND T10."DocTotal" = T0."DocTotal"
+				AND COALESCE(NULLIF(T10."SeriesStr", ''), 'NO_SERIES') =
+                    COALESCE(NULLIF(T0."SeriesStr", ''), 'NO_SERIES')
 					and T10."CANCELED" = 'N')
 			)
 		 
@@ -1591,30 +1903,30 @@ IF  :object_type = '23' AND (:transaction_type = 'U' OR :transaction_type = 'A')
 -------------------------PEDIDO DE VENDA------------------------------------------
 IF  :object_type = '17' and (:transaction_type = 'A' OR :transaction_type = 'U') then
 	
- IF  EXISTS(
-	SELECT
-		sum("U_TX_VlDeL") AS "soma",
-		sum("U_TX_VlDeL")-n."DiscSum"
-	FROM
-		RDR4 t
-		INNER JOIN ORDR n on(t."DocEntry" = n."DocEntry")
-	WHERE 
-		t."DocEntry" = :list_of_cols_val_tab_del
-		AND t."staType" in(28)
-		AND n."CANCELED" = 'N'
-	GROUP BY 
-		n."DiscSum",
-		t."DocEntry",
-		n."UserSign",
-		"U_pedido_update"
-	
-	HAVING 
-			((sum("U_TX_VlDeL")-n."DiscSum") >= 0.05 OR (sum("U_TX_VlDeL")-n."DiscSum") <= -0.05) AND  ("U_pedido_update" = '0' AND n."UserSign" <> 162)
-	)
-		THEN 
-		error := 7;
-		error_message:= 'Não permitido desconto divergente do valor do impoto desonerado';
-	END IF;
+-- IF  EXISTS(
+--	SELECT
+--		sum("U_TX_VlDeL") AS "soma",
+--		sum("U_TX_VlDeL")-n."DiscSum"
+--	FROM
+--		RDR4 t
+--		INNER JOIN ORDR n on(t."DocEntry" = n."DocEntry")
+--	WHERE 
+--		t."DocEntry" = :list_of_cols_val_tab_del
+--		AND t."staType" in(28)
+--		AND n."CANCELED" = 'N'
+--	GROUP BY 
+--		n."DiscSum",
+--		t."DocEntry",
+--		n."UserSign",
+--		"U_pedido_update"
+--	
+--	HAVING 
+--			((sum("U_TX_VlDeL")-n."DiscSum") >= 0.05 OR (sum("U_TX_VlDeL")-n."DiscSum") <= -0.05) AND  ("U_pedido_update" = '0' AND n."UserSign" <> 162)
+--	)
+--		THEN 
+--		error := 7;
+--		error_message:= 'Não permitido desconto divergente do valor do impoto desonerado';
+--	END IF;
   IF EXISTS(
 	SELECT 
 		1
@@ -1657,7 +1969,8 @@ IF  :object_type = '17' and (:transaction_type = 'A' OR :transaction_type = 'U')
 	INNER JOIN RDR1 T1 ON T0."DocEntry" = T1."DocEntry" 
 	 WHERE T1."U_preco_base"  <= 0 
 	 AND T0."BPLName" LIKE 'SUSTENNUTRI%'
-	AND  T0."DocEntry" = :list_of_cols_val_tab_del
+	 AND T0."DocEntry" = :list_of_cols_val_tab_del
+	 AND T0."U_venda_futura" IS null
 )
  THEN
 		      
@@ -1680,9 +1993,9 @@ END IF;
   IF EXISTS(
 	SELECT 1 FROM ORDR
 	WHERE  NOT EXISTS(
-	SELECT 1 FROM  WTM1 WHERE "UserID"  = ORDR."UserSign" AND "WtmCode" = 26
-	)
+	SELECT 1 FROM  WTM1 WHERE "UserID"  = ORDR."UserSign" AND "WtmCode" = 26)
 	AND "DocEntry" = :list_of_cols_val_tab_del
+	AND ORDR."UserSign" NOT IN (1)
 	)
 	THEN 
 	   error := 7;
@@ -1835,6 +2148,7 @@ WHERE
 	AND T0."U_CodOrigemAMFS" IS NULL
 	AND T0."DocEntry" = :list_of_cols_val_tab_del
 	AND T0."CANCELED" = 'N'
+	AND T0."U_venda_futura" IS null
 )
  THEN
 		      
@@ -1940,7 +2254,19 @@ SELECT
 			error := 7;
 	    	error_message := 'Preço unitario diferente do estoque ' || 'Item: ' || itemcode || 'preco nota ' || precoNota || ' preco estoque ' || precoEstoque; 
  END IF;
-
+	 IF EXISTS (
+	 	SELECT 1  FROM OINV 
+			WHERE 
+			"Model" IN (39,46,54)
+			AND "SeqCode" NOT IN (-1,-2)
+			AND CANCELED = 'N'
+			AND "DocDate" <> "CreateDate" 
+			AND "DocEntry" = :list_of_cols_val_tab_del
+			)	
+				THEN 
+				error := 7;
+		    	error_message := 'Data inválida: documentos para SEFAZ devem ter data de hoje.';
+	 END IF;
 END IF;
 -----------------------------------------------------------------------------------------------------------
 
@@ -2034,7 +2360,7 @@ LEFT JOIN RCT2 T1 ON
 	T1."DocNum" = T0."DocEntry"
 LEFT JOIN OINV T2 ON
 	T2."DocEntry" = T1."DocEntry"
-INNER JOIN "Process" NF ON
+LEFT JOIN "Process" NF ON
 	T2."DocEntry" = NF."DocEntry"
 	AND T2."ObjType" = NF."DocType"
 LEFT JOIN INV1 LNS ON
@@ -2044,7 +2370,8 @@ LEFT JOIN OUSG UT ON
 WHERE
 	LNS."FreeChrgBP" = 'N'
 	AND T2."Model" IN (39, 54)
-		AND NF."StatusId" <> 4
+	AND T2."SeqCode" NOT IN  (-1,-2)
+		AND (NF."StatusId" <> 4 OR NF."StatusId" IS NULL)
 		AND T0."DocEntry" = :list_of_cols_val_tab_del
 		AND T1."InvType" = 13
 )
@@ -2067,7 +2394,7 @@ LEFT JOIN VPM2 T1 ON
 	T1."DocNum" = T0."DocEntry"
 LEFT JOIN OPCH T2 ON
 	T2."DocEntry" = T1."DocEntry"
-INNER JOIN "Process" NF ON
+LEFT JOIN "Process" NF ON
 	T2."DocEntry" = NF."DocEntry"
 	AND T2."ObjType" = NF."DocType"
 LEFT JOIN PCH1 LNE ON
@@ -2077,7 +2404,8 @@ LEFT JOIN OUSG UT ON
 WHERE
 	LNE."FreeChrgBP" = 'N'
 	AND T2."Model" IN (39, 54)
-		AND NF."StatusId" <> 4
+	AND T2."SeqCode" NOT IN  (-1,-2)
+		AND (NF."StatusId" <> 4 OR NF."StatusId" IS NULL)
 		AND T0."DocEntry" = :list_of_cols_val_tab_del
 		AND T1."InvType" = 13
 )
@@ -2465,52 +2793,6 @@ IF :object_type = '18' and (:transaction_type = 'A' OR :transaction_type = 'U') 
 
 
 
-IF EXISTS (
-  SELECT
-    1
-  FROM
-    OPCH NOTA
-    left JOIN PCH1 LINHA ON NOTA."DocEntry" = LINHA."DocEntry"
-    LEFT JOIN pch12 ON NOTA."DocEntry" = PCH12."DocEntry"
-  WHERE
-    PCH12."Incoterms" = 1
-    AND LINHA."Usage" = 15
-    AND NOTA."Model" = 39
-    AND NOTA."U_TX_TagCTe" IS NULL
-    AND NOTA."CANCELED" = 'N'
-    AND NOTA."DocEntry" = :list_of_cols_val_tab_del
-    AND NOT LINHA."ItemCode" = 'INS0000221' 
-) THEN error:= 7;
-error_message:= 'Nota sem CTE! Favor informe o CTE.';
-END IF;
-IF EXISTS (
-  SELECT
-    1
-  FROM
-    OPCH NOTA
-    left JOIN PCH1 LINHA ON NOTA."DocEntry" = LINHA."DocEntry"
-    LEFT JOIN pch12 ON NOTA."DocEntry" = PCH12."DocEntry"
-  WHERE
-    PCH12."Incoterms" = 1
-    AND LINHA."Usage" = 15
-    AND NOTA."Model" = 39
-    AND NOTA."CANCELED" = 'N'
-    AND NOTA."DocEntry" = :list_of_cols_val_tab_del
-    AND NOT LINHA."ItemCode" = 'INS0000221' 
-    AND NOT EXISTS (
-      SELECT
-        1
-      FROM
-        OPCH NOTA1
-      WHERE
-        NOTA1."U_ChaveAcesso" = NOTA."U_TX_TagCTe"
-        AND NOTA1."Model" = 45
-    )
-) THEN error:= 7;
-error_message:= 'Infome um CTE Valido!.';
-END IF;
-
-
 
 IF EXISTS(
 WITH
@@ -2534,6 +2816,7 @@ CUSTO_NOTA AS (
     WHERE
         PCH1."DocEntry" = :list_of_cols_val_tab_del
         AND OPCH."CANCELED" = 'N'
+        --AND OPCH."U_ROV_BYPASS" = 'Nao'
         AND PCH1."Usage" = 15
         AND OPCH."Model" = 39
         AND PCH1."ItemCode" NOT IN ('INS0000136')
@@ -2617,94 +2900,6 @@ error_message := 'Desvio de custo muito alto!';
 END IF;
 END IF;
 
-IF :object_type = '60' AND :transaction_type = 'A' THEN
-
-    IF EXISTS (
-        WITH SAIDA_INSUMO AS (
-            SELECT L."ItemCode", L."WhsCode"
-              FROM OIGE N
-              JOIN IGE1 L ON N."DocEntry" = L."DocEntry"
-             WHERE L."DocEntry" = :list_of_cols_val_tab_del
-        ),
-        ESTOQUE AS (
-            SELECT MAX(E."CreatedBy") AS "DocEntry", E."ItemCode"
-              FROM OINM E
-              JOIN SAIDA_INSUMO S 
-                ON E."ItemCode"  = S."ItemCode"
-               AND E."Warehouse" = S."WhsCode"
-             WHERE E."TransType" = '18'
-               AND E."DocDate"   > '2025-07-14'
-             GROUP BY E."ItemCode"
-        ),
-        NOTA AS (
-            SELECT N."DocEntry", N."DocNum", L."ItemCode"
-              FROM OPCH N
-              JOIN PCH1 L       ON N."DocEntry" = L."DocEntry"
-              JOIN ESTOQUE E    ON N."DocEntry" = E."DocEntry"
-              LEFT JOIN PCH12 P ON N."DocEntry" = P."DocEntry"
-             WHERE N."CANCELED"   = 'N'
-               AND L."Usage"      = '15'
-               AND P."Incoterms"  = 1
-               AND N."Model"      = 39
-               AND L."ItemCode" <> 'INS0000221'
-               AND NOT EXISTS (
-                   SELECT 1 
-                     FROM IPF1 DI
-                    WHERE DI."BaseEntry" = N."DocEntry"
-                      AND DI."ItemCode" = L."ItemCode"
-               )
-        )
-        SELECT 1 FROM NOTA
-    ) THEN
-
-        SELECT "DocNum"
-          INTO notaSemDespesa
-          FROM (
-            WITH SAIDA_INSUMO AS (
-                SELECT L."ItemCode", L."WhsCode"
-                  FROM OIGE N
-                  JOIN IGE1 L ON N."DocEntry" = L."DocEntry"
-                 WHERE L."DocEntry" = :list_of_cols_val_tab_del
-            ),
-            ESTOQUE AS (
-                SELECT MAX(E."CreatedBy") AS "DocEntry", E."ItemCode"
-                  FROM OINM E
-                  JOIN SAIDA_INSUMO S 
-                    ON E."ItemCode"  = S."ItemCode"
-                   AND E."Warehouse" = S."WhsCode"
-                 WHERE E."TransType" = '18'
-                   AND E."DocDate"   > '2025-07-14'
-                 GROUP BY E."ItemCode"
-            ),
-            NOTA AS (
-                SELECT N."DocEntry", N."DocNum", L."ItemCode"
-                  FROM OPCH N
-                  JOIN PCH1 L       ON N."DocEntry" = L."DocEntry"
-                  JOIN ESTOQUE E    ON N."DocEntry" = E."DocEntry"
-                  LEFT JOIN PCH12 P ON N."DocEntry" = P."DocEntry"
-                 WHERE N."CANCELED"   = 'N'
-                   AND L."Usage"      = '15'
-                   AND P."Incoterms"  = 1
-                   AND N."Model"      = 39
-                   AND L."ItemCode" <> 'INS0000221'
-                       AND NOT EXISTS (
-                   SELECT 1 
-                     FROM IPF1 DI
-                    WHERE DI."BaseEntry" = N."DocEntry"
-                      AND DI."ItemCode" = L."ItemCode"
-               )
-            )
-            SELECT "DocNum"
-              FROM NOTA
-             ORDER BY "DocNum"
-             LIMIT 1
-        );
-        error := 7;
-        error_message := 'Não foi feito despesa de importação da nota: ' || notaSemDespesa;
-
-    END IF;
-END IF;
-
 
 IF :object_type = '59' AND :transaction_type = 'A' THEN
 	IF EXISTS(
@@ -2723,76 +2918,7 @@ END IF;
 
 
 ----------------------------------------------------------------------------------------------
----------------------------Despesa de importaçao----------------------------------------------------------------
-if  :object_type = '69' and (:transaction_type = 'A') THEN
-IF EXISTS (
-	SELECT 
-	  O."DocNum"   AS "OrdemOIPF",
-	  NF."DocNum"  AS "NotaEntrada",
-	  CTE."DocNum" AS "CTeDocNum",
-	  O."DocDate"  AS "DataOIPF",
-	  NF."DocDate" AS "DataEntrada",
-	  CTE."DocDate"AS "DataCTe",
-	  cte."DocNum" 
-	FROM OIPF O
-	INNER JOIN IPF1 I 
-	  ON O."DocEntry" = I."DocEntry"
-	LEFT JOIN PCH1 PL 
-	  ON I."BaseEntry" = PL."DocEntry"
-	 AND I."ItemCode"  = PL."ItemCode"
-	LEFT JOIN OPCH NF 
-	  ON PL."DocEntry"  = NF."DocEntry"
-	 AND NF."CANCELED"  = 'N'
-	LEFT JOIN OPCH CTE 
-	  ON CTE."U_ChaveAcesso" = NF."U_TX_TagCTe"
-	 AND CTE."Model"         = 45
-	 AND CTE."CANCELED"      = 'N'
-	WHERE 
-	   O."DocEntry"  = :list_of_cols_val_tab_del
-	  AND O."DocDate" <> CTE."DocDate"
-)
-THEN 
-    error := 7;
-	error_message := 'A data esta diferente do CTE!';
-  END IF;
 
-
-SELECT 
-  CTELINHA."LineTotal"
-  - IFNULL((
-      SELECT SUM("TaxSumSys")
-        FROM PCH4
-       WHERE "DocEntry" = CTE."DocEntry"
-    ), 0),
-     CTELINHA."LineTotal"
-  - IFNULL((
-      SELECT SUM("TaxSumSys")
-        FROM PCH4
-       WHERE "DocEntry" = CTE."DocEntry"
-    ), 0)
-  - O."CostSum"
-INTO v_frete_sem_imp,v_diff
-FROM OIPF O
-JOIN IPF1 I      ON O."DocEntry" = I."DocEntry"
-LEFT JOIN PCH1 PL ON I."BaseEntry" = PL."DocEntry"
-                 AND I."ItemCode"  = PL."ItemCode"
-LEFT JOIN OPCH NF ON PL."DocEntry"  = NF."DocEntry"
-                 AND NF."CANCELED"  = 'N'
-LEFT JOIN OPCH CTE
-               ON CTE."U_ChaveAcesso" = NF."U_TX_TagCTe"
-              AND CTE."Model"         = 45
-              AND CTE."CANCELED"      = 'N'
-LEFT JOIN PCH1 CTELINHA
-               ON CTELINHA."DocEntry" = CTE."DocEntry"
-WHERE O."DocEntry" = :list_of_cols_val_tab_del
-LIMIT 1;  -- garante só 1 linha
-
-IF v_diff <> 0 THEN
-  error         = 7;
-  error_message = 'O valor do frete está errado! Valor correto: '
-                || v_frete_sem_imp;
-END IF;
-END IF;
 
 
 ----------------------------------------------------------------------------------------------
@@ -2833,7 +2959,119 @@ IF :object_type = '18' and (:transaction_type = 'A') THEN
 		error := 7;
     	error_message := 'Essa utilização deve ser usado o Depósito 500.11';  
 	END if;
+	
+	IF EXISTS(
+	SELECT 
+		1
+	FROM 
+		OPCH N
+	INNER JOIN PCH1 L 
+		ON N."DocEntry" = L."DocEntry" 
+	INNER JOIN OITW D 
+		ON D."ItemCode" = L."ItemCode" 
+		AND D."WhsCode" = '500.30'
+	WHERE L."Usage" IN (73)
+	  AND ROUND(L."INMPrice",2) <> ROUND(D."AvgPrice",2) 
+	  AND N.CANCELED = 'N'
+	  AND N."DocEntry" = :list_of_cols_val_tab_del
+	LIMIT 1
+)
+THEN
+	SELECT 
+		L."ItemCode",
+		ROUND(L."INMPrice",2),
+		ROUND(D."AvgPrice",2) 
+	INTO itemCode, precoNota, precoEstoque
+	FROM 
+		OPCH N
+	INNER JOIN PCH1 L 
+		ON N."DocEntry" = L."DocEntry" 
+	INNER JOIN OITW D 
+		ON D."ItemCode" = L."ItemCode" 
+		AND D."WhsCode" = '500.30'
+	WHERE L."Usage" IN (73)
+	  AND ROUND(L."INMPrice",2) <> ROUND(D."AvgPrice",2) 
+	  AND N.CANCELED = 'N'
+	  AND N."DocEntry" = :list_of_cols_val_tab_del
+	LIMIT 1;
+
+	error := 7;
+	error_message := 'Preço unitário diferente do estoque ' 
+		|| 'Item: ' || itemCode 
+		|| ' preco nota ' || precoNota 
+		|| ' preco estoque ' || precoEstoque; 
+END IF;
 END if;
+------------------CAMPO DESCONTO % NEGATIVA - PEDIDO DE VENDA-----------------------------
+IF :object_type = '17' AND (:transaction_type = 'U'	OR :transaction_type = 'A') THEN
+IF EXISTS (
+SELECT
+	1
+FROM
+	ORDR
+INNER JOIN RDR1 ON
+	ORDR."DocEntry" = RDR1."DocEntry"
+WHERE
+	RDR1."DiscPrcnt" < 0  
+	AND ORDR."DocEntry" = :list_of_cols_val_tab_del
+) THEN 
+	error := 3;
+	error_message := 'O campo de Desconto na linha está com valor negativo!';
+END IF;
+IF
+	EXISTS (
+	SELECT
+		1
+	FROM
+		RDR12
+	INNER JOIN ORDR ON
+		RDR12."DocEntry" = ORDR."DocEntry"
+	WHERE
+		ORDR."DocEntry" = :list_of_cols_val_tab_del
+		AND "U_LocalidadeS" IS NULL
+		AND ordr."TotalExpns" > 0
+		AND ORDR.CANCELED = 'N'
+		AND ordr."BPLId" IN (2,4,11,17,18)
+) THEN 
+	error := 7;
+
+error_message := 'O cliente está sem localidade cadastrada. Favor verificar o cadastro.';
+END IF;
+END IF;
+-------------------CAMPO DESCONTO % NEGATIVA - NF SAÍDA E FUTURA---------------------------
+IF :object_type = '13' AND (:transaction_type = 'U'	OR :transaction_type = 'A') THEN	
+IF EXISTS (
+SELECT
+	1
+FROM
+	OINV
+INNER JOIN INV1 ON
+	OINV."DocEntry" = INV1."DocEntry"
+WHERE
+	INV1."DiscPrcnt" < 0
+	AND OINV."DocEntry" = :list_of_cols_val_tab_del
+) THEN 
+	error := 3;
+	error_message := 'O campo de Desconto na linha está com valor negativo!';
+END IF;
+END IF;
+-------------------CAMPO DESCONTO % NEGATIVA - ENTREGA-------------------------------------
+IF :object_type = '15' AND (:transaction_type = 'U'	OR :transaction_type = 'A') THEN	
+IF EXISTS (
+SELECT
+	1
+FROM
+	ODLN
+INNER JOIN DLN1 ON
+	ODLN."DocEntry" = DLN1."DocEntry"
+WHERE
+	DLN1."DiscPrcnt" < 0
+	AND ODLN."DocEntry" = :list_of_cols_val_tab_del
+) THEN 
+	error := 3;
+	error_message := 'O campo de Desconto na linha está com valor negativo!';
+END IF;
+END IF;
 -----------------------------------------------------------------------------------------------
 IF :object_type in('23') and  (:transaction_type = 'A' or :transaction_type = 'U') AND 1=2 THEN 
 	SELECT 
@@ -2859,6 +3097,6 @@ IF :object_type in('23') and  (:transaction_type = 'A' or :transaction_type = 'U
 		error := 334;	
 	END if;
 end if;
-
+ 
 
 end;

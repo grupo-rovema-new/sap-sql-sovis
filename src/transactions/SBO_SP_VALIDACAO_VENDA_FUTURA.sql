@@ -1,4 +1,4 @@
-CREATE OR REPLACE  PROCEDURE SBO_SP_VALIDACAO_VENDA_FUTURA
+CREATE OR REPLACE PROCEDURE SBO_SP_VALIDACAO_VENDA_FUTURA
 
 (
     in object_type nvarchar(30),                 -- SBO Object Type
@@ -97,9 +97,10 @@ END IF;
 	              WITH 
 				    CONTRATO AS 
 				    (
-				        SELECT "DocEntry", "U_itemCode", "U_quantity" AS TOTAL_CONTRATO 
+				        SELECT "DocEntry", "U_itemCode", SUM("U_quantity")AS TOTAL_CONTRATO 
 				        FROM "@AR_CF_LINHA" 
 				        WHERE "DocEntry" = :v_contract_docentry
+				        GROUP BY "DocEntry", "U_itemCode"
 				    ),
 				    COTACAO AS
 				    (
@@ -167,3 +168,4 @@ END IF;
       
     END IF;
 END;
+
