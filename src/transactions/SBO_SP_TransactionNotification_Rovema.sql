@@ -60,38 +60,6 @@ erroAdiantamento := 0;
 
 
 
------------------	Adiantamento fornecedor - Andrew Ramires May 06/03/2023 --------------------------------
-
-if  :object_type = '204' and (:transaction_type = 'A'or :transaction_type = 'U') then
-	Select
-		count(1) into erroAdiantamento
-	FROM ODPO
-	WHERE
-		"U_TX_DocEntryRef" in((SELECT "U_TX_DocEntryRef" FROM ODPO where "DocEntry" = :list_of_cols_val_tab_del))
-		AND "CardCode" in((SELECT "CardCode" FROM ODPO where "DocEntry" = :list_of_cols_val_tab_del))
-		AND NOT "DocEntry" = :list_of_cols_val_tab_del;
-	IF (:erroAdiantamento > 0) THEN       
-		error := '1';
-    	error_message := 'Documento de adiantamento já existe';  
-	END if;
-END if;
-
-
------------------	Adiantamento de cliente - Andrew Ramires May 06/03/2023 --------------------------------
-
-if  :object_type = '203' and (:transaction_type = 'A'or :transaction_type = 'U') then
-	Select
-		count(1) into erroAdiantamento
-	FROM ODPI
-	WHERE
-		"U_TX_DocEntryRef" in((SELECT "U_TX_DocEntryRef" FROM ODPI where "DocEntry" = :list_of_cols_val_tab_del))
-		AND "CardCode" = (SELECT "CardCode" FROM ODPI where "DocEntry" = :list_of_cols_val_tab_del)
-		AND NOT "DocEntry" = :list_of_cols_val_tab_del;
-	IF (:erroAdiantamento > 0) THEN       
-		error := '1';
-    	error_message := 'Documento de adiantamento já existe';  
-	END if;
-END if;
 --------------------------------------------------------------------------------------------------------------
 -- Nota Fiscal de Saida -- Andrew Ramires May 06/03/2023
 IF :object_type = '13' and (:transaction_type = 'A'or :transaction_type = 'U') then 
