@@ -450,6 +450,18 @@ END IF;
 				error := 7;
 		    	error_message := 'Data inválida: documentos para SEFAZ devem ter data de hoje.';
 	 END IF;
+  IF EXISTS (
+  SELECT 1 FROM ODLN o 
+	INNER JOIN DLN1 D ON O."DocEntry" = D."DocEntry" 
+	WHERE "U_ChaveAcesso" IS NULL
+	AND D."Usage" = 17
+	AND O.CANCELED = 'N'
+	AND o."DocEntry" = :list_of_cols_val_tab_del
+  )
+  THEN 
+				error := 7;
+		    	error_message := 'Venda Futura precisa referenciar a chave de acesso da nota de simples faturamento.';
+	 END IF;
 END IF;
 
 -----------------------------------------------------------------------------------------------------------
