@@ -462,6 +462,23 @@ END IF;
 				error := 7;
 		    	error_message := 'Venda Futura precisa referenciar a chave de acesso da nota de simples faturamento.';
 	 END IF;
+   
+      IF EXISTS (
+    SELECT 1 FROM ODLN o
+    INNER JOIN DLN1 D ON O."DocEntry" = D."DocEntry"
+    INNER JOIN "Process" p ON p."DocEntry" = D."BaseEntry"
+                         AND p."DocType" = D."BaseType"
+    WHERE D."Usage" = 17
+    AND D."BaseType" = 13
+    AND O."CANCELED" = 'N'
+    AND o."DocEntry" = :list_of_cols_val_tab_del
+    AND O."U_ChaveAcesso" <> p."KeyNfe"
+  )
+  THEN
+    error := 7;
+    error_message := 'Chave de acesso informada não corresponde à nota de simples faturamento referenciada.';
+  END IF;
+    
 END IF;
 
 -----------------------------------------------------------------------------------------------------------
