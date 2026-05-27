@@ -223,6 +223,7 @@ IF :object_type = '18' and (:transaction_type = 'A' OR :transaction_type = 'U') 
 	    LINHA."Usage" = 152
 	    AND NOTA."Model" = 45
 	    AND NOTA."CANCELED" = 'N'
+	    AND LINHA."ItemCode" = 'USO0000017'
 	    AND NOTA."DocEntry" = :list_of_cols_val_tab_del
 	    AND NOT EXISTS (
 	        SELECT
