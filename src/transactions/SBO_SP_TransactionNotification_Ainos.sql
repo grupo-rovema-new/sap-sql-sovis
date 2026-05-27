@@ -126,21 +126,21 @@ BEGIN
 
                     ELSE
 
-                        -- Garante que tenha pelo menos uma linha do grupo 1
-                        SELECT COUNT(*)
-                          INTO qtdGrupo1
-                          FROM JDT1 T0
-                          JOIN OACT T1 ON T1."AcctCode" = T0."Account"
-                         WHERE T0."TransId" = TO_INTEGER(:list_of_cols_val_tab_del)
-                           AND T1."GroupMask" = 1;
+                        -- Garante que tenha pelo menos uma linha começando com 1.1.1.0
+					    SELECT COUNT(*)
+					      INTO qtdGrupo1
+					      FROM JDT1 T0
+					      JOIN OACT T1 ON T1."AcctCode" = T0."Account"
+					     WHERE T0."TransId" = TO_INTEGER(:list_of_cols_val_tab_del)
+					       AND T1."FormatCode" LIKE '1.1.1.0%';
 
-                        -- Garante que tenha pelo menos uma linha do grupo 5
-                        SELECT COUNT(*)
-                          INTO qtdGrupo5
-                          FROM JDT1 T0
-                          JOIN OACT T1 ON T1."AcctCode" = T0."Account"
-                         WHERE T0."TransId" = TO_INTEGER(:list_of_cols_val_tab_del)
-                           AND T1."GroupMask" = 5;
+						-- Garante que tenha pelo menos uma linha começando com 5.1.1
+					    SELECT COUNT(*)
+					      INTO qtdGrupo5
+					      FROM JDT1 T0
+					      JOIN OACT T1 ON T1."AcctCode" = T0."Account"
+					     WHERE T0."TransId" = TO_INTEGER(:list_of_cols_val_tab_del)
+					       AND T1."FormatCode" LIKE '5.1.1%';
 
                         IF :qtdGrupo1 = 0 OR :qtdGrupo5 = 0 THEN
 
