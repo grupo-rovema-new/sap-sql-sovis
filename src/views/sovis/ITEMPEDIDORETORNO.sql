@@ -1,3 +1,5 @@
+-- SBOGRUPOROVEMA.ITEMPEDIDORETORNO fonte
+
 CREATE OR REPLACE VIEW ITEMPEDIDORETORNO AS
 SELECT
 	DISTINCT
@@ -74,9 +76,11 @@ INNER JOIN OQUT ON
 	OQUT."DocNum" = p.IDPEDIDORETORNOERP
 LEFT JOIN QUT1 ON
 	(OQUT."DocEntry" = QUT1."DocEntry")
+LEFT JOIN RDR1 r ON  
+	QUT1."DocEntry" = r."BaseEntry" 
 LEFT JOIN INV1 NT ON
-	p.faturaId = NT."DocEntry"
-	AND QUT1."U_id_item_forca" = nt."U_id_item_forca"
+	 QUT1."U_id_item_forca" = nt."U_id_item_forca"
+	 AND r."DocEntry" = nt."BaseEntry" 
 WHERE
 		OQUT."U_id_pedido_forca" > '0'
 	AND QUT1."U_id_item_forca" IS NOT NULL;

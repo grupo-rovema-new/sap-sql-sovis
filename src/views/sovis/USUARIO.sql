@@ -1,3 +1,5 @@
+-- SBOGRUPOROVEMA.USUARIO fonte
+
 CREATE OR REPLACE VIEW USUARIO AS
 SELECT
     T0."SlpCode" AS "IDUSUARIOERP",
@@ -11,4 +13,4 @@ SELECT
 FROM
     OSLP T0
 WHERE
-    "U_Integracao_sovis" = 1
+    "Active" = 'Y';
