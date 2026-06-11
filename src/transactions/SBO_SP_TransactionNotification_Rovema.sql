@@ -1924,40 +1924,40 @@ IF  :object_type = '17' and (:transaction_type = 'A' OR :transaction_type = 'U')
 --		error := 7;
 --		error_message:= 'Não permitido desconto divergente do valor do impoto desonerado';
 --	END IF;
-  IF EXISTS(
-	SELECT 
-		1
-		FROM ORDR T0
-		INNER JOIN RDR1 T1 ON T0."DocEntry" = T1."DocEntry"
- 		WHERE 
- 		T0."U_venda_futura" IS null
- 		AND T1."Usage" <> 16 AND
- 		NOT T0."DiscSumSy" BETWEEN -0.05 AND 0.05 AND  
- 		T0."CANCELED" = 'N'
- 		AND T0."DocEntry" = :list_of_cols_val_tab_del
- 		
-   )
-   THEN 
-   		error := 7;
-    	error_message := 'Desconto não permitido'; 
-   END IF;
-  IF exists(
-		SELECT 
-		1
-	FROM ORDR T0
-		INNER JOIN RDR1 T1 ON T0."DocEntry" = T1."DocEntry" 
-		LEFT JOIN OPLN LP ON T1."U_idTabela" = LP."ListNum"
-	WHERE 
-	T0."U_venda_futura" IS null
-	AND (T1."U_preco_negociado" = 0 
-	OR T1."U_idTabela" IS NULL OR LP."U_publica_forca" = 0 OR 	LP."U_tipoComissao" IS NULL )
-	AND T0."BPLName" LIKE 'SUSTENNUTRI%'
-	AND T0."DocEntry"  = :list_of_cols_val_tab_del
-	)
-	THEN 
-	error := 7;
-	error_message:= 'Favor preecher campo id tabela de preço valido e preço negociado';
-  END IF;
+--  IF EXISTS(
+--	SELECT 
+--		1
+--		FROM ORDR T0
+--		INNER JOIN RDR1 T1 ON T0."DocEntry" = T1."DocEntry"
+-- 		WHERE 
+-- 		T0."U_venda_futura" IS null
+-- 		AND T1."Usage" <> 16 AND
+-- 		NOT T0."DiscSumSy" BETWEEN -0.05 AND 0.05 AND  
+-- 		T0."CANCELED" = 'N'
+-- 		AND T0."DocEntry" = :list_of_cols_val_tab_del
+-- 		
+--   )
+--   THEN 
+--   		error := 7;
+--    	error_message := 'Desconto não permitido'; 
+--   END IF;
+--  IF exists(
+--		SELECT 
+--		1
+--	FROM ORDR T0
+--		INNER JOIN RDR1 T1 ON T0."DocEntry" = T1."DocEntry" 
+--		LEFT JOIN OPLN LP ON T1."U_idTabela" = LP."ListNum"
+--	WHERE 
+--	T0."U_venda_futura" IS null
+--	AND (T1."U_preco_negociado" = 0 
+--	OR T1."U_idTabela" IS NULL OR LP."U_publica_forca" = 0 OR 	LP."U_tipoComissao" IS NULL )
+--	AND T0."BPLName" LIKE 'SUSTENNUTRI%'
+--	AND T0."DocEntry"  = :list_of_cols_val_tab_del
+--	)
+--	THEN 
+--	error := 7;
+--	error_message:= 'Favor preecher campo id tabela de preço valido e preço negociado';
+--  END IF;
    IF EXISTS(
 	SELECT 
 	1
@@ -3001,20 +3001,20 @@ END IF;
 END if;
 ------------------CAMPO DESCONTO % NEGATIVA - PEDIDO DE VENDA-----------------------------
 IF :object_type = '17' AND (:transaction_type = 'U'	OR :transaction_type = 'A') THEN
-IF EXISTS (
-SELECT
-	1
-FROM
-	ORDR
-INNER JOIN RDR1 ON
-	ORDR."DocEntry" = RDR1."DocEntry"
-WHERE
-	RDR1."DiscPrcnt" < 0  
-	AND ORDR."DocEntry" = :list_of_cols_val_tab_del
-) THEN 
-	error := 3;
-	error_message := 'O campo de Desconto na linha está com valor negativo!';
-END IF;
+--IF EXISTS (
+--SELECT
+--	1
+--FROM
+--	ORDR
+--INNER JOIN RDR1 ON
+--	ORDR."DocEntry" = RDR1."DocEntry"
+--WHERE
+--	RDR1."DiscPrcnt" < 0  
+--	AND ORDR."DocEntry" = :list_of_cols_val_tab_del
+--) THEN 
+--	error := 3;
+--	error_message := 'O campo de Desconto na linha está com valor negativo!';
+--END IF;
 IF
 	EXISTS (
 	SELECT
@@ -3036,22 +3036,22 @@ error_message := 'O cliente está sem localidade cadastrada. Favor verificar o c
 END IF;
 END IF;
 -------------------CAMPO DESCONTO % NEGATIVA - NF SAÍDA E FUTURA---------------------------
-IF :object_type = '13' AND (:transaction_type = 'U'	OR :transaction_type = 'A') THEN	
-IF EXISTS (
-SELECT
-	1
-FROM
-	OINV
-INNER JOIN INV1 ON
-	OINV."DocEntry" = INV1."DocEntry"
-WHERE
-	INV1."DiscPrcnt" < 0
-	AND OINV."DocEntry" = :list_of_cols_val_tab_del
-) THEN 
-	error := 3;
-	error_message := 'O campo de Desconto na linha está com valor negativo!';
-END IF;
-END IF;
+--IF :object_type = '13' AND (:transaction_type = 'U'	OR :transaction_type = 'A') THEN	
+--IF EXISTS (
+--SELECT
+--	1
+--FROM
+--	OINV
+--INNER JOIN INV1 ON
+--	OINV."DocEntry" = INV1."DocEntry"
+--WHERE
+--	INV1."DiscPrcnt" < 0
+--	AND OINV."DocEntry" = :list_of_cols_val_tab_del
+--) THEN 
+--	error := 3;
+--	error_message := 'O campo de Desconto na linha está com valor negativo!';
+--END IF;
+--END IF;
 -------------------CAMPO DESCONTO % NEGATIVA - ENTREGA-------------------------------------
 IF :object_type = '15' AND (:transaction_type = 'U'	OR :transaction_type = 'A') THEN	
 IF EXISTS (

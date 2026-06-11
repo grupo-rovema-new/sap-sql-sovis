@@ -14,6 +14,8 @@ error1 int;
 error2 int;
 error3 int;
 error4 int;
+docnum int;
+pedido int;
 erroAdiantamento int;
 XITEM nvarchar (255);
 
@@ -205,7 +207,7 @@ Call "IV_IB_TransacaoValidacaoPagamentoBankPlus"(companyDbIntBank, object_type, 
 Call "TransNotificationValidate"(companyDbIntBank, object_type, list_of_cols_val_tab_del, error, error_message);
 --Call SBO_SP_TRANSACTIONNOTIFICATION_MOGNO(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 Call SBO_SP_TRANSACTIONNOTIFICATION_Liberali(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
-Call SBO_SP_TRANSACTIONNOTIFICATION_ROVEMA(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
+--Call SBO_SP_TRANSACTIONNOTIFICATION_ROVEMA(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 Call SBO_SP_Validacao_Bloqueio_Periodo_Contabil(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 Call SBO_SP_VALIDACAO_POR_UTILIZACAO(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 Call SBO_SP_TransactionNotification_Katrid(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
@@ -284,32 +286,89 @@ IF :object_type = '13' and (:transaction_type = 'A' OR :transaction_type = 'U') 
 	--VERIFICAÇÃO SE A NOTA É ENTREGA FUTURA. CASO POSITIVO, SO PERMITIR DESPESA ADICIONAL DE FRETE SIMPLES FATURAMENTO.
 	-- SE NÃO, NÃO PERMITIR USO DA DESPESA DE SIMPLES FATURAMENTO.
 IF EXISTS(
-SELECT 1 FROM INV1 
-WHERE 
-INV1."DocEntry"  = :list_of_cols_val_tab_del
-AND INV1."LineStatus" <> 'C') THEN
-	SELECT
-		COUNT(A."DocEntry") 
-		into XCOUNT
-	FROM
-		OINV A
+	SELECT 1 
+	FROM INV1 
+	WHERE 
+		"DocEntry" = :list_of_cols_val_tab_del
+		AND "LineStatus" <> 'C'
+) THEN
+
+	-- Número da nota
+	SELECT 
+		COALESCE(MAX(A."DocNum"), 0)
+	INTO DOCNUM
+	FROM OINV A
+	WHERE A."DocEntry" = :list_of_cols_val_tab_del;
+
+	-- Número do pedido base
+	SELECT 
+		COALESCE(MAX(P."DocNum"), 0)
+	INTO PEDIDO
+	FROM INV1 L
+	INNER JOIN ORDR P 
+		ON P."DocEntry" = L."BaseEntry"
+	WHERE 
+		L."DocEntry" = :list_of_cols_val_tab_del
+		AND L."BaseType" = 17;
+
+	-- Verifica se é nota mãe
+	SELECT 
+		COUNT(1)
+	INTO XCOUNT
+	FROM OINV A
 	WHERE
-		A."DocEntry" = :list_of_cols_val_tab_del AND A."CANCELED" = 'N' AND A."isIns" = 'Y';
+		A."DocEntry" = :list_of_cols_val_tab_del
+		AND A."CANCELED" = 'N'
+		AND A."isIns" = 'Y';
+
+	-- NOTA MÃE
 	IF XCOUNT > 0 THEN
-		SELECT COUNT(1) into error1 FROM INV3 T0 WHERE T0."DocEntry" = :list_of_cols_val_tab_del AND  T0."ExpnsCode" <> 5;
-			IF error1 > 0 THEN
-			error := 1;
-    	   	error_message := 'Despesa Adicional permitido somente Frete Simples Fatura para essa operação.';  			
-		END IF;
-	END IF;
-	IF XCOUNT = 0 THEN
-		SELECT COUNT(1) into error1 FROM INV3 T0 WHERE T0."DocEntry" = :list_of_cols_val_tab_del AND  T0."ExpnsCode" = 5;
-		
+	
+		SELECT 
+			COUNT(1)
+		INTO error1
+		FROM INV3 T0 
+		WHERE 
+			T0."DocEntry" = :list_of_cols_val_tab_del 
+			AND T0."ExpnsCode" <> 5;
+
 		IF error1 > 0 THEN
+		
 			error := 1;
-    	   	error_message := 'Frete Simples Fatura somente Nota Mãe.';  			
+
+			error_message := 
+				'Nota ' || CAST(:DOCNUM AS NVARCHAR) ||
+				' | Pedido ' || CAST(:PEDIDO AS NVARCHAR) ||
+				' - Despesa Adicional permitido somente Frete Simples Fatura para essa operação.';
+				
 		END IF;
+
 	END IF;
+
+	-- NOTA FILHA
+	IF XCOUNT = 0 THEN
+	
+		SELECT 
+			COUNT(1)
+		INTO error1
+		FROM INV3 T0 
+		WHERE 
+			T0."DocEntry" = :list_of_cols_val_tab_del 
+			AND T0."ExpnsCode" = 5;
+
+		IF error1 > 0 THEN
+		
+			error := 1;
+
+			error_message := 
+				'Nota ' || CAST(:DOCNUM AS NVARCHAR) ||
+				' | Pedido ' || CAST(:PEDIDO AS NVARCHAR) ||
+				' - Frete Simples Fatura somente Nota Mãe.';
+				
+		END IF;
+
+	END IF;
+
 END IF;
 	--PAULO 15-09-2024.
 	--VERIFICAÇÃO SE A NOTA TEM DESPESA ADICIONAL. SE SIM, VERIFICAR SE TEM IMPOSTO PREENCHIDO
