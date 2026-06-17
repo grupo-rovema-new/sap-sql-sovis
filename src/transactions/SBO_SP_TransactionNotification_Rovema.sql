@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE SBO_SP_TransactionNotification_Rovema
+CREATE OR replace PROCEDURE SBO_SP_TransactionNotification_Rovema
 
 (
 	in object_type nvarchar(30), 				-- SBO Object Type
@@ -1051,7 +1051,7 @@ SELECT
 		INNER JOIN PCH1 T1 ON T0."DocEntry" = T1."DocEntry" 
 		Where 
 			T1."Usage" = 24 and
-			T0."Model" <> 45 and
+			T0."Model" NOT IN (45, 59) and
 			T0."CANCELED" = 'N' and
 			T0."DocEntry" = :list_of_cols_val_tab_del
 			
@@ -2789,8 +2789,6 @@ IF :object_type = '18' and (:transaction_type = 'A' OR :transaction_type = 'U') 
     END IF;
 
 
-
-
 IF EXISTS(
 WITH
 CUSTO_NOTA AS (
@@ -3001,20 +2999,20 @@ END IF;
 END if;
 ------------------CAMPO DESCONTO % NEGATIVA - PEDIDO DE VENDA-----------------------------
 IF :object_type = '17' AND (:transaction_type = 'U'	OR :transaction_type = 'A') THEN
---IF EXISTS (
---SELECT
---	1
---FROM
---	ORDR
---INNER JOIN RDR1 ON
---	ORDR."DocEntry" = RDR1."DocEntry"
---WHERE
---	RDR1."DiscPrcnt" < 0  
---	AND ORDR."DocEntry" = :list_of_cols_val_tab_del
---) THEN 
---	error := 3;
---	error_message := 'O campo de Desconto na linha está com valor negativo!';
---END IF;
+IF EXISTS (
+SELECT
+	1
+FROM
+	ORDR
+INNER JOIN RDR1 ON
+	ORDR."DocEntry" = RDR1."DocEntry"
+WHERE
+	RDR1."DiscPrcnt" < 0  
+	AND ORDR."DocEntry" = :list_of_cols_val_tab_del
+) THEN 
+	error := 3;
+	error_message := 'O campo de Desconto na linha está com valor negativo!';
+END IF;
 IF
 	EXISTS (
 	SELECT
@@ -3036,22 +3034,22 @@ error_message := 'O cliente está sem localidade cadastrada. Favor verificar o c
 END IF;
 END IF;
 -------------------CAMPO DESCONTO % NEGATIVA - NF SAÍDA E FUTURA---------------------------
---IF :object_type = '13' AND (:transaction_type = 'U'	OR :transaction_type = 'A') THEN	
---IF EXISTS (
---SELECT
---	1
---FROM
---	OINV
---INNER JOIN INV1 ON
---	OINV."DocEntry" = INV1."DocEntry"
---WHERE
---	INV1."DiscPrcnt" < 0
---	AND OINV."DocEntry" = :list_of_cols_val_tab_del
---) THEN 
---	error := 3;
---	error_message := 'O campo de Desconto na linha está com valor negativo!';
---END IF;
---END IF;
+IF :object_type = '13' AND (:transaction_type = 'U'	OR :transaction_type = 'A') THEN	
+IF EXISTS (
+SELECT
+	1
+FROM
+	OINV
+INNER JOIN INV1 ON
+	OINV."DocEntry" = INV1."DocEntry"
+WHERE
+	INV1."DiscPrcnt" < 0
+	AND OINV."DocEntry" = :list_of_cols_val_tab_del
+) THEN 
+	error := 3;
+	error_message := 'O campo de Desconto na linha está com valor negativo!';
+END IF;
+END IF;
 -------------------CAMPO DESCONTO % NEGATIVA - ENTREGA-------------------------------------
 IF :object_type = '15' AND (:transaction_type = 'U'	OR :transaction_type = 'A') THEN	
 IF EXISTS (
