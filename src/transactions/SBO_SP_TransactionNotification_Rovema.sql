@@ -1900,64 +1900,64 @@ IF  :object_type = '23' AND (:transaction_type = 'U' OR :transaction_type = 'A')
 -------------------------PEDIDO DE VENDA------------------------------------------
 IF  :object_type = '17' and (:transaction_type = 'A' OR :transaction_type = 'U') then
 	
--- IF  EXISTS(
---	SELECT
---		sum("U_TX_VlDeL") AS "soma",
---		sum("U_TX_VlDeL")-n."DiscSum"
---	FROM
---		RDR4 t
---		INNER JOIN ORDR n on(t."DocEntry" = n."DocEntry")
---	WHERE 
---		t."DocEntry" = :list_of_cols_val_tab_del
---		AND t."staType" in(28)
---		AND n."CANCELED" = 'N'
---	GROUP BY 
---		n."DiscSum",
---		t."DocEntry",
---		n."UserSign",
---		"U_pedido_update"
---	
---	HAVING 
---			((sum("U_TX_VlDeL")-n."DiscSum") >= 0.05 OR (sum("U_TX_VlDeL")-n."DiscSum") <= -0.05) AND  ("U_pedido_update" = '0' AND n."UserSign" <> 162)
---	)
---		THEN 
---		error := 7;
---		error_message:= 'Não permitido desconto divergente do valor do impoto desonerado';
---	END IF;
---  IF EXISTS(
---	SELECT 
---		1
---		FROM ORDR T0
---		INNER JOIN RDR1 T1 ON T0."DocEntry" = T1."DocEntry"
--- 		WHERE 
--- 		T0."U_venda_futura" IS null
--- 		AND T1."Usage" <> 16 AND
--- 		NOT T0."DiscSumSy" BETWEEN -0.05 AND 0.05 AND  
--- 		T0."CANCELED" = 'N'
--- 		AND T0."DocEntry" = :list_of_cols_val_tab_del
--- 		
---   )
---   THEN 
---   		error := 7;
---    	error_message := 'Desconto não permitido'; 
---   END IF;
---  IF exists(
---		SELECT 
---		1
---	FROM ORDR T0
---		INNER JOIN RDR1 T1 ON T0."DocEntry" = T1."DocEntry" 
---		LEFT JOIN OPLN LP ON T1."U_idTabela" = LP."ListNum"
---	WHERE 
---	T0."U_venda_futura" IS null
---	AND (T1."U_preco_negociado" = 0 
---	OR T1."U_idTabela" IS NULL OR LP."U_publica_forca" = 0 OR 	LP."U_tipoComissao" IS NULL )
---	AND T0."BPLName" LIKE 'SUSTENNUTRI%'
---	AND T0."DocEntry"  = :list_of_cols_val_tab_del
---	)
---	THEN 
---	error := 7;
---	error_message:= 'Favor preecher campo id tabela de preço valido e preço negociado';
---  END IF;
+ IF  EXISTS(
+	SELECT
+		sum("U_TX_VlDeL") AS "soma",
+		sum("U_TX_VlDeL")-n."DiscSum"
+	FROM
+		RDR4 t
+		INNER JOIN ORDR n on(t."DocEntry" = n."DocEntry")
+	WHERE 
+		t."DocEntry" = :list_of_cols_val_tab_del
+		AND t."staType" in(28)
+		AND n."CANCELED" = 'N'
+	GROUP BY 
+		n."DiscSum",
+		t."DocEntry",
+		n."UserSign",
+		"U_pedido_update"
+	
+	HAVING 
+			((sum("U_TX_VlDeL")-n."DiscSum") >= 0.05 OR (sum("U_TX_VlDeL")-n."DiscSum") <= -0.05) AND  ("U_pedido_update" = '0' AND n."UserSign" <> 162)
+	)
+		THEN 
+		error := 7;
+		error_message:= 'Não permitido desconto divergente do valor do impoto desonerado';
+	END IF;
+  IF EXISTS(
+	SELECT 
+		1
+		FROM ORDR T0
+		INNER JOIN RDR1 T1 ON T0."DocEntry" = T1."DocEntry"
+ 		WHERE 
+ 		T0."U_venda_futura" IS null
+ 		AND T1."Usage" <> 16 AND
+ 		NOT T0."DiscSumSy" BETWEEN -0.05 AND 0.05 AND  
+ 		T0."CANCELED" = 'N'
+ 		AND T0."DocEntry" = :list_of_cols_val_tab_del
+ 		
+   )
+   THEN 
+   		error := 7;
+    	error_message := 'Desconto não permitido'; 
+   END IF;
+  IF exists(
+		SELECT 
+		1
+	FROM ORDR T0
+		INNER JOIN RDR1 T1 ON T0."DocEntry" = T1."DocEntry" 
+		LEFT JOIN OPLN LP ON T1."U_idTabela" = LP."ListNum"
+	WHERE 
+	T0."U_venda_futura" IS null
+	AND (T1."U_preco_negociado" = 0 
+	OR T1."U_idTabela" IS NULL OR LP."U_publica_forca" = 0 OR 	LP."U_tipoComissao" IS NULL )
+	AND T0."BPLName" LIKE 'SUSTENNUTRI%'
+	AND T0."DocEntry"  = :list_of_cols_val_tab_del
+	)
+	THEN 
+	error := 7;
+	error_message:= 'Favor preecher campo id tabela de preço valido e preço negociado';
+  END IF;
    IF EXISTS(
 	SELECT 
 	1
