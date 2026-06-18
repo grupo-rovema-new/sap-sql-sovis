@@ -1017,7 +1017,7 @@ SELECT
 		INNER JOIN PCH1 T1 ON T0."DocEntry" = T1."DocEntry" 
 		Where 
 			T1."Usage" = 34 and
-			T0."Model" NOT IN (46,19,18) and
+			T0."Model" NOT IN (46,19,18,60) and
 			T0."CANCELED" = 'N' and
 			T0."DocEntry" = :list_of_cols_val_tab_del
 			
@@ -1025,7 +1025,7 @@ SELECT
 
        	 Then       
 			error := 7;
-         	error_message := 'Coloque o modelo NFS-E';  
+         	error_message := 'Coloque o modelo NFS-E ou NFSe-Via';  
 	End If;
 IF EXISTS(
 SELECT
