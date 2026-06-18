@@ -482,5 +482,4 @@ IF :object_type = '60' and (:transaction_type = 'A') then
 END IF;
 
 select :error, SUBSTRING (:error_message,0,255) AS error_message FROM dummy;
-
 end;

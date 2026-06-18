@@ -3093,5 +3093,4 @@ IF :object_type in('23') and  (:transaction_type = 'A' or :transaction_type = 'U
 	END if;
 end if;
  
-
 end;
