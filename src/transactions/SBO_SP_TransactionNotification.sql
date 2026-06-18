@@ -207,7 +207,7 @@ Call "IV_IB_TransacaoValidacaoPagamentoBankPlus"(companyDbIntBank, object_type, 
 Call "TransNotificationValidate"(companyDbIntBank, object_type, list_of_cols_val_tab_del, error, error_message);
 --Call SBO_SP_TRANSACTIONNOTIFICATION_MOGNO(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 Call SBO_SP_TRANSACTIONNOTIFICATION_Liberali(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
---Call SBO_SP_TRANSACTIONNOTIFICATION_ROVEMA(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
+Call SBO_SP_TRANSACTIONNOTIFICATION_ROVEMA(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 Call SBO_SP_Validacao_Bloqueio_Periodo_Contabil(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 Call SBO_SP_VALIDACAO_POR_UTILIZACAO(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 Call SBO_SP_TransactionNotification_Katrid(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
@@ -431,48 +431,55 @@ END IF;
  --SAIDA DE MERCADORIA
 IF :object_type = '60' and (:transaction_type = 'A') then 
 
-IF EXISTS (
-		SELECT 
-    	 	1
-     	FROM 
-     		IGE1 T0 
-     		JOIN OINM T1 ON T1."ItemCode" = T0."ItemCode" AND T1."Warehouse" = T0."WhsCode" 
-    	WHERE
-    		T0."DocEntry"  = :list_of_cols_val_tab_del
-    		AND T1."DocDate" <= T0."DocDate" 
-    		AND T0."BaseEntry" IS NULL
-    		AND NOT (T1."TransType" = 60 AND T1."CreatedBy" = T0."DocEntry")
-		GROUP BY
-			T0."ItemCode",
-			T0."Quantity"
-     	HAVING 
-     		SUM(T1."InQty" - T1."OutQty") - T0."Quantity" < 0
-
-	  )THEN        
-
-			SELECT 
-				T0."ItemCode"
-				INTO XITEM
-			FROM 
-				IGE1 T0 
-     			JOIN OINM T1 ON T1."ItemCode" = T0."ItemCode" AND T1."Warehouse" = T0."WhsCode" 
-    		WHERE
-    			T0."DocEntry"  = :list_of_cols_val_tab_del
-    			AND T1."DocDate" <= T0."DocDate" 
-    			AND NOT (T1."TransType" = 60 AND T1."CreatedBy" = T0."DocEntry")
-    			AND T0."BaseEntry" IS NULL
-			GROUP BY
-				T0."ItemCode",
-				T0."Quantity"
-	     	HAVING 
-    	 		SUM(T1."InQty" - T1."OutQty") - T0."Quantity" < 0
-         	LIMIT 1;
-				error := 7;
-         		error_message := CONCAT('O Item ficará com estoque negativo: ', XITEM ) ;  
-
-	  	END IF;
-	  END IF;
+	IF EXISTS (
+	    SELECT 1
+	    FROM IGE1 T0
+	    JOIN OIGE T2 ON T2."DocEntry" = T0."DocEntry"
+	    WHERE
+	        T0."DocEntry" = :list_of_cols_val_tab_del
+	        AND IFNULL(T0."BaseEntry", -1) = -1
+	        AND COALESCE((
+	            SELECT SUM(T1."InQty" - T1."OutQty")
+	            FROM OINM T1
+	            WHERE
+	                T1."ItemCode" = T0."ItemCode"
+	                AND T1."Warehouse" = T0."WhsCode"
+	                AND T1."DocDate" <= T2."DocDate"
+	                AND NOT (
+	                    T1."TransType" = 60
+	                    AND T1."CreatedBy" = T0."DocEntry"
+	                )
+	        ), 0) < T0."Quantity"
+	)
+	THEN
+	
+	    SELECT 
+	        T0."ItemCode"
+	    INTO XITEM
+	    FROM IGE1 T0
+	    JOIN OIGE T2 ON T2."DocEntry" = T0."DocEntry"
+	    WHERE
+	        T0."DocEntry" = :list_of_cols_val_tab_del
+	        AND IFNULL(T0."BaseEntry", -1) = -1
+	        AND COALESCE((
+	            SELECT SUM(T1."InQty" - T1."OutQty")
+	            FROM OINM T1
+	            WHERE
+	                T1."ItemCode" = T0."ItemCode"
+	                AND T1."Warehouse" = T0."WhsCode"
+	                AND T1."DocDate" <= T2."DocDate"
+	                AND NOT (
+	                    T1."TransType" = 60
+	                    AND T1."CreatedBy" = T0."DocEntry"
+	                )
+	        ), 0) < T0."Quantity"
+	    LIMIT 1;
+	
+	    error := 7;
+	    error_message := CONCAT('O Item ficará com estoque negativo: ', XITEM);
+	
+	END IF;
+END IF;
 
 select :error, SUBSTRING (:error_message,0,255) AS error_message FROM dummy;
-
 end;
