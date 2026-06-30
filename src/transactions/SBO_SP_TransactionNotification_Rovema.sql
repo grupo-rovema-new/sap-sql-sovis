@@ -537,7 +537,7 @@ if  :object_type = '14' and (:transaction_type = 'A'or :transaction_type = 'U') 
 		WHERE 
 		("U_TX_NatOp"  IS NULL OR "U_TX_NatOp" = '') 
 		AND T0."DocEntry" = :list_of_cols_val_tab_del
-		AND T0."Model" = 39 
+		AND T0."Model" = 39
 	)
 	THEN 
 	error := 7;
@@ -727,7 +727,7 @@ if  :object_type = '19' and (:transaction_type = 'A') THEN
 		WHERE 
 		("U_TX_NatOp"  IS NULL OR "U_TX_NatOp" = '' OR "U_TX_NatOp" <> 'DEVOLUÇÃO DE ' || T2."Descr") 
 		AND T0."DocEntry" = :list_of_cols_val_tab_del
-		AND T0."Model" = 39 
+		AND T0."Model" = 39
 	)
 	THEN 
 	error := 7;
@@ -769,7 +769,7 @@ if  :object_type = '16' and (:transaction_type = 'A'or :transaction_type = 'U') 
 		WHERE 
 		("U_TX_NatOp"  IS NULL OR "U_TX_NatOp" = '' OR "U_TX_NatOp" <> 'DEVOLUÇÃO DE ' || T2."Descr") 
 		AND T0."DocEntry" = :list_of_cols_val_tab_del
-		AND T0."Model" = 39 
+		AND T0."Model" = 39
 	)
 	THEN 
 		error := 7;
@@ -949,7 +949,8 @@ if  :object_type = '21' and (:transaction_type = 'A') THEN
 		WHERE 
 		("U_TX_NatOp"  IS NULL OR "U_TX_NatOp" = '' OR "U_TX_NatOp" <> 'DEVOLUÇÃO DE ' || T2."Descr") 
 		AND T0."DocEntry" = :list_of_cols_val_tab_del
-		AND T0."Model" = 39 
+		AND T0."Model" = 39
+		AND t0."U_LbrAmfsCodContrato" IS NULL 
 	)
 	THEN 
 	error := 7;
@@ -2054,7 +2055,7 @@ IF :object_type = '13' and (:transaction_type = 'A') then
 			error := 7;
 	    	error_message := 'Favor trocar utilização ou modelo para nfe'; 
 	END IF;
- IF EXISTS(
+ /*IF EXISTS(
  	SELECT 
  	1
  	FROM OINV T0
@@ -2068,7 +2069,7 @@ IF :object_type = '13' and (:transaction_type = 'A') then
 		      
 			error := 7;
 	    	error_message := 'Favor trocar colocar cupom fiscal'; 
-	END IF;
+	END IF;*/
  IF EXISTS(
  	SELECT 
  	1
