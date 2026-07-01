@@ -73,6 +73,12 @@ UPDATE OPCH SET "U_TX_IndNatFrete" = 9 WHERE OPCH."DocEntry" = :list_of_cols_val
 END IF;
 END IF;
 
+IF :object_type = '18' AND (:transaction_type = 'A' OR :transaction_type = 'U') THEN
+IF EXISTS (SELECT 1 FROM PCH1 WHERE "Usage" = 152 AND "DocEntry" = :list_of_cols_val_tab_del) THEN
+UPDATE OPCH SET "U_TX_IndNatFrete" = 9 WHERE OPCH."DocEntry" = :list_of_cols_val_tab_del;
+END IF;
+END IF;
+
 --------------------------------------------------------------------------------------------------------------------------------
 
 
