@@ -206,7 +206,10 @@ Call "IV_IB_TransNotificationValidateIntBank"(companyDbIntBank, companyDbIntBank
 Call "IV_IB_TransacaoValidacaoPagamentoBankPlus"(companyDbIntBank, object_type, transaction_type, list_of_cols_val_tab_del, error, error_message);
 Call "TransNotificationValidate"(companyDbIntBank, object_type, list_of_cols_val_tab_del, error, error_message);
 --Call SBO_SP_TRANSACTIONNOTIFICATION_MOGNO(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
+
+
 Call SBO_SP_TRANSACTIONNOTIFICATION_Liberali(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
+Call SBO_SP_VALIDACAO_VENDA(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 Call SBO_SP_TRANSACTIONNOTIFICATION_ROVEMA(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 Call SBO_SP_Validacao_Bloqueio_Periodo_Contabil(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 Call SBO_SP_VALIDACAO_POR_UTILIZACAO(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
@@ -216,6 +219,8 @@ Call SBO_SP_VALIDACAO_VENDA_FUTURA(object_type,transaction_type,num_of_cols_in_k
 CALL SBO_SP_Validacao_Duplicidade_Seq_Serial_Serie(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 CALL SBO_SP_VALIDACAO_DESPESA_ADICIONAL(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
 CALL SBO_SP_TransactionNotification_Ainos(object_type,transaction_type,num_of_cols_in_key,list_of_key_cols_tab_del,list_of_cols_val_tab_del,error,error_message);
+
+
 
 -- LANÇAMENTO CONTABIL MANUAL
 IF :object_type = '30' and (:transaction_type = 'A' OR :transaction_type = 'U') then 

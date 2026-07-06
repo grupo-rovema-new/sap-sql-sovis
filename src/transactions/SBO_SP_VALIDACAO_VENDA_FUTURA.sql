@@ -32,22 +32,43 @@ IF :object_type IN('14') AND :transaction_type = 'A' then
 	END if;
 
 	SELECT
-		sum(docItem."Quantity"*contrato."U_valorFrete"*(item."U_quantity"*item."U_precoNegociado"/(SELECT sum("U_quantity"*"U_precoNegociado") FROM "@AR_CF_LINHA" WHERE "DocEntry" = contrato."DocEntry"))/item."U_quantity") "sugerido",
-		sum(COALESCE(docFrete."LineTotal", 0)) AS "current"
+		max("sugerido"),
+		max("current")
 	INTO
 		totalFrete, freteAtual
-	FROM 
-		"ORDR" pedido
-		INNER JOIN "@AR_CONTRATO_FUTURO" contrato ON contrato."U_orderDocEntry"  = pedido."DocEntry" 
-		INNER JOIN "@AR_CF_LINHA" item ON item."DocEntry" = contrato."DocEntry"
-		INNER JOIN "ORIN" currentDocument ON currentDocument."U_venda_futura" = contrato."DocEntry"
-		INNER JOIN "RIN1" docItem ON docItem."DocEntry" = currentDocument."DocEntry" AND docItem."ItemCode" = item."U_itemCode"
-		LEFT JOIN "RIN3"  docFrete ON docFrete."DocEntry" = currentDocument."DocEntry"
-	WHERE
-		currentDocument."DocEntry" = :list_of_cols_val_tab_del;
-		
-	IF totalFrete <> freteAtual THEN
-		error := '88';
+	FROM (
+		SELECT
+			ROUND(
+				docTotal."total" * contrato."U_valorFrete"
+				/ NULLIF(contratoTotal."total", 0)
+			, 2, ROUND_HALF_DOWN) AS "sugerido",
+			COALESCE(docFrete."LineTotal", 0) AS "current"
+		FROM
+			"ORIN" currentDocument
+			INNER JOIN "@AR_CONTRATO_FUTURO" contrato ON currentDocument."U_venda_futura" = contrato."DocEntry"
+			INNER JOIN (
+				SELECT "DocEntry", sum("LineTotal") AS "total"
+				FROM "RIN1"
+				GROUP BY "DocEntry"
+			) docTotal ON docTotal."DocEntry" = currentDocument."DocEntry"
+			INNER JOIN (
+				SELECT "DocEntry", sum("U_quantity" * "U_precoNegociado") AS "total"
+				FROM "@AR_CF_LINHA"
+				GROUP BY "DocEntry"
+			) contratoTotal ON contratoTotal."DocEntry" = contrato."DocEntry"
+			LEFT JOIN (
+				SELECT "DocEntry", sum(COALESCE("LineTotal", 0)) AS "LineTotal"
+				FROM "RIN3"
+				WHERE "ExpnsCode" = 1
+				GROUP BY "DocEntry"
+			) docFrete ON docFrete."DocEntry" = currentDocument."DocEntry"
+		WHERE
+			currentDocument."DocEntry" = :list_of_cols_val_tab_del
+			AND currentDocument."U_venda_futura" IS NOT NULL
+	) calculoFrete;
+
+	IF totalFrete IS NOT NULL AND abs(totalFrete - freteAtual) > 0.01 THEN
+		error := 88;
     	error_message := 'O frete deve ser proporcional ao contrato. Sugestão '|| totalFrete;
 	END if;
 END IF;
@@ -56,26 +77,47 @@ END IF;
 IF :object_type IN('13') AND :transaction_type IN('A') then
 
 	SELECT
-		sum(docItem."Quantity"*contrato."U_valorFrete"*(item."U_quantity"*item."U_precoNegociado"/(SELECT sum("U_quantity"*"U_precoNegociado") FROM "@AR_CF_LINHA" WHERE "DocEntry" = contrato."DocEntry"))/item."U_quantity") "sugerido",
-		sum(COALESCE(docFrete."LineTotal", 0)) AS "current"
+		max("sugerido"),
+		max("current")
 	INTO
 		totalFrete, freteAtual
-	FROM 
-		"ORDR" pedido
-		INNER JOIN "@AR_CONTRATO_FUTURO" contrato ON contrato."U_orderDocEntry"  = pedido."DocEntry" 
-		INNER JOIN "@AR_CF_LINHA" item ON item."DocEntry" = contrato."DocEntry"
-		INNER JOIN "OINV" currentDocument ON currentDocument."U_venda_futura" = contrato."DocEntry"
-		INNER JOIN "INV1" docItem ON docItem."DocEntry" = currentDocument."DocEntry" AND docItem."ItemCode" = item."U_itemCode"
-		LEFT JOIN "INV3"  docFrete ON docFrete."DocEntry" = currentDocument."DocEntry"
-	WHERE
-		currentDocument."DocEntry" = :list_of_cols_val_tab_del;
-		
-	IF totalFrete <> freteAtual THEN
-		error := '88';
+	FROM (
+		SELECT
+			ROUND(
+				docTotal."total" * contrato."U_valorFrete"
+				/ NULLIF(contratoTotal."total", 0)
+			, 2, ROUND_HALF_DOWN) AS "sugerido",
+			COALESCE(docFrete."LineTotal", 0) AS "current"
+		FROM
+			"OINV" currentDocument
+			INNER JOIN "@AR_CONTRATO_FUTURO" contrato ON currentDocument."U_venda_futura" = contrato."DocEntry"
+			INNER JOIN (
+				SELECT "DocEntry", sum("LineTotal") AS "total"
+				FROM "INV1"
+				GROUP BY "DocEntry"
+			) docTotal ON docTotal."DocEntry" = currentDocument."DocEntry"
+			INNER JOIN (
+				SELECT "DocEntry", sum("U_quantity" * "U_precoNegociado") AS "total"
+				FROM "@AR_CF_LINHA"
+				GROUP BY "DocEntry"
+			) contratoTotal ON contratoTotal."DocEntry" = contrato."DocEntry"
+			LEFT JOIN (
+				SELECT "DocEntry", sum(COALESCE("LineTotal", 0)) AS "LineTotal"
+				FROM "INV3"
+				WHERE "ExpnsCode" = 1
+				GROUP BY "DocEntry"
+			) docFrete ON docFrete."DocEntry" = currentDocument."DocEntry"
+		WHERE
+			currentDocument."DocEntry" = :list_of_cols_val_tab_del
+			AND currentDocument."U_venda_futura" IS NOT NULL
+	) calculoFrete;
+
+	IF totalFrete IS NOT NULL AND abs(totalFrete - freteAtual) > 0.01 THEN
+		error := 88;
     	error_message := 'O frete deve ser proporcional ao contrato. Sugestão '|| totalFrete;
 	END if;
 END IF;
-	
+
 IF :object_type IN('24','46') then
 	IF( EXISTS(
 		SELECT
@@ -211,4 +253,3 @@ END IF;
 			END IF;
     END IF;
 END;
-
