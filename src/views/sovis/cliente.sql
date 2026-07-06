@@ -1,5 +1,6 @@
+-- SBOGRUPOROVEMA.CLIENTE fonte
 
-CREATE OR REPLACE VIEW CLIENTE AS
+CREATE OR replace VIEW CLIENTE AS
 SELECT
 		OCRD."CardCode" AS "IDCLIENTEERP",
 		MAX(CRD1."County") AS "IDCIDADEERP",
@@ -28,7 +29,7 @@ SELECT
 		LEFT(OCRD."Address",50)  AS "ENDERECO",
 		"Number"  AS "NUMERO",
 		OCRD."Block"  AS "BAIRRO",
-		OCRD."ZipCode"  AS "CEP",
+		LEFT(OCRD."ZipCode",8)  AS "CEP",
 		(SELECT iestadual FROM BpCpfCnpj t 
 		WHERE 
 			OCRD."CardCode" = t."CardCode" 

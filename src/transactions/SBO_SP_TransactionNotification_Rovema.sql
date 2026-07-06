@@ -537,7 +537,7 @@ if  :object_type = '14' and (:transaction_type = 'A'or :transaction_type = 'U') 
 		WHERE 
 		("U_TX_NatOp"  IS NULL OR "U_TX_NatOp" = '') 
 		AND T0."DocEntry" = :list_of_cols_val_tab_del
-		AND T0."Model" = 39 
+		AND T0."Model" = 39
 	)
 	THEN 
 	error := 7;
@@ -727,7 +727,7 @@ if  :object_type = '19' and (:transaction_type = 'A') THEN
 		WHERE 
 		("U_TX_NatOp"  IS NULL OR "U_TX_NatOp" = '' OR "U_TX_NatOp" <> 'DEVOLUÇÃO DE ' || T2."Descr") 
 		AND T0."DocEntry" = :list_of_cols_val_tab_del
-		AND T0."Model" = 39 
+		AND T0."Model" = 39
 	)
 	THEN 
 	error := 7;
@@ -769,7 +769,7 @@ if  :object_type = '16' and (:transaction_type = 'A'or :transaction_type = 'U') 
 		WHERE 
 		("U_TX_NatOp"  IS NULL OR "U_TX_NatOp" = '' OR "U_TX_NatOp" <> 'DEVOLUÇÃO DE ' || T2."Descr") 
 		AND T0."DocEntry" = :list_of_cols_val_tab_del
-		AND T0."Model" = 39 
+		AND T0."Model" = 39
 	)
 	THEN 
 		error := 7;
@@ -949,7 +949,8 @@ if  :object_type = '21' and (:transaction_type = 'A') THEN
 		WHERE 
 		("U_TX_NatOp"  IS NULL OR "U_TX_NatOp" = '' OR "U_TX_NatOp" <> 'DEVOLUÇÃO DE ' || T2."Descr") 
 		AND T0."DocEntry" = :list_of_cols_val_tab_del
-		AND T0."Model" = 39 
+		AND T0."Model" = 39
+		AND t0."U_LbrAmfsCodContrato" IS NULL 
 	)
 	THEN 
 	error := 7;
@@ -1017,7 +1018,7 @@ SELECT
 		INNER JOIN PCH1 T1 ON T0."DocEntry" = T1."DocEntry" 
 		Where 
 			T1."Usage" = 34 and
-			T0."Model" NOT IN (46,19,18) and
+			T0."Model" NOT IN (46,19,18,60) and
 			T0."CANCELED" = 'N' and
 			T0."DocEntry" = :list_of_cols_val_tab_del
 			
@@ -1025,7 +1026,7 @@ SELECT
 
        	 Then       
 			error := 7;
-         	error_message := 'Coloque o modelo NFS-E';  
+         	error_message := 'Coloque o modelo NFS-E ou NFSe-Via';  
 	End If;
 IF EXISTS(
 SELECT
@@ -1051,7 +1052,7 @@ SELECT
 		INNER JOIN PCH1 T1 ON T0."DocEntry" = T1."DocEntry" 
 		Where 
 			T1."Usage" = 24 and
-			T0."Model" <> 45 and
+			T0."Model" NOT IN (45, 59) and
 			T0."CANCELED" = 'N' and
 			T0."DocEntry" = :list_of_cols_val_tab_del
 			
@@ -1900,30 +1901,30 @@ IF  :object_type = '23' AND (:transaction_type = 'U' OR :transaction_type = 'A')
 -------------------------PEDIDO DE VENDA------------------------------------------
 IF  :object_type = '17' and (:transaction_type = 'A' OR :transaction_type = 'U') then
 	
--- IF  EXISTS(
---	SELECT
---		sum("U_TX_VlDeL") AS "soma",
---		sum("U_TX_VlDeL")-n."DiscSum"
---	FROM
---		RDR4 t
---		INNER JOIN ORDR n on(t."DocEntry" = n."DocEntry")
---	WHERE 
---		t."DocEntry" = :list_of_cols_val_tab_del
---		AND t."staType" in(28)
---		AND n."CANCELED" = 'N'
---	GROUP BY 
---		n."DiscSum",
---		t."DocEntry",
---		n."UserSign",
---		"U_pedido_update"
---	
---	HAVING 
---			((sum("U_TX_VlDeL")-n."DiscSum") >= 0.05 OR (sum("U_TX_VlDeL")-n."DiscSum") <= -0.05) AND  ("U_pedido_update" = '0' AND n."UserSign" <> 162)
---	)
---		THEN 
---		error := 7;
---		error_message:= 'Não permitido desconto divergente do valor do impoto desonerado';
---	END IF;
+ IF  EXISTS(
+	SELECT
+		sum("U_TX_VlDeL") AS "soma",
+		sum("U_TX_VlDeL")-n."DiscSum"
+	FROM
+		RDR4 t
+		INNER JOIN ORDR n on(t."DocEntry" = n."DocEntry")
+	WHERE 
+		t."DocEntry" = :list_of_cols_val_tab_del
+		AND t."staType" in(28)
+		AND n."CANCELED" = 'N'
+	GROUP BY 
+		n."DiscSum",
+		t."DocEntry",
+		n."UserSign",
+		"U_pedido_update"
+	
+	HAVING 
+			((sum("U_TX_VlDeL")-n."DiscSum") >= 0.05 OR (sum("U_TX_VlDeL")-n."DiscSum") <= -0.05) AND  ("U_pedido_update" = '0' AND n."UserSign" <> 162)
+	)
+		THEN 
+		error := 7;
+		error_message:= 'Não permitido desconto divergente do valor do impoto desonerado';
+	END IF;
   IF EXISTS(
 	SELECT 
 		1
@@ -2054,7 +2055,7 @@ IF :object_type = '13' and (:transaction_type = 'A') then
 			error := 7;
 	    	error_message := 'Favor trocar utilização ou modelo para nfe'; 
 	END IF;
- IF EXISTS(
+ /*IF EXISTS(
  	SELECT 
  	1
  	FROM OINV T0
@@ -2068,7 +2069,7 @@ IF :object_type = '13' and (:transaction_type = 'A') then
 		      
 			error := 7;
 	    	error_message := 'Favor trocar colocar cupom fiscal'; 
-	END IF;
+	END IF;*/
  IF EXISTS(
  	SELECT 
  	1
@@ -2789,8 +2790,6 @@ IF :object_type = '18' and (:transaction_type = 'A' OR :transaction_type = 'U') 
     END IF;
 
 
-
-
 IF EXISTS(
 WITH
 CUSTO_NOTA AS (
@@ -3001,20 +3000,20 @@ END IF;
 END if;
 ------------------CAMPO DESCONTO % NEGATIVA - PEDIDO DE VENDA-----------------------------
 IF :object_type = '17' AND (:transaction_type = 'U'	OR :transaction_type = 'A') THEN
-IF EXISTS (
-SELECT
-	1
-FROM
-	ORDR
-INNER JOIN RDR1 ON
-	ORDR."DocEntry" = RDR1."DocEntry"
-WHERE
-	RDR1."DiscPrcnt" < 0  
-	AND ORDR."DocEntry" = :list_of_cols_val_tab_del
-) THEN 
-	error := 3;
-	error_message := 'O campo de Desconto na linha está com valor negativo!';
-END IF;
+--IF EXISTS (
+--SELECT
+--	1
+--FROM
+--	ORDR
+--INNER JOIN RDR1 ON
+--	ORDR."DocEntry" = RDR1."DocEntry"
+--WHERE
+--	RDR1."DiscPrcnt" < 0  
+--	AND ORDR."DocEntry" = :list_of_cols_val_tab_del
+--) THEN 
+--	error := 3;
+--	error_message := 'O campo de Desconto na linha está com valor negativo!';
+--END IF;
 IF
 	EXISTS (
 	SELECT
@@ -3036,22 +3035,22 @@ error_message := 'O cliente está sem localidade cadastrada. Favor verificar o c
 END IF;
 END IF;
 -------------------CAMPO DESCONTO % NEGATIVA - NF SAÍDA E FUTURA---------------------------
-IF :object_type = '13' AND (:transaction_type = 'U'	OR :transaction_type = 'A') THEN	
-IF EXISTS (
-SELECT
-	1
-FROM
-	OINV
-INNER JOIN INV1 ON
-	OINV."DocEntry" = INV1."DocEntry"
-WHERE
-	INV1."DiscPrcnt" < 0
-	AND OINV."DocEntry" = :list_of_cols_val_tab_del
-) THEN 
-	error := 3;
-	error_message := 'O campo de Desconto na linha está com valor negativo!';
-END IF;
-END IF;
+--IF :object_type = '13' AND (:transaction_type = 'U'	OR :transaction_type = 'A') THEN	
+--IF EXISTS (
+--SELECT
+--	1
+--FROM
+--	OINV
+--INNER JOIN INV1 ON
+--	OINV."DocEntry" = INV1."DocEntry"
+--WHERE
+--	INV1."DiscPrcnt" < 0
+--	AND OINV."DocEntry" = :list_of_cols_val_tab_del
+--) THEN 
+--	error := 3;
+--	error_message := 'O campo de Desconto na linha está com valor negativo!';
+--END IF;
+--END IF;
 -------------------CAMPO DESCONTO % NEGATIVA - ENTREGA-------------------------------------
 IF :object_type = '15' AND (:transaction_type = 'U'	OR :transaction_type = 'A') THEN	
 IF EXISTS (
