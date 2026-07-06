@@ -57,6 +57,8 @@ IF :object_type IN('13') AND :transaction_type IN('A') then
 		INNER JOIN "INV1" linha ON linha."DocEntry" = cab."DocEntry"
 	WHERE
 		cab."DocEntry" = :list_of_cols_val_tab_del
+--		esse item abaixo deve ser removido depois ja que nao importa se for atualizado na nota
+--		Usar esse campo para fazer um bypass
 		AND COALESCE(cab."U_pedido_update", '0') <> '1'
 		AND EXISTS(SELECT 1 FROM "INV1" WHERE "DocEntry" = cab."DocEntry" AND "U_preco_negociado" > 0);
 
