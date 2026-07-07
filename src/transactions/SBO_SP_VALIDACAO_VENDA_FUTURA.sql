@@ -32,23 +32,43 @@ IF :object_type IN('14') AND :transaction_type = 'A' then
 	END if;
 
 	SELECT
-		sum(ROUND((item."U_preco_negociado" * item."Quantity") / (pedido."DocTotal" - COALESCE(frete."LineTotal", 0)), 2) / item."Quantity" * COALESCE(frete."LineTotal", 0) * devItem."Quantity") AS "freteItemDev",
-		sum(COALESCE(devFrete."LineTotal", 0))
+		max("sugerido"),
+		max("current")
 	INTO
 		totalFrete, freteAtual
-	FROM 
-		"ORDR" pedido
-		INNER JOIN "RDR1" item ON pedido."DocEntry" = item."DocEntry"
-		INNER JOIN "@AR_CONTRATO_FUTURO" contrato ON contrato."U_orderDocEntry"  = pedido."DocEntry" 
-		LEFT JOIN "RDR3" frete ON pedido."DocEntry" = frete."DocEntry"
-		INNER JOIN "ORIN" devolucao ON devolucao."U_venda_futura" = contrato."DocEntry"
-		INNER JOIN "RIN1" devItem ON devItem."DocEntry" = devolucao."DocEntry" AND devItem."ItemCode" = item."ItemCode"
-		LEFT JOIN "RIN3"  devFrete ON devFrete."DocEntry" = devolucao."DocEntry"
-	WHERE
-		devolucao."DocEntry" = :list_of_cols_val_tab_del;
-		
-	IF totalFrete <> freteAtual THEN
-		error := '88';
+	FROM (
+		SELECT
+			ROUND(
+				docTotal."total" * contrato."U_valorFrete"
+				/ NULLIF(contratoTotal."total", 0)
+			, 2, ROUND_HALF_DOWN) AS "sugerido",
+			COALESCE(docFrete."LineTotal", 0) AS "current"
+		FROM
+			"ORIN" currentDocument
+			INNER JOIN "@AR_CONTRATO_FUTURO" contrato ON currentDocument."U_venda_futura" = contrato."DocEntry"
+			INNER JOIN (
+				SELECT "DocEntry", sum("LineTotal") AS "total"
+				FROM "RIN1"
+				GROUP BY "DocEntry"
+			) docTotal ON docTotal."DocEntry" = currentDocument."DocEntry"
+			INNER JOIN (
+				SELECT "DocEntry", sum("U_quantity" * "U_precoNegociado") AS "total"
+				FROM "@AR_CF_LINHA"
+				GROUP BY "DocEntry"
+			) contratoTotal ON contratoTotal."DocEntry" = contrato."DocEntry"
+			LEFT JOIN (
+				SELECT "DocEntry", sum(COALESCE("LineTotal", 0)) AS "LineTotal"
+				FROM "RIN3"
+				WHERE "ExpnsCode" = 1
+				GROUP BY "DocEntry"
+			) docFrete ON docFrete."DocEntry" = currentDocument."DocEntry"
+		WHERE
+			currentDocument."DocEntry" = :list_of_cols_val_tab_del
+			AND currentDocument."U_venda_futura" IS NOT NULL
+	) calculoFrete;
+
+	IF totalFrete IS NOT NULL AND abs(totalFrete - freteAtual) > 0.01 THEN
+		error := 88;
     	error_message := 'O frete deve ser proporcional ao contrato. Sugestão '|| totalFrete;
 	END if;
 END IF;
@@ -76,6 +96,51 @@ IF :object_type = '14' AND :transaction_type = 'A' THEN
 	END IF;
 END IF;
 
+
+IF :object_type IN('13') AND :transaction_type IN('A') then
+
+	SELECT
+		max("sugerido"),
+		max("current")
+	INTO
+		totalFrete, freteAtual
+	FROM (
+		SELECT
+			ROUND(
+				docTotal."total" * contrato."U_valorFrete"
+				/ NULLIF(contratoTotal."total", 0)
+			, 2, ROUND_HALF_DOWN) AS "sugerido",
+			COALESCE(docFrete."LineTotal", 0) AS "current"
+		FROM
+			"OINV" currentDocument
+			INNER JOIN "@AR_CONTRATO_FUTURO" contrato ON currentDocument."U_venda_futura" = contrato."DocEntry"
+			INNER JOIN (
+				SELECT "DocEntry", sum("LineTotal") AS "total"
+				FROM "INV1"
+				GROUP BY "DocEntry"
+			) docTotal ON docTotal."DocEntry" = currentDocument."DocEntry"
+			INNER JOIN (
+				SELECT "DocEntry", sum("U_quantity" * "U_precoNegociado") AS "total"
+				FROM "@AR_CF_LINHA"
+				GROUP BY "DocEntry"
+			) contratoTotal ON contratoTotal."DocEntry" = contrato."DocEntry"
+			LEFT JOIN (
+				SELECT "DocEntry", sum(COALESCE("LineTotal", 0)) AS "LineTotal"
+				FROM "INV3"
+				WHERE "ExpnsCode" = 1
+				GROUP BY "DocEntry"
+			) docFrete ON docFrete."DocEntry" = currentDocument."DocEntry"
+		WHERE
+			currentDocument."DocEntry" = :list_of_cols_val_tab_del
+			AND currentDocument."U_venda_futura" IS NOT NULL
+	) calculoFrete;
+
+	IF totalFrete IS NOT NULL AND abs(totalFrete - freteAtual) > 0.01 THEN
+		error := 88;
+    	error_message := 'O frete deve ser proporcional ao contrato. Sugestão '|| totalFrete;
+	END if;
+END IF;
+
 IF :object_type IN('24','46') then
 	IF( EXISTS(
 		SELECT
@@ -91,9 +156,10 @@ IF :object_type IN('24','46') then
     	error_message := 'Não e permitido efeturar contas a receber de uma reclassificação';
 	END if;
 END IF;
+
+
 	
     IF :object_type = '23' AND ( :transaction_type = 'A' OR :transaction_type = 'U') THEN
-
     	DECLARE v_isbn    VARCHAR(20) = '';
     
     	DECLARE v_contract_docentry INT;
@@ -188,7 +254,25 @@ END IF;
 	
 			END IF;
 		END FOR;
-      
+	
+		IF( NOT EXISTS(
+				SELECT
+					boletos.*
+				FROM
+					ODPI adiantamento
+					INNER JOIN "IV_IB_BillOfExchange" boletos ON 
+						ADIANTAMENTO."DocEntry" = boletos."DocEntry" 
+						AND boletos."DocType" = adiantamento."ObjType"
+				WHERE
+					adiantamento."U_venda_futura" = (SELECT "U_venda_futura" FROM OQUT WHERE OQUT."DocEntry" = :list_of_cols_val_tab_del)
+					AND "OurNumber" IS NOT NULL
+					AND boletos."Status" NOT IN (0,5)
+				) 
+				AND
+				EXISTS(SELECT "U_venda_futura" FROM OQUT WHERE OQUT."DocEntry" = :list_of_cols_val_tab_del AND "U_venda_futura" IS NOT NULL)
+			) THEN
+				error := '88';
+		    	error_message := 'É necessario emitir os boletos do contrato antes das entregas';
+			END IF;
     END IF;
 END;
-
