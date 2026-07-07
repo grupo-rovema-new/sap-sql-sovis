@@ -60,7 +60,7 @@ erroAdiantamento := 0;
 
 
 
---------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------F-------------------------------------------------
 -- Nota Fiscal de Saida -- Andrew Ramires May 06/03/2023
 IF :object_type = '13' and (:transaction_type = 'A'or :transaction_type = 'U') then 
 	SELECT
@@ -704,6 +704,45 @@ END IF;
 		    	error_message := 'Não pode devolução com modelo NFC-E';
 	 END IF;     
 END if;
+
+--------------------------------------------------------------------------------------------------
+-- Nota Fiscal de Saída: custo da linha divergente do custo de estoque (Usage 93) -----------------
+-- Bloqueia a inclusão da nota de saída (OINV) quando o custo da linha (INV1."StockPrice") diverge
+-- do custo médio do item no depósito (OITW."AvgPrice"), somente nas linhas com Usage = 93.
+IF :object_type = '13' AND :transaction_type = 'A' THEN
+	IF EXISTS (
+		SELECT 1
+		FROM OINV D
+		INNER JOIN INV1 DL ON D."DocEntry" = DL."DocEntry"
+		INNER JOIN OITM ITEM ON DL."ItemCode" = ITEM."ItemCode" AND ITEM."InvntItem" = 'Y'
+		INNER JOIN OITW ESTOQUE ON ESTOQUE."ItemCode" = DL."ItemCode" AND ESTOQUE."WhsCode" = DL."WhsCode"
+		WHERE
+			D."DocEntry" = :list_of_cols_val_tab_del
+			AND D."CANCELED" = 'N'
+			AND DL."Usage" = 93
+			AND ROUND(DL."StockPrice", 4) <> ROUND(ESTOQUE."AvgPrice", 4)
+	)
+	THEN
+		SELECT
+			DL."ItemCode",
+			ESTOQUE."AvgPrice"
+		INTO itemCode, v_expected_cost
+		FROM OINV D
+		INNER JOIN INV1 DL ON D."DocEntry" = DL."DocEntry"
+		INNER JOIN OITW ESTOQUE ON ESTOQUE."ItemCode" = DL."ItemCode" AND ESTOQUE."WhsCode" = DL."WhsCode"
+		WHERE
+			D."DocEntry" = :list_of_cols_val_tab_del
+			AND D."CANCELED" = 'N'
+			AND DL."Usage" = 93
+			AND ROUND(DL."StockPrice", 4) <> ROUND(ESTOQUE."AvgPrice", 4)
+		LIMIT 1;
+
+		error := 7;
+		error_message :=
+			'Custo diferente do estoque. Item: ' || :itemCode ||
+			' | Custo esperado: ' || TO_NVARCHAR(ROUND(:v_expected_cost, 4));
+	END IF;
+END IF;
 
 ---------------------------------------------------------------------------------------
 if  :object_type = '19' and (:transaction_type = 'A') THEN
