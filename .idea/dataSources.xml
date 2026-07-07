@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
+    <data-source source="LOCAL" name="rovema" uuid="a501a2ee-0f12-4786-94db-8f4a9d7d511f">
+      <driver-ref>hana</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>com.sap.db.jdbc.Driver</jdbc-driver>
+      <jdbc-url>jdbc:sap://10.117.163.230:30015</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
+  </component>
+</project>
