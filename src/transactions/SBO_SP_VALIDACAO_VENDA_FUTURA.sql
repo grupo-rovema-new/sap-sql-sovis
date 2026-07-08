@@ -68,6 +68,29 @@ IF totalFrete IS NOT NULL AND abs(totalFrete - freteAtual) > 0.01 THEN
 END if;
 END IF;
 
+-- Devolução avulsa de venda futura -----------------------------------------------------------------
+-- Bloqueia a devolução (ORIN) cujo documento base é venda futura quando a devolução é avulsa: as
+-- linhas não têm vínculo com o documento base (RIN1."BaseEntry" nulo), existindo apenas a referência
+-- em RIN21 -> nota fiscal base (OINV) com "U_venda_futura" preenchido. Nesse caso a devolução deve ser
+-- vinculada ao documento base, não avulsa.
+IF :object_type = '14' AND :transaction_type = 'A' THEN
+	IF EXISTS (
+		SELECT 1
+		FROM "ORIN" D
+			INNER JOIN "RIN1"  DL  ON D."DocEntry" = DL."DocEntry"
+			INNER JOIN "RIN21" REF ON D."DocEntry" = REF."DocEntry" AND REF."RefObjType" = 13
+			INNER JOIN "OINV"  NF  ON NF."DocEntry" = REF."RefDocEntr"
+		WHERE
+			D."DocEntry" = :list_of_cols_val_tab_del
+			AND D."CANCELED" = 'N'
+			AND DL."BaseEntry" IS NULL              -- linha sem vínculo com a nota base (avulsa)
+			AND NF."U_venda_futura" IS NOT NULL     -- documento base é venda futura
+	) THEN
+		error := 7;
+		error_message := 'Não é permitido devolução avulsa de contrato de venda futura';
+	END IF;
+END IF;
+
 
 --IF :object_type IN('13') AND :transaction_type IN('A') then
 --
