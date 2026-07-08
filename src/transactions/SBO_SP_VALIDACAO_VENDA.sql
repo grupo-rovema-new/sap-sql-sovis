@@ -23,7 +23,7 @@ DECLARE totalDocumento number;
 -- enquanto U_pedido_update = '1' o documento ainda esta pendente de calculo pelo job.
 
 -- Pedido de venda (ORDR)
-IF :object_type IN('17') AND :transaction_type IN('A') then
+IF :object_type IN('17') AND :transaction_type IN('A','U') then
 
 	SELECT
 		sum(COALESCE(NULLIF(linha."U_preco_negociado", 0) * linha."Quantity", linha."LineTotal")),
@@ -45,7 +45,7 @@ IF :object_type IN('17') AND :transaction_type IN('A') then
 END IF;
 
 -- Nota fiscal de saida (OINV)
-IF :object_type IN('13') AND :transaction_type IN('A') then
+IF :object_type IN('13') AND :transaction_type IN('A','U') then
 
 	SELECT
 		sum(COALESCE(NULLIF(linha."U_preco_negociado", 0) * linha."Quantity", linha."LineTotal")),
