@@ -1,8 +1,8 @@
 CREATE OR REPLACE PROCEDURE SBO_SP_VALIDACAO_VENDA
 
 (
-    in object_type nvarchar(30),                 -- SBO Object Type
-    in transaction_type nchar(1),                -- [A]dd, [U]pdate, [D]elete, [C]ancel, C[L]ose
+    in object_type nvarchar(30),
+    in transaction_type nchar(1),
     in num_of_cols_in_key int,
     in list_of_key_cols_tab_del nvarchar(255),
     in list_of_cols_val_tab_del nvarchar(255),
@@ -17,55 +17,106 @@ BEGIN
 DECLARE valorNegociado number;
 DECLARE totalDocumento number;
 
--- Garante que o total do documento (produtos, sem frete) bata com o valor negociado.
--- Se divergir, o calculo de imposto desonerado nao fechou no preco negociado.
--- So valida quando o sistema ja confirmou o calculo de imposto (U_pedido_update = '0');
--- enquanto U_pedido_update = '1' o documento ainda esta pendente de calculo pelo job.
+-- ============================================================
+-- CONFIGURAÇÃO HARDCODED
+-- ============================================================
+-- Somente estas filiais emissoras terão a trava aplicada.
+-- Troque pelos BPLId reais.
+-- ============================================================
+
 
 -- Pedido de venda (ORDR)
-IF :object_type IN('17') AND :transaction_type IN('A','U') then
+IF :object_type IN ('17') AND :transaction_type IN ('A','U') THEN
 
-	SELECT
-		sum(COALESCE(NULLIF(linha."U_preco_negociado", 0) * linha."Quantity", linha."LineTotal")),
-		max(COALESCE(cab."DocTotal", 0) - COALESCE(cab."TotalExpns", 0))
-	INTO
-		valorNegociado, totalDocumento
-	FROM
-		"ORDR" cab
-		INNER JOIN "RDR1" linha ON linha."DocEntry" = cab."DocEntry"
-	WHERE
-		cab."DocEntry" = :list_of_cols_val_tab_del
-		AND COALESCE(cab."U_pedido_update", '0') <> '1'
-		AND EXISTS(SELECT 1 FROM "RDR1" WHERE "DocEntry" = cab."DocEntry" AND "U_preco_negociado" > 0);
+    SELECT
+        sum(COALESCE(NULLIF(linha."U_preco_negociado", 0) * linha."Quantity", linha."LineTotal")),
+        max(COALESCE(cab."DocTotal", 0) - COALESCE(cab."TotalExpns", 0))
+    INTO
+        valorNegociado,
+        totalDocumento
+    FROM
+        "ORDR" cab
+        INNER JOIN "RDR1" linha ON linha."DocEntry" = cab."DocEntry"
+        INNER JOIN "OUSG" usg   ON usg."ID" = linha."Usage"
+    WHERE
+        cab."DocEntry" = :list_of_cols_val_tab_del
 
-	IF valorNegociado IS NOT NULL AND abs(valorNegociado - totalDocumento) > 0.01 THEN
-		error := 88;
-    	error_message := 'O total do documento diverge do valor negociado. Esperado '|| valorNegociado;
-	END if;
+        -- Trava somente para essas filiais
+        AND cab."BPLId" IN (2,4,11,17,18)
+        AND COALESCE(usg."FreeChrgBP", 'N') = 'N'   
+        
+        AND NOT EXISTS (
+            SELECT 1
+            FROM "OBPL" filial_cliente
+            WHERE
+                filial_cliente."DflCust" = cab."CardCode"
+                AND COALESCE(filial_cliente."Disabled", 'N') = 'N'
+        )
+
+        AND COALESCE(cab."U_pedido_update", '0') <> '1'
+
+        AND EXISTS (
+            SELECT 1
+            FROM "RDR1"
+            WHERE
+                "DocEntry" = cab."DocEntry"
+                AND "U_preco_negociado" > 0
+        );
+
+    IF valorNegociado IS NOT NULL AND abs(valorNegociado - totalDocumento) > 0.01 THEN
+        error := 88;
+        error_message := 'O total do documento diverge do valor negociado. Esperado ' || valorNegociado;
+    END IF;
+
 END IF;
 
--- Nota fiscal de saida (OINV)
-IF :object_type IN('13') AND :transaction_type IN('A','U') then
 
-	SELECT
-		sum(COALESCE(NULLIF(linha."U_preco_negociado", 0) * linha."Quantity", linha."LineTotal")),
-		max(COALESCE(cab."DocTotal", 0) - COALESCE(cab."TotalExpns", 0))
-	INTO
-		valorNegociado, totalDocumento
-	FROM
-		"OINV" cab
-		INNER JOIN "INV1" linha ON linha."DocEntry" = cab."DocEntry"
-	WHERE
-		cab."DocEntry" = :list_of_cols_val_tab_del
---		esse item abaixo deve ser removido depois ja que nao importa se for atualizado na nota
---		Usar esse campo para fazer um bypass
-		AND COALESCE(cab."U_pedido_update", '0') <> '1'
-		AND EXISTS(SELECT 1 FROM "INV1" WHERE "DocEntry" = cab."DocEntry" AND "U_preco_negociado" > 0);
+-- Nota fiscal de saída (OINV)
+IF :object_type IN ('13') AND :transaction_type IN ('A','U') THEN
 
-	IF valorNegociado IS NOT NULL AND abs(valorNegociado - totalDocumento) > 0.01 THEN
-		error := 88;
-    	error_message := 'O total do documento diverge do valor negociado. Esperado '|| valorNegociado;
-	END if;
+    SELECT
+        sum(COALESCE(NULLIF(linha."U_preco_negociado", 0) * linha."Quantity", linha."LineTotal")),
+        max(COALESCE(cab."DocTotal", 0) - COALESCE(cab."TotalExpns", 0))
+    INTO
+        valorNegociado,
+        totalDocumento
+    FROM
+        "OINV" cab
+        INNER JOIN "INV1" linha ON linha."DocEntry" = cab."DocEntry"
+        INNER JOIN "OUSG" usg   ON usg."ID" = linha."Usage"
+    WHERE
+        cab."DocEntry" = :list_of_cols_val_tab_del
+
+        -- Trava somente para essas filiais emissoras
+        AND cab."BPLId" IN (2,4,11,17,18)
+        AND COALESCE(usg."FreeChrgBP", 'N') = 'N' 
+
+        -- Não aplica a trava quando o cliente da nota é uma filial do próprio sistema.
+        -- A lista vem dinamicamente da OBPL.DflCust.
+        AND NOT EXISTS (
+            SELECT 1
+            FROM "OBPL" filial_cliente
+            WHERE
+                filial_cliente."DflCust" = cab."CardCode"
+                AND COALESCE(filial_cliente."Disabled", 'N') = 'N'
+        )
+
+        -- Bypass temporário
+        AND COALESCE(cab."U_pedido_update", '0') <> '1'
+
+        AND EXISTS (
+            SELECT 1
+            FROM "INV1"
+            WHERE
+                "DocEntry" = cab."DocEntry"
+                AND "U_preco_negociado" > 0
+        );
+
+    IF valorNegociado IS NOT NULL AND abs(valorNegociado - totalDocumento) > 0.01 THEN
+        error := 88;
+        error_message := 'O total do documento diverge do valor negociado. Esperado ' || valorNegociado;
+    END IF;
+
 END IF;
 
 END;
