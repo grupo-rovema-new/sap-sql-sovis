@@ -43,17 +43,6 @@ SELECT * FROM RIN1
 	
 SELECT * FROM "@AR_CONTRATO_FUTURO" acf WHERE "DocEntry" = 22
 
-UPDATE "@AR_CONTRATO_FUTURO" SET "U_status" = 'aberto' WHERE "DocEntry" = 22
-
-
-
-SELECT * FROM "@AR_CONTRATO_FUTURO"
-
-
--- update que adiciona saldo na coluna nova
-UPDATE "@AR_CONTRATO_FUTURO" AS contrato SET "U_valorProdutos" = (SELECT sum(linha."U_quantity" * linha."U_precoNegociado") FROM "@AR_CF_LINHA" linha WHERE linha."DocEntry" = contrato."DocEntry") 
-
-
 
 
 
