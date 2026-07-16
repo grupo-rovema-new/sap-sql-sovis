@@ -91,7 +91,7 @@ IF valorNegociado IS NOT NULL
    AND ABS(
        ROUND(valorNegociado, 2)
        - ROUND(totalDocumento, 2)
-   ) > 0.01
+   ) > 0.05
 THEN
     error := 88;
     error_message :=
@@ -173,7 +173,7 @@ IF :object_type IN ('13') AND :transaction_type IN ('A','U') THEN
        AND ABS(
            ROUND(valorNegociado, 2)
            - ROUND(totalDocumento, 2)
-       ) > 0.01
+       ) > 0.05
     THEN
         error := 88;
         error_message :=
