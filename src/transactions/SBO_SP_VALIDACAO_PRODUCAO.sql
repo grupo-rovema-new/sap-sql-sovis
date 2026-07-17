@@ -38,6 +38,40 @@ IF :object_type IN('202') THEN
 		"CreateDate" >= '2025-01-01'
 		AND ordem."DocEntry" = :list_of_cols_val_tab_del LIMIT 1;
 
+	IF :transaction_type = 'A' THEN
+
+		-- Regra 1: item sem Id Integração vinculado (nunca seria localizada como pendente no sysfeed)
+		IF EXISTS (
+			SELECT 1
+			FROM "OWOR" O
+			LEFT JOIN "OITT" F ON F."Code" = O."ItemCode"
+			WHERE O."DocEntry" = :list_of_cols_val_tab_del
+			  AND O."Type" = 'S'
+			  AND F."U_LbrOne_Id" IS NULL
+		) THEN
+			error := '7';
+			error_message := 'Ação bloqueada: preencha o campo Id Integração na tela Estrutura do Produto deste item com o código da fórmula no sysfeed antes de liberar a ordem de produção.';
+		END IF;
+
+		-- Regra 2: campos de controle do sysfeed já preenchidos na criação (só o fluxo de integração deve gravá-los)
+		IF EXISTS (
+			SELECT 1
+			FROM "OWOR" O
+			WHERE O."DocEntry" = :list_of_cols_val_tab_del
+			  AND O."Type" = 'S'
+			  AND (
+					(O."U_sysfeed_status" IS NOT NULL AND O."U_sysfeed_status" <> '' AND O."U_sysfeed_status" <> 'PENDENTE')
+				 OR (O."U_sysfeed_numero" IS NOT NULL AND O."U_sysfeed_numero" <> '')
+				 OR O."U_LbrOne_DtIntegracao" IS NOT NULL
+				 OR O."U_LbrOne_HrIntegracao" IS NOT NULL
+			  )
+		) THEN
+			error := '7';
+			error_message := 'Ação bloqueada: os campos de controle da integração sysfeed (Status Sysfeed / Numero Sysfeed / Dt e Hr atualização Integração) não podem vir preenchidos na criação da ordem de produção.';
+		END IF;
+
+	END IF;
+
 	-- Bloqueia modificar novos se existir ordem velhas planejada ou liberadas
 	IF(idade < 20 AND EXISTS(
 		SELECT
