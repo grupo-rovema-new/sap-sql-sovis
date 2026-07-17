@@ -47,6 +47,7 @@ IF :object_type IN('202') THEN
 			LEFT JOIN "OITT" F ON F."Code" = O."ItemCode"
 			WHERE O."DocEntry" = :list_of_cols_val_tab_del
 			  AND O."Type" = 'S'
+			  AND O."ItemCode" NOT LIKE 'PAC%'
 			  AND F."U_LbrOne_Id" IS NULL
 		) THEN
 			error := '7';
