@@ -100,7 +100,7 @@ IF :object_type IN('202') THEN
 			FROM "OWOR" O
 			WHERE O."DocEntry" = :list_of_cols_val_tab_del
 			  AND O."Type" = 'S'
-			  AND O."CreateDate" >= '2026-07-14'
+			  AND O."CreateDate" >= '2026-07-17'
 			  AND (
 					(O."U_sysfeed_status" IN ('ENVIADO','DUPLICADO') AND O."U_LbrOne_DtIntegracao" IS NULL)
 				 OR ((O."U_sysfeed_status" IS NULL OR O."U_sysfeed_status" = '' OR O."U_sysfeed_status" IN ('PENDENTE','ERRO','PARCIAL'))
@@ -117,7 +117,7 @@ IF :object_type IN('202') THEN
 			FROM "OWOR" O
 			WHERE O."DocEntry" = :list_of_cols_val_tab_del
 			  AND O."Type" = 'S'
-			  AND O."CreateDate" >= '2026-07-14'
+			  AND O."CreateDate" >= '2026-07-17'
 			  AND O."U_sysfeed_numero" IS NOT NULL AND O."U_sysfeed_numero" <> ''
 			  AND (O."U_sysfeed_status" IS NULL OR O."U_sysfeed_status" = '' OR O."U_sysfeed_status" IN ('PENDENTE','ERRO','PARCIAL'))
 		) THEN
@@ -131,7 +131,7 @@ IF :object_type IN('202') THEN
 			FROM "OWOR" O
 			WHERE O."DocEntry" = :list_of_cols_val_tab_del
 			  AND O."Type" = 'S'
-			  AND O."CreateDate" >= '2026-07-14'
+			  AND O."CreateDate" >= '2026-07-17'
 			  AND (O."U_sysfeed_numero" IS NULL OR O."U_sysfeed_numero" = '')
 			  AND NOT (
 					(O."U_sysfeed_status" IS NULL OR O."U_sysfeed_status" = '' OR O."U_sysfeed_status" IN ('PENDENTE','ERRO','PARCIAL'))
