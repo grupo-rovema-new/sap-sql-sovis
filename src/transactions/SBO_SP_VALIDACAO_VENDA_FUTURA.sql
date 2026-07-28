@@ -245,4 +245,59 @@ END IF;
 END IF;
 END FOR;
 END IF;
+
+-- Adiantamento de venda futura fora do contrato -----------------------------------------------
+-- Um adiantamento (ODPI) marcado com "U_venda_futura" é dinheiro que o cliente pagou por aquele
+-- contrato. Só pode ser apropriado (INV9) por uma nota do MESMO contrato. Sem isso o passivo do
+-- contrato é baixado sem a saída da mercadoria e a conciliação automática (VFET -> VFEC) nunca
+-- fecha, deixando o contrato preso.
+IF :object_type = '13' AND :transaction_type IN ('A','U') THEN
+	DECLARE contratoAdt nvarchar(50) = '';
+
+	SELECT
+		MAX(IFNULL(TRIM(ADT."U_venda_futura"), ''))
+	INTO
+		contratoAdt
+	FROM
+		"OINV" NOTA
+		INNER JOIN "INV9" APROP ON APROP."DocEntry" = NOTA."DocEntry"
+		INNER JOIN "ODPI" ADT   ON ADT."DocEntry"   = APROP."BaseAbs"
+	WHERE
+		NOTA."DocEntry" = :list_of_cols_val_tab_del
+		AND NOTA."CANCELED" = 'N'
+		AND IFNULL(TRIM(ADT."U_venda_futura"), '') <> ''                            -- adiantamento é de venda futura
+		AND IFNULL(TRIM(NOTA."U_venda_futura"), '')
+			<> IFNULL(TRIM(ADT."U_venda_futura"), '');                              -- nota é de outro contrato (ou de nenhum)
+
+	IF IFNULL(contratoAdt, '') <> '' THEN
+		error := 7;
+		error_message := 'Adiantamento do contrato de venda futura ' || contratoAdt ||
+			' só pode ser utilizado em nota do próprio contrato.';
+	END IF;
+END IF;
+
+-- Cobrança em entrega de venda futura ---------------------------------------------------------
+-- A cobrança da venda futura já foi emitida nos boletos dos adiantamentos do contrato. A nota de
+-- entrega da retirada não pode sair com forma de pagamento ligada a carteira do BankPlus, senão
+-- é emitido um segundo boleto sobre a mesma mercadoria.
+IF :object_type = '13' AND :transaction_type IN ('A','U') THEN
+	IF EXISTS (
+		SELECT 1
+		FROM "OINV" NOTA
+		WHERE
+			NOTA."DocEntry" = :list_of_cols_val_tab_del
+			AND NOTA."CANCELED" = 'N'
+			AND IFNULL(TRIM(NOTA."U_venda_futura"), '') <> ''
+			AND IFNULL(NOTA."U_entrega_vf", '0') = '1'                              -- é a nota de entrega/retirada
+			AND EXISTS (
+				SELECT 1
+				FROM "IV_IB_ContractBank" CB
+				WHERE CB."PayMethCode" = NOTA."PeyMethod"                           -- forma de pagamento gera boleto
+			)
+	) THEN
+		error := 7;
+		error_message := 'Entrega de venda futura não pode ter forma de pagamento de cobrança. ' ||
+			'Retire a forma de pagamento de boleto — a cobrança já foi feita nos boletos do contrato.';
+	END IF;
+END IF;
 END;
