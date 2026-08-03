@@ -251,7 +251,7 @@ END IF;
 -- contrato. Só pode ser apropriado (INV9) por uma nota do MESMO contrato. Sem isso o passivo do
 -- contrato é baixado sem a saída da mercadoria e a conciliação automática (VFET -> VFEC) nunca
 -- fecha, deixando o contrato preso.
-IF :object_type = '13' AND :transaction_type IN ('A','U') THEN
+IF :object_type = '13' AND :transaction_type IN ('A') THEN
 	DECLARE contratoAdt nvarchar(50) = '';
 
 	SELECT
