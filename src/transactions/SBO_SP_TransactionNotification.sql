@@ -443,7 +443,7 @@ IF :object_type = '60' and (:transaction_type = 'A') then
 	    JOIN OIGE T2 ON T2."DocEntry" = T0."DocEntry"
 	    WHERE
 	        T0."DocEntry" = :list_of_cols_val_tab_del
-	        AND IFNULL(T0."BaseEntry", -1) = -1
+	        AND (IFNULL(T0."BaseEntry", -1) = -1 OR T0."BaseType" = 202)
 	        AND COALESCE((
 	            SELECT SUM(T1."InQty" - T1."OutQty")
 	            FROM OINM T1
@@ -466,7 +466,7 @@ IF :object_type = '60' and (:transaction_type = 'A') then
 	    JOIN OIGE T2 ON T2."DocEntry" = T0."DocEntry"
 	    WHERE
 	        T0."DocEntry" = :list_of_cols_val_tab_del
-	        AND IFNULL(T0."BaseEntry", -1) = -1
+	        AND (IFNULL(T0."BaseEntry", -1) = -1 OR T0."BaseType" = 202)
 	        AND COALESCE((
 	            SELECT SUM(T1."InQty" - T1."OutQty")
 	            FROM OINM T1
