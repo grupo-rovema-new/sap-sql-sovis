@@ -91,7 +91,7 @@ IF valorNegociado IS NOT NULL
    AND ABS(
        ROUND(valorNegociado, 2)
        - ROUND(totalDocumento, 2)
-   ) > 0.05
+   ) > 0.07
 THEN
     error := 88;
     error_message :=
