@@ -28,95 +28,6 @@ DECLARE totalDocumento number;
 -- Pedido de venda (ORDR)
 IF :object_type IN ('17') AND :transaction_type IN ('A','U') THEN
 
-<<<<<<< HEAD
-    SELECT
-        sum(COALESCE(NULLIF(linha."U_preco_negociado", 0) * linha."Quantity", linha."LineTotal")),
-        max(COALESCE(cab."DocTotal", 0) - COALESCE(cab."TotalExpns", 0))
-    INTO
-        valorNegociado,
-        totalDocumento
-    FROM
-        "ORDR" cab
-        INNER JOIN "RDR1" linha ON linha."DocEntry" = cab."DocEntry"
-    WHERE
-        cab."DocEntry" = :list_of_cols_val_tab_del
-
-        -- Trava somente para essas filiais
-        AND cab."BPLId" IN (2,4,11,17,18)
-        
-        AND NOT EXISTS (
-            SELECT 1
-            FROM "OBPL" filial_cliente
-            WHERE
-                filial_cliente."DflCust" = cab."CardCode"
-                AND COALESCE(filial_cliente."Disabled", 'N') = 'N'
-        )
-
-        AND COALESCE(cab."U_pedido_update", '0') <> '1'
-
-        AND EXISTS (
-            SELECT 1
-            FROM "RDR1"
-            WHERE
-                "DocEntry" = cab."DocEntry"
-                AND "U_preco_negociado" > 0
-        );
-
-    IF valorNegociado IS NOT NULL AND abs(valorNegociado - totalDocumento) > 0.01 THEN
-        error := 88;
-        error_message := 'O total do documento diverge do valor negociado. Esperado ' || valorNegociado;
-    END IF;
-
-END IF;
-
-
--- Nota fiscal de saída (OINV)
-IF :object_type IN ('13') AND :transaction_type IN ('A','U') THEN
-
-    SELECT
-        sum(COALESCE(NULLIF(linha."U_preco_negociado", 0) * linha."Quantity", linha."LineTotal")),
-        max(COALESCE(cab."DocTotal", 0) - COALESCE(cab."TotalExpns", 0))
-    INTO
-        valorNegociado,
-        totalDocumento
-    FROM
-        "OINV" cab
-        INNER JOIN "INV1" linha ON linha."DocEntry" = cab."DocEntry"
-    WHERE
-        cab."DocEntry" = :list_of_cols_val_tab_del
-
-        -- Trava somente para essas filiais emissoras
-        AND cab."BPLId" IN (2,4,11,17,18)
-
-        -- Não aplica a trava quando o cliente da nota é uma filial do próprio sistema.
-        -- A lista vem dinamicamente da OBPL.DflCust.
-        AND NOT EXISTS (
-            SELECT 1
-            FROM "OBPL" filial_cliente
-            WHERE
-                filial_cliente."DflCust" = cab."CardCode"
-                AND COALESCE(filial_cliente."Disabled", 'N') = 'N'
-        )
-
-        -- Bypass temporário
-        AND COALESCE(cab."U_pedido_update", '0') <> '1'
-
-        AND EXISTS (
-            SELECT 1
-            FROM "INV1"
-            WHERE
-                "DocEntry" = cab."DocEntry"
-                AND "U_preco_negociado" > 0
-        );
-
-    IF valorNegociado IS NOT NULL AND abs(valorNegociado - totalDocumento) > 0.01 THEN
-        error := 88;
-        error_message := 'O total do documento diverge do valor negociado. Esperado ' || valorNegociado;
-    END IF;
-
-END IF;
-
-=======
    SELECT
     ROUND(
         SUM(
@@ -274,5 +185,4 @@ IF :object_type IN ('13') AND :transaction_type IN ('A','U') THEN
 
 END IF;
 
->>>>>>> edde90621a9e6937fad4d7413cef6b6ce16a7ecf
 END;
