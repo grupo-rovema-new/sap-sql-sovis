@@ -288,6 +288,7 @@ IF :object_type = '13' AND :transaction_type IN ('A','U') THEN
 		WHERE
 			NOTA."DocEntry" = :list_of_cols_val_tab_del
 			AND NOTA."CANCELED" = 'N'
+			AND NOTA."DocStatus" = 'O'
 			AND IFNULL(TRIM(NOTA."U_venda_futura"), '') <> ''
 			AND IFNULL(NOTA."U_entrega_vf", '0') = '1'                              -- é a nota de entrega/retirada
 			AND EXISTS (
