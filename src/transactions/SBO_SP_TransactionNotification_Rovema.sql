@@ -1820,17 +1820,17 @@ IF :object_type = '24' and (:transaction_type = 'A' or :transaction_type = 'U') 
 END IF;
 
 
-IF :object_type = '24' OR :object_type = '13' and (:transaction_type = 'U') THEN
+IF (:object_type = '24' OR :object_type = '13') and (:transaction_type = 'U') THEN
 	IF EXISTS(
 	SELECT
 		1
-	FROM 
+	FROM
 		ORCT AS py
 		LEFT JOIN RCT2 p2 ON (py."DocEntry" = p2."DocNum")
-		LEFT JOIN INV6 inst on(inst."DocEntry" = p2."DocEntry")
+		LEFT JOIN INV6 inst on(inst."DocEntry" = p2."DocEntry" AND inst."InstlmntID" = p2."InstId")
 	WHERE
-		py."U_pix_reference" <> inst."U_pix_reference" 
-		AND py."Canceled" = 'N' AND (py."DocEntry" = :list_of_cols_val_tab_del OR inst."DocEntry" = :list_of_cols_val_tab_del)				
+		py."U_pix_reference" <> inst."U_pix_reference"
+		AND py."Canceled" = 'N' AND (py."DocEntry" = :list_of_cols_val_tab_del OR inst."DocEntry" = :list_of_cols_val_tab_del)
 	) 
        	 Then       
 			error := 88;
