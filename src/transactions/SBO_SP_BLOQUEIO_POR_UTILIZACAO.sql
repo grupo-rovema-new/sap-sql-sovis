@@ -58,7 +58,7 @@ BEGIN
         pTblPrefix := 'RPD1';
     END IF;
 
-    IF pTblSuffix <> '-1' THEN
+    IF pTblSuffix <> '-1' AND transaction_type = 'A' THEN
         query := 'SELECT TOP 1 OBJETO."BPLId", LINHA."Usage", OBJETO."isIns",OBJETO."DocType", OBJETO."Model" FROM ' || pTblSuffix || ' OBJETO INNER JOIN ' || pTblPrefix || ' LINHA ON OBJETO."DocEntry" = LINHA."DocEntry" WHERE  OBJETO."DocEntry" = ' || :list_of_cols_val_tab_del;
 
         EXECUTE IMMEDIATE query INTO filial, utilizacao, futura, tipoDoc,modelo;
