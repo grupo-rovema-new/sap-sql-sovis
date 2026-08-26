@@ -1399,6 +1399,34 @@ AND P."CSTfCOFINS" <> IMPOSTO."CstCodeIn"
 			error := 7;
          	error_message := 'O CST do COFINS não corresponde ao código do imposto.';  
 	End If;
+IF EXISTS (
+
+    SELECT 1
+    FROM OPCH NOTA
+
+    INNER JOIN PCH1 P
+        ON NOTA."DocEntry" = P."DocEntry"
+
+    INNER JOIN STC1 IMPOSTO
+        ON IMPOSTO."STCCode" = P."TaxCode"
+        AND IMPOSTO."STAType" = 10
+
+    WHERE
+        P."DocEntry" = :list_of_cols_val_tab_del
+
+        AND NOTA."CANCELED" = 'N'
+
+        AND NOTA."Model" NOT IN (37, 38)
+
+        AND IMPOSTO."CstSuffix" <> REPLACE(P."CSTCode", '0.', '')
+
+) THEN
+
+    error := 7;
+
+    error_message := 'O CST do ICMS não corresponde ao código do imposto.';
+
+END IF;
 
 
 -----------------------------------------------------------------------------------------------
