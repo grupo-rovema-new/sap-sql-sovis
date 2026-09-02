@@ -309,15 +309,25 @@ IF :object_type = '15' and ( :transaction_type = 'A') then
 	
 END IF;
 
+  -- Mesma folga do pedido e da nota: a entrega e copiada do pedido, entao carrega junto o
+  -- residuo de arredondamento do desonerado. Deixar essa em 0,05 fixo enquanto as outras duas
+  -- escalam recria o vao onde o DocNum 65419 caiu - passava numa trava e barrava na outra.
   IF EXISTS(
 	SELECT 
 		1
 		FROM ODLN T0
-		INNER JOIN DLN1 T1 ON T0."DocEntry" = T1."DocEntry"
  		WHERE 
- 		T1."Usage" <> 17 AND
- 		NOT T0."DiscSumSy" BETWEEN -0.05 AND 0.05 AND 
- 		T0."CANCELED" = 'N'
+ 		EXISTS (
+ 			SELECT 1 FROM DLN1 L
+ 			WHERE L."DocEntry" = T0."DocEntry" AND L."Usage" <> 17
+ 		)
+ 		AND ABS(COALESCE(T0."DiscSumSy", 0)) > (
+ 			SELECT "Tolerancia_Arredondamento_Desonerado"(
+ 					SUM(COALESCE(L."Quantity", 0)),
+ 					COUNT(1))
+ 			FROM DLN1 L WHERE L."DocEntry" = T0."DocEntry"
+ 		)
+ 		AND T0."CANCELED" = 'N'
  		AND T0."DocEntry" = :list_of_cols_val_tab_del
    )
    THEN 
@@ -1992,16 +2002,26 @@ IF  :object_type = '17' and (:transaction_type = 'A' OR :transaction_type = 'U')
 		error := 7;
 		error_message:= 'Não permitido desconto divergente do valor do impoto desonerado';
 	END IF;
+  -- O limite nao e mais fixo em 0,05: o desonerado deixa um residuo de arredondamento que cresce
+  -- com a quantidade e nao e desconto de verdade. Mesma folga da trava de valor negociado em
+  -- SBO_SP_VALIDACAO_VENDA - ver "Tolerancia_Arredondamento_Desonerado".
   IF EXISTS(
 	SELECT 
 		1
 		FROM ORDR T0
-		INNER JOIN RDR1 T1 ON T0."DocEntry" = T1."DocEntry"
  		WHERE 
  		T0."U_venda_futura" IS null
- 		AND T1."Usage" <> 16 AND
- 		NOT T0."DiscSumSy" BETWEEN -0.05 AND 0.05 AND  
- 		T0."CANCELED" = 'N'
+ 		AND EXISTS (
+ 			SELECT 1 FROM RDR1 L
+ 			WHERE L."DocEntry" = T0."DocEntry" AND L."Usage" <> 16
+ 		)
+ 		AND ABS(COALESCE(T0."DiscSumSy", 0)) > (
+ 			SELECT "Tolerancia_Arredondamento_Desonerado"(
+ 					SUM(COALESCE(L."Quantity", 0)),
+ 					COUNT(1))
+ 			FROM RDR1 L WHERE L."DocEntry" = T0."DocEntry"
+ 		)
+ 		AND T0."CANCELED" = 'N'
  		AND T0."DocEntry" = :list_of_cols_val_tab_del
  		
    )
@@ -2068,16 +2088,25 @@ END IF;
 	END IF;
 END IF;
 IF :object_type = '13' and (:transaction_type = 'A') then 
+  -- Mesma folga da trava do pedido acima: e o mesmo residuo de arredondamento do desonerado,
+  -- que segue do pedido para a nota.
   IF EXISTS(
 	SELECT 
 		1
 		FROM OINV T0
-		INNER JOIN INV1 T1 ON T0."DocEntry" = T1."DocEntry"
  		WHERE 
  		T0."U_venda_futura" IS null
- 		AND T1."Usage" <> 16 AND
- 	    NOT T0."DiscSumSy" BETWEEN -0.05 AND 0.05 AND  
- 		T0."CANCELED" = 'N'
+ 		AND EXISTS (
+ 			SELECT 1 FROM INV1 L
+ 			WHERE L."DocEntry" = T0."DocEntry" AND L."Usage" <> 16
+ 		)
+ 		AND ABS(COALESCE(T0."DiscSumSy", 0)) > (
+ 			SELECT "Tolerancia_Arredondamento_Desonerado"(
+ 					SUM(COALESCE(L."Quantity", 0)),
+ 					COUNT(1))
+ 			FROM INV1 L WHERE L."DocEntry" = T0."DocEntry"
+ 		)
+ 		AND T0."CANCELED" = 'N'
  		AND T0."DocEntry" = :list_of_cols_val_tab_del
  		
    )
