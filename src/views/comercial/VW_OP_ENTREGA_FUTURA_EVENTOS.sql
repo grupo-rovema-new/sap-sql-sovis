@@ -48,15 +48,26 @@ SELECT * FROM (
             ELSE 'Nao Pago'
         END                                      AS "StatusPagamento",
         T0."DpmAmnt"                              AS "ValorAdiantamentoNota",
-        T0."DocTotal" + IFNULL(T0."DpmAmnt",0)    AS "ValorDocumentoOriginal"
+        T0."DocTotal" + IFNULL(T0."DpmAmnt",0)    AS "ValorDocumentoOriginal",
+        CASE WHEN EXISTS (SELECT 1 FROM RIN21 t5
+                          WHERE t5."RefDocNum" = T0."DocNum")
+             THEN 'Sim' ELSE 'Nao' END            AS "TemDevolucao",
+        (SELECT SUM(lv."LineTotal") FROM INV1 lv
+          WHERE lv."DocEntry" = T0."DocEntry"
+            AND lv."Usage" IN (9, 16, 129, 130))    AS "ValorLinhas"
     FROM OINV  T0
     INNER JOIN INV1 T1 ON T1."DocEntry" = T0."DocEntry"
     INNER JOIN OSLP T4 ON T4."SlpCode"  = T0."SlpCode"
     LEFT  JOIN OCTG PC ON PC."GroupNum" = T0."GroupNum"
     LEFT  JOIN OPYM PM ON PM."PayMethCod"  = T0."PeyMethod"
+    /* isIns e o unico discriminador entre op.1 e op.2: a lista de usage e a
+       mesma nas duas (9, 16, 129, 130), igual ao relatorio de faturamento.
+       Antes a op.1 exigia usage 9 e a op.2 usage 16, entao nota isIns='N'
+       com so usage 16 (ou isIns='Y' com so usage 9) nao caia em nenhuma
+       das duas operacoes e desaparecia da VW_OPERACOES_SAIDA.             */
     WHERE T0."CANCELED" = 'N'
       AND T0."isIns" = 'Y'
-      AND T1."Usage" = 16
+      AND T1."Usage" IN (9, 16, 129, 130)
       AND T0."U_venda_futura" IS NULL
       AND T0."U_Rov_Refaturamento" = 'NAO'
  
@@ -82,7 +93,13 @@ SELECT * FROM (
         CAST(NULL AS NVARCHAR(10)), CAST(NULL AS NVARCHAR(50)),
         CAST(NULL AS NVARCHAR(20)),
         T0."DpmAmnt",
-        T0."DocTotal" + IFNULL(T0."DpmAmnt",0)
+        T0."DocTotal" + IFNULL(T0."DpmAmnt",0),
+        CASE WHEN EXISTS (SELECT 1 FROM RIN21 t5
+                          WHERE t5."RefDocNum" = T0."DocNum")
+             THEN 'Sim' ELSE 'Nao' END,   -- TemDevolucao
+        (SELECT SUM(lv."LineTotal") FROM INV1 lv
+          WHERE lv."DocEntry" = T0."DocEntry"
+            AND lv."Usage" IN (9, 16, 129, 130))    -- ValorLinhas
     FROM OINV  T0
     INNER JOIN OSLP T4 ON T4."SlpCode"  = T0."SlpCode"
     INNER JOIN RCT2 r2 ON r2."DocEntry" = T0."DocEntry"
@@ -94,7 +111,7 @@ SELECT * FROM (
       AND T0."U_venda_futura" IS NULL
       AND T0."U_Rov_Refaturamento" = 'NAO'
       AND EXISTS (SELECT 1 FROM INV1 x
-                  WHERE x."DocEntry" = T0."DocEntry" AND x."Usage" = 16)
+                  WHERE x."DocEntry" = T0."DocEntry" AND x."Usage" IN (9, 16, 129, 130))
  
     UNION ALL
  
@@ -126,7 +143,13 @@ SELECT * FROM (
         CAST(NULL AS NVARCHAR(10)), CAST(NULL AS NVARCHAR(50)),
         CAST(NULL AS NVARCHAR(20)),
         T0."DpmAmnt",
-        T0."DocTotal" + IFNULL(T0."DpmAmnt",0)
+        T0."DocTotal" + IFNULL(T0."DpmAmnt",0),
+        CASE WHEN EXISTS (SELECT 1 FROM RIN21 t5
+                          WHERE t5."RefDocNum" = T0."DocNum")
+             THEN 'Sim' ELSE 'Nao' END,   -- TemDevolucao
+        (SELECT SUM(lv."LineTotal") FROM INV1 lv
+          WHERE lv."DocEntry" = T0."DocEntry"
+            AND lv."Usage" IN (9, 16, 129, 130))    -- ValorLinhas
     FROM OINV  T0
     INNER JOIN OSLP T4 ON T4."SlpCode"   = T0."SlpCode"
     INNER JOIN DLN1 dl ON dl."BaseEntry" = T0."DocEntry"
@@ -138,7 +161,7 @@ SELECT * FROM (
       AND T0."U_venda_futura" IS NULL
       AND T0."U_Rov_Refaturamento" = 'NAO'
       AND EXISTS (SELECT 1 FROM INV1 x
-                  WHERE x."DocEntry" = T0."DocEntry" AND x."Usage" = 16)
+                  WHERE x."DocEntry" = T0."DocEntry" AND x."Usage" IN (9, 16, 129, 130))
  
     UNION ALL
  
@@ -168,7 +191,13 @@ SELECT * FROM (
         CAST(NULL AS NVARCHAR(10)), CAST(NULL AS NVARCHAR(50)),
         CAST(NULL AS NVARCHAR(20)),
         T0."DpmAmnt",
-        T0."DocTotal" + IFNULL(T0."DpmAmnt",0)
+        T0."DocTotal" + IFNULL(T0."DpmAmnt",0),
+        CASE WHEN EXISTS (SELECT 1 FROM RIN21 t5
+                          WHERE t5."RefDocNum" = T0."DocNum")
+             THEN 'Sim' ELSE 'Nao' END,   -- TemDevolucao
+        (SELECT SUM(lv."LineTotal") FROM INV1 lv
+          WHERE lv."DocEntry" = T0."DocEntry"
+            AND lv."Usage" IN (9, 16, 129, 130))    -- ValorLinhas
     FROM OINV  T0
     INNER JOIN OSLP T4 ON T4."SlpCode"   = T0."SlpCode"
     INNER JOIN RIN1 rl ON rl."BaseEntry" = T0."DocEntry"
@@ -179,6 +208,6 @@ SELECT * FROM (
       AND T0."U_venda_futura" IS NULL
       AND T0."U_Rov_Refaturamento" = 'NAO'
       AND EXISTS (SELECT 1 FROM INV1 x
-                  WHERE x."DocEntry" = T0."DocEntry" AND x."Usage" = 16)
+                  WHERE x."DocEntry" = T0."DocEntry" AND x."Usage" IN (9, 16, 129, 130))
 );
  

@@ -28,7 +28,10 @@ SELECT * FROM (
         c."FormaPagDescricao"                    AS "FormaPagDescricao",
         c."StatusPagamentoContrato"               AS "StatusPagamento",
         CAST(NULL AS DECIMAL(19,2))               AS "ValorAdiantamentoNota",
-        CAST(NULL AS DECIMAL(19,2))               AS "ValorDocumentoOriginal"
+        c."ValorPedidoOriginal"                   AS "ValorDocumentoOriginal",
+        c."TemDevolucao"                          AS "TemDevolucao",
+        /* o contrato nao tem nota ancora, entao nao ha soma de linhas */
+        CAST(NULL AS DECIMAL(19,2))               AS "ValorLinhas"
     FROM VW_OP_CONTRATO_VF_BASE c
 
     UNION ALL
@@ -72,13 +75,15 @@ SELECT * FROM (
         CAST(NULL AS NVARCHAR(10)), CAST(NULL AS NVARCHAR(50)),
         CAST(NULL AS NVARCHAR(20)),
         CAST(NULL AS DECIMAL(19,2)),
+        CAST(NULL AS DECIMAL(19,2)),
+        c."TemDevolucao",
         CAST(NULL AS DECIMAL(19,2))
     FROM VW_OP_CONTRATO_VF_BASE c
     INNER JOIN ODPI o ON o."U_venda_futura" = c."ChaveOperacao"
  
     UNION ALL
  
-    /* --- ENTREGAS (OINV usage 9 com U_venda_futura = contrato) --------------- */
+    /* --- ENTREGAS (OINV com U_venda_futura = contrato) ---------------------- */
     SELECT DISTINCT
         3, 'CONTRATO VENDA FUTURA', c."ChaveOperacao",
         c."CardCode", c."CardName", c."SlpCode", c."Vendedor",
@@ -115,19 +120,22 @@ SELECT * FROM (
             ELSE 'Nao Pago'
         END                                      AS "StatusPagamento",
         i."DpmAmnt"                               AS "ValorAdiantamentoNota",
-        i."DocTotal" + IFNULL(i."DpmAmnt",0)      AS "ValorDocumentoOriginal"
+        i."DocTotal" + IFNULL(i."DpmAmnt",0)      AS "ValorDocumentoOriginal",
         -- NOTA: aqui e' o adiantamento NATIVO aplicado nesta entrega
         -- especifica (nao confundir com o adiantamento do CONTRATO via ODPI,
         -- que fica na linha ADIANTAMENTO acima). Um contrato pode ter varias
         -- ENTREGAs, cada uma com seu proprio DpmAmnt - por isso NAO e
         -- constante da operacao aqui, diferente de op.1/op.2.
+        c."TemDevolucao",
+        CAST(NULL AS DECIMAL(19,2))
     FROM VW_OP_CONTRATO_VF_BASE c
     INNER JOIN OINV i  ON i."U_venda_futura" = c."ChaveOperacao"
     INNER JOIN INV1 l1 ON l1."DocEntry" = i."DocEntry"
     LEFT  JOIN OCTG PC ON PC."GroupNum" = i."GroupNum"
     LEFT  JOIN OPYM PM ON PM."PayMethCod"  = i."PeyMethod"
     WHERE i."isIns" = 'N'
-      AND l1."Usage" = 9           -- filha do contrato sai como venda normal
+      AND l1."Usage" IN (9, 16, 129, 130)   -- filha do contrato sai como venda normal
+      AND i."U_Rov_Refaturamento" = 'NAO'
  
     UNION ALL
  
@@ -156,6 +164,8 @@ SELECT * FROM (
         CAST(NULL AS NVARCHAR(10)), CAST(NULL AS NVARCHAR(50)),
         CAST(NULL AS NVARCHAR(20)),
         CAST(NULL AS DECIMAL(19,2)),
+        CAST(NULL AS DECIMAL(19,2)),
+        c."TemDevolucao",
         CAST(NULL AS DECIMAL(19,2))
     FROM VW_OP_CONTRATO_VF_BASE c
     INNER JOIN ORIN r ON r."U_venda_futura" = c."ChaveOperacao"

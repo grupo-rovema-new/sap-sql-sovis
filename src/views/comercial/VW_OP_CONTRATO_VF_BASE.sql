@@ -10,6 +10,10 @@ SELECT
     acf."U_valorProdutos"                       AS "ValorProdutos",
     acf."U_status"                              AS "StatusOperacao",
     acf."U_valorProdutos" + acf."U_valorFrete"  AS "ValorOperacao",
+    /* valor bruto do pedido de origem (DocTotal + adiantamento nativo).
+       E a regua que o relatorio de faturamento usa para o contrato, por
+       isso fica exposta ao lado do valor do proprio contrato.          */
+    ped."DocTotal" + IFNULL(ped."DpmAmnt", 0)   AS "ValorPedidoOriginal",
     acf."U_vendedor"                            AS "SlpCode",
     V."SlpName"                                 AS "Vendedor",
     acf."U_filial"                              AS "BPLId",
@@ -22,7 +26,17 @@ SELECT
         WHEN IFNULL(adto."TemPendente", 0) = 0 THEN 'Pago'
         WHEN adto."TemVencido" = 1             THEN 'Vencido'
         ELSE 'Nao Pago'
-    END                                          AS "StatusPagamentoContrato"
+    END                                          AS "StatusPagamentoContrato",
+    /* contrato com devolucao vinculada (ORIN do contrato, fora o estorno
+       de adiantamento SeqCode = 1). Nas op.1 e op.2 o mesmo flag sai da
+       RIN21, pela referencia fiscal - a regra e outra aqui porque o
+       contrato nao tem DocNum de nota para a RIN21 referenciar.        */
+    CASE WHEN EXISTS (
+                SELECT 1 FROM ORIN r
+                WHERE r."U_venda_futura" = acf."DocEntry"
+                  AND IFNULL(r."SeqCode", 0) <> 1
+                  AND r."CANCELED" = 'N')
+         THEN 'Sim' ELSE 'Nao' END                 AS "TemDevolucao"
 FROM "@AR_CONTRATO_FUTURO" acf
 LEFT JOIN OSLP V   ON V."SlpCode"    = acf."U_vendedor"
 LEFT JOIN OBPL F   ON F."BPLId"      = acf."U_filial"
