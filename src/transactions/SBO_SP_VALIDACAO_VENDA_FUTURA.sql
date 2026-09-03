@@ -78,7 +78,7 @@ END if;
 					nota."DocEntry" AS "nota",
 					(SELECT sum(ROUND(l."Quantity" * COALESCE(l."U_preco_negociado", l."PriceBefDi", 0), 2))
 					 FROM "INV1" l WHERE l."DocEntry" = nota."DocEntry") AS "base",
-					(SELECT COALESCE(sum(COALESCE(e."LineTotal", 0)), 0)
+					(SELECT COALESCE(sum(COALESCE(NULLIF(e."U_frete_negociado", 0), e."LineTotal", 0)), 0)
 					 FROM "INV3" e WHERE e."DocEntry" = nota."DocEntry" AND e."ExpnsCode" = 1) AS "frete"
 				FROM "OINV" nota
 				WHERE nota."DocEntry" IN (
@@ -90,7 +90,7 @@ END if;
 			) notaBase ON notaBase."nota" = devolvido."nota";
 
 		SELECT
-			COALESCE(sum(COALESCE("LineTotal", 0)), 0)
+			COALESCE(sum(COALESCE(NULLIF("U_frete_negociado", 0), "LineTotal", 0)), 0)
 		INTO
 			freteAtual
 		FROM "RIN3"
@@ -130,8 +130,12 @@ END IF;
 -- Frete da nota de entrega de venda futura ----------------------------------------------------
 -- O frete é rateado sobre o SALDO do contrato, não sobre o contrato inteiro:
 --
---     frete = (valorFrete do contrato - frete já faturado) * base desta nota
---             / (base do contrato - base já faturada)
+--     frete = (valorFrete do contrato - frete já faturado) * QUANTIDADE desta nota
+--             / (quantidade do contrato - quantidade já faturada)
+--
+-- A base é QUANTIDADE DE ITENS, não valor: o frete é calculado multiplicando pela quantidade
+-- (ver Regiao.calcularFrete no sap-rovema), então retirar 1 item de 100 leva 1% do frete,
+-- independente de aquele item ser o mais caro ou o mais barato do contrato.
 --
 -- Assim a nota absorve o desvio das anteriores: se alguma saiu com frete a maior ou a menor, o
 -- residual encolhe/aumenta e as seguintes se ajustam sozinhas. Na última entrega a base da nota
@@ -141,6 +145,12 @@ END IF;
 --
 -- Residual não positivo (contrato já cobrou todo o frete, ou cobrou a maior) sugere zero: a nota
 -- sai sem despesa de frete e passa, não se lança despesa adicional negativa.
+--
+-- Valor do frete de uma despesa = COALESCE(NULLIF("U_frete_negociado",0), "LineTotal", 0). Quando
+-- o frete tem ICMS desonerado o DesoneradoService majora o "LineTotal" para que o líquido volte ao
+-- combinado, então é o "U_frete_negociado" que representa o valor real - comparar com o "LineTotal"
+-- majorado barraria a nota. Campo vazio ou zero é documento anterior a essa funcionalidade e cai no
+-- "LineTotal", mantendo o comportamento antigo.
 IF :object_type IN('13') AND :transaction_type IN('A') then
 	DECLARE contratoVf        int    = NULL;
 	DECLARE bypassFrete       int    = 0;
@@ -172,7 +182,7 @@ IF :object_type IN('13') AND :transaction_type IN('A') then
 		INTO freteContrato, baseContrato
 		FROM "@AR_CONTRATO_FUTURO" contrato
 			INNER JOIN (
-				SELECT "DocEntry", sum("U_quantity" * "U_precoNegociado") AS "total"
+				SELECT "DocEntry", sum("U_quantity") AS "total"
 				FROM "@AR_CF_LINHA"
 				GROUP BY "DocEntry"
 			) contratoTotal ON contratoTotal."DocEntry" = contrato."DocEntry"
@@ -184,11 +194,15 @@ IF :object_type IN('13') AND :transaction_type IN('A') then
 		INTO baseAcumulada, freteAcumulado
 		FROM (
 			SELECT
-				nota."DocTotal" - COALESCE(nota."TotalExpns", 0) AS "base",
+				COALESCE(linha."Quantity", 0)                    AS "base",
 				COALESCE(despesa."LineTotal", 0)                 AS "frete"
 			FROM "OINV" nota
 				LEFT JOIN (
-					SELECT "DocEntry", sum(COALESCE("LineTotal", 0)) AS "LineTotal"
+					SELECT "DocEntry", sum("Quantity") AS "Quantity"
+					FROM "INV1" GROUP BY "DocEntry"
+				) linha ON linha."DocEntry" = nota."DocEntry"
+				LEFT JOIN (
+					SELECT "DocEntry", sum(COALESCE(NULLIF("U_frete_negociado", 0), "LineTotal", 0)) AS "LineTotal"
 					FROM "INV3" WHERE "ExpnsCode" = 1 GROUP BY "DocEntry"
 				) despesa ON despesa."DocEntry" = nota."DocEntry"
 			WHERE
@@ -198,11 +212,15 @@ IF :object_type IN('13') AND :transaction_type IN('A') then
 				AND nota."DocEntry" <> :list_of_cols_val_tab_del   -- a própria nota fica de fora
 			UNION ALL
 			SELECT
-				-(devolucao."DocTotal" - COALESCE(devolucao."TotalExpns", 0)),
+				-COALESCE(linha."Quantity", 0),
 				-COALESCE(despesa."LineTotal", 0)
 			FROM "ORIN" devolucao
 				LEFT JOIN (
-					SELECT "DocEntry", sum(COALESCE("LineTotal", 0)) AS "LineTotal"
+					SELECT "DocEntry", sum("Quantity") AS "Quantity"
+					FROM "RIN1" GROUP BY "DocEntry"
+				) linha ON linha."DocEntry" = devolucao."DocEntry"
+				LEFT JOIN (
+					SELECT "DocEntry", sum(COALESCE(NULLIF("U_frete_negociado", 0), "LineTotal", 0)) AS "LineTotal"
 					FROM "RIN3" WHERE "ExpnsCode" = 1 GROUP BY "DocEntry"
 				) despesa ON despesa."DocEntry" = devolucao."DocEntry"
 			WHERE
@@ -211,12 +229,16 @@ IF :object_type IN('13') AND :transaction_type IN('A') then
 		) faturado;
 
 		SELECT
-			COALESCE(max(nota."DocTotal" - COALESCE(nota."TotalExpns", 0)), 0),
+			COALESCE(max(linha."Quantity"), 0),
 			COALESCE(max(despesa."LineTotal"), 0)
 		INTO baseAtual, freteAtual
 		FROM "OINV" nota
 			LEFT JOIN (
-				SELECT "DocEntry", sum(COALESCE("LineTotal", 0)) AS "LineTotal"
+				SELECT "DocEntry", sum("Quantity") AS "Quantity"
+				FROM "INV1" GROUP BY "DocEntry"
+			) linha ON linha."DocEntry" = nota."DocEntry"
+			LEFT JOIN (
+				SELECT "DocEntry", sum(COALESCE(NULLIF("U_frete_negociado", 0), "LineTotal", 0)) AS "LineTotal"
 				FROM "INV3" WHERE "ExpnsCode" = 1 GROUP BY "DocEntry"
 			) despesa ON despesa."DocEntry" = nota."DocEntry"
 		WHERE nota."DocEntry" = :list_of_cols_val_tab_del;
