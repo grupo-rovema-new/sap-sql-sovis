@@ -506,8 +506,9 @@ if  :object_type = '14' and (:transaction_type = 'A'or :transaction_type = 'U') 
 		T0."BPLId" = 2	 AND
 		T0."Model" = 39 AND
 		T0."CANCELED" = 'N' AND 
-		T1."Usage" NOT in(100,16,54,67) AND  
+		T1."Usage" NOT in(100,16,54,67) AND
 		T0."DocEntry" = :list_of_cols_val_tab_del
+		AND fnValidaOtpBypass('DEPOSITO', T0."U_otp_liberacao") = 0
 		)
 		THEN
 		      
@@ -1759,6 +1760,7 @@ CUSTO_NOTA AS (
         AND PDN1."Usage" = 19
         AND OPDN."Model" = 39
         AND PDN1."ItemCode" NOT IN ('INS0000136')
+        AND fnValidaOtpBypass('CUSTO', OPDN."U_otp_liberacao") = 0
     GROUP BY
         OPDN."DocEntry",
         PDN1."ItemCode",
@@ -2912,6 +2914,7 @@ CUSTO_NOTA AS (
         AND PCH1."Usage" = 15
         AND OPCH."Model" = 39
         AND PCH1."ItemCode" NOT IN ('INS0000136')
+        AND fnValidaOtpBypass('CUSTO', OPCH."U_otp_liberacao") = 0
     GROUP BY
         OPCH."DocEntry",
         PCH1."ItemCode",
