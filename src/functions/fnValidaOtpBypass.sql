@@ -12,7 +12,7 @@ BEGIN
     DECLARE v_otp0   NVARCHAR(6);
     DECLARE v_otp1   NVARCHAR(6);
 
-    v_secret := 'MINHA_CHAVE_SUPER_SECRETA_2026';
+    v_secret := 'a784d572aaa3a2826f54fe43de238aaf3f73684bde0ca88535a7a230156ec336';
 
     liberado := 0;
 

@@ -508,7 +508,6 @@ if  :object_type = '14' and (:transaction_type = 'A'or :transaction_type = 'U') 
 		T0."CANCELED" = 'N' AND 
 		T1."Usage" NOT in(100,16,54,67) AND
 		T0."DocEntry" = :list_of_cols_val_tab_del
-		AND fnValidaOtpBypass('DEPOSITO', T0."U_otp_liberacao") = 0
 		)
 		THEN
 		      
