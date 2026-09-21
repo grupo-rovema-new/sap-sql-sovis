@@ -20,214 +20,150 @@ DECLARE totalDocumento number;
 -- quantidade e do numero de linhas. Ver "Tolerancia_Arredondamento_Desonerado".
 DECLARE toleranciaResiduo number;
 
--- ============================================================
--- CONFIGURAÇÃO HARDCODED
--- ============================================================
--- Somente estas filiais emissoras terão a trava aplicada.
--- Troque pelos BPLId reais.
--- ============================================================
+-- Compara o valor combinado com o total FINAL do documento, incluindo frete.
+-- Esperado = produtos negociados + frete negociado + demais despesas lancadas.
+-- Frete (ExpnsCode 1): U_frete_negociado positivo, senao LineTotal, como no servico.
+-- TotalExpns ja inclui frete: substituimos sua parcela bruta pelo valor negociado.
+-- As despesas sao agregadas antes do join para nao multiplica-las pelo numero de itens.
+-- Encontrado = DocTotal. Nao subtrair novamente impostos de RDR4/INV4, inclusive tipo 10.
+-- Cotacao 176603: produtos 27330,71 + frete 3960,00 = 31290,71;
+-- DocTotal 31290,73, diferenca 0,02 dentro da tolerancia 0,132.
+-- Mantidos os filtros de filial, utilizacao, cliente-filial e calculo pendente.
 
-
--- Pedido de venda (ORDR)
--- O total dos produtos NAO pode sair de "DocTotal" - "TotalExpns": o "DocTotal" ja vem liquido
--- do ICMS desonerado de TUDO (produtos + despesas), enquanto "TotalExpns" e a despesa BRUTA.
--- A subtracao joga o desonerado da despesa em cima dos produtos e a trava barra pedido correto.
--- Caso real (DocEntry 118927): produto 124,22 + frete 100,00, desonerado 24,22 + 19,50 ->
--- DocTotal 180,50 - TotalExpns 100,00 = 80,50 contra 100,00 negociado, faltando exatamente os
--- 19,50 do frete. Somando linha a linha e abatendo o desonerado da propria linha da 100,00.
--- O desonerado por linha vem de "RDR4", mesmo padrao das views (ver views/diretoria/Faturamento.sql).
--- O filtro por "ExpnsCode" e obrigatorio: a RDR4 guarda tambem as linhas de imposto das despesas
--- adicionais, e o frete e "LineNum" 0 na RDR3 igual ao produto e "LineNum" 0 na RDR1 - sem o filtro
--- a subconsulta soma o desonerado do frete junto e reconstroi a formula antiga por outro caminho
--- (no 118927 dava os mesmos 80,50 de "DocTotal" - "TotalExpns").
--- Imposto de linha vem com "ExpnsCode" = -1 (conferido no 118927: -1/15,25 do produto e 1/19,50
--- do frete); o <= 0 tambem cobre instalacao que grave 0 no lugar de -1.
-IF :object_type IN ('17') AND :transaction_type IN ('A','U') THEN
-
-   SELECT
-    ROUND(
-        SUM(
-            CASE
-                WHEN COALESCE(linha."U_preco_negociado", 0) > 0
-                THEN ROUND(
-                    linha."U_preco_negociado" * linha."Quantity",
-                    2
-                )
-                ELSE ROUND(
-                    COALESCE(linha."LineTotal", 0),
-                    2
-                )
-            END
-        ),
-        2
-    ),
-    ROUND(
-        SUM(
-              ROUND(COALESCE(linha."LineTotal", 0), 2)
-            - ROUND(COALESCE((
-                  SELECT SUM(COALESCE(NULLIF(imp."U_TX_VlDeL", 0), imp."TaxSum"))
-                  FROM "RDR4" imp
-                  WHERE imp."DocEntry" = linha."DocEntry"
-                    AND imp."LineNum"  = linha."LineNum"
-                    AND COALESCE(imp."ExpnsCode", -1) <= 0
-                    AND imp."staType" IN (25, 28)
-              ), 0), 2)
-        ),
-        2
-    ),
-    "Tolerancia_Arredondamento_Desonerado"(
-        SUM(COALESCE(linha."Quantity", 0)),
-        COUNT(1))
-INTO
-    valorNegociado,
-    totalDocumento,
-    toleranciaResiduo
-FROM
-    "ORDR" cab
-    INNER JOIN "RDR1" linha
-        ON linha."DocEntry" = cab."DocEntry"
-    INNER JOIN "OUSG" usg
-        ON usg."ID" = linha."Usage"
-WHERE
-    cab."DocEntry" = :list_of_cols_val_tab_del
-
-    -- Trava somente para essas filiais
-    AND cab."BPLId" IN (2, 4, 11, 17, 18)
-
-    AND COALESCE(usg."FreeChrgBP", 'N') = 'N'
-
-    AND NOT EXISTS (
-        SELECT 1
-        FROM "OBPL" filial_cliente
-        WHERE
-            filial_cliente."DflCust" = cab."CardCode"
-            AND COALESCE(filial_cliente."Disabled", 'N') = 'N'
-    )
-
-    AND COALESCE(cab."U_pedido_update", '0') <> '1'
-
-    AND EXISTS (
-        SELECT 1
-        FROM "RDR1" linha_negociada
-        WHERE
-            linha_negociada."DocEntry" = cab."DocEntry"
-            AND COALESCE(linha_negociada."U_preco_negociado", 0) > 0
-    );
-
-IF valorNegociado IS NOT NULL
-   AND ABS(
-       ROUND(valorNegociado, 2)
-       - ROUND(totalDocumento, 2)
-   ) > :toleranciaResiduo
-THEN
-    error := 88;
-    error_message :=
-        'O total do documento diverge do valor negociado. Esperado '
-        || TO_NVARCHAR(valorNegociado)
-        || ', encontrado '
-        || TO_NVARCHAR(totalDocumento)
-        || ' (tolerancia '
-        || TO_NVARCHAR(ROUND(:toleranciaResiduo, 2))
-        || ')';
-END IF;
-
-END IF;
-
-
--- Nota fiscal de saída (OINV)
--- O total dos produtos NAO pode sair de "DocTotal" - "TotalExpns": o "DocTotal" ja vem liquido
--- do ICMS desonerado de TUDO (produtos + despesas), enquanto "TotalExpns" e a despesa BRUTA.
--- A subtracao joga o desonerado da despesa em cima dos produtos e a trava barra pedido correto.
--- Caso real (DocEntry 118927): produto 124,22 + frete 100,00, desonerado 24,22 + 19,50 ->
--- DocTotal 180,50 - TotalExpns 100,00 = 80,50 contra 100,00 negociado, faltando exatamente os
--- 19,50 do frete. Somando linha a linha e abatendo o desonerado da propria linha da 100,00.
--- O desonerado por linha vem de "INV4", mesmo padrao das views (ver views/diretoria/Faturamento.sql).
--- O filtro por "ExpnsCode" e obrigatorio: a INV4 guarda tambem as linhas de imposto das despesas
--- adicionais, e o frete e "LineNum" 0 na INV3 igual ao produto e "LineNum" 0 na INV1 - sem o filtro
--- a subconsulta soma o desonerado do frete junto e reconstroi a formula antiga por outro caminho
--- (no 118927 dava os mesmos 80,50 de "DocTotal" - "TotalExpns").
--- Imposto de linha vem com "ExpnsCode" = -1 (conferido no 118927: -1/15,25 do produto e 1/19,50
--- do frete); o <= 0 tambem cobre instalacao que grave 0 no lugar de -1.
-IF :object_type IN ('13') AND :transaction_type IN ('A','U') THEN
+-- Pedido de venda
+IF :object_type = '17' AND :transaction_type IN ('A','U') THEN
 
     SELECT
         ROUND(
             SUM(
                 CASE
                     WHEN COALESCE(linha."U_preco_negociado", 0) > 0
-                    THEN ROUND(
-                        linha."U_preco_negociado" * linha."Quantity",
-                        2
-                    )
-                    ELSE ROUND(
-                        COALESCE(linha."LineTotal", 0),
-                        2
-                    )
+                        THEN ROUND(linha."U_preco_negociado" * linha."Quantity", 2)
+                    ELSE ROUND(COALESCE(linha."LineTotal", 0), 2)
                 END
+            )
+            + MAX(
+                COALESCE(cab."TotalExpns", 0)
+                - COALESCE(frete."FreteLancado", 0)
+                + COALESCE(frete."FreteEsperado", 0)
             ),
             2
         ),
-        ROUND(
-            SUM(
-                  ROUND(COALESCE(linha."LineTotal", 0), 2)
-                - ROUND(COALESCE((
-                      SELECT SUM(COALESCE(NULLIF(imp."U_TX_VlDeL", 0), imp."TaxSum"))
-                      FROM "INV4" imp
-                      WHERE imp."DocEntry" = linha."DocEntry"
-                        AND imp."LineNum"  = linha."LineNum"
-                        AND COALESCE(imp."ExpnsCode", -1) <= 0
-                        AND imp."staType" IN (25, 28)
-                  ), 0), 2)
-            ),
-            2
-        ),
+        ROUND(MAX(cab."DocTotal"), 2),
         "Tolerancia_Arredondamento_Desonerado"(
-            SUM(COALESCE(linha."Quantity", 0)),
-            COUNT(1))
+            SUM(COALESCE(linha."Quantity", 0)), COUNT(1))
     INTO
         valorNegociado,
         totalDocumento,
         toleranciaResiduo
-    FROM
-        "OINV" cab
-        INNER JOIN "INV1" linha
-            ON linha."DocEntry" = cab."DocEntry"
-        INNER JOIN "OUSG" usg
-            ON usg."ID" = linha."Usage"
-    WHERE
-        cab."DocEntry" = :list_of_cols_val_tab_del
-
-        -- Trava somente para essas filiais emissoras
-        AND cab."BPLId" IN (2, 4, 11, 17, 18)
-
-        AND COALESCE(usg."FreeChrgBP", 'N') = 'N'
-
-        -- Não aplica a trava quando o cliente da nota é uma filial do próprio sistema.
-        -- A lista vem dinamicamente da OBPL.DflCust.
-        AND NOT EXISTS (
-            SELECT 1
-            FROM "OBPL" filial_cliente
-            WHERE
-                filial_cliente."DflCust" = cab."CardCode"
-                AND COALESCE(filial_cliente."Disabled", 'N') = 'N'
-        )
-
-        -- Bypass temporário
-        AND COALESCE(cab."U_pedido_update", '0') <> '1'
-
-        AND EXISTS (
-            SELECT 1
-            FROM "INV1" linha_negociada
-            WHERE
-                linha_negociada."DocEntry" = cab."DocEntry"
-                AND COALESCE(linha_negociada."U_preco_negociado", 0) > 0
-        );
+    FROM "ORDR" cab
+    INNER JOIN "RDR1" linha ON linha."DocEntry" = cab."DocEntry"
+    INNER JOIN "OUSG" usg ON usg."ID" = linha."Usage"
+    LEFT JOIN (
+        SELECT d."DocEntry",
+            SUM(COALESCE(d."LineTotal", 0)) AS "FreteLancado",
+            SUM(
+                CASE
+                    WHEN COALESCE(d."U_frete_negociado", 0) > 0 THEN d."U_frete_negociado"
+                    ELSE COALESCE(d."LineTotal", 0)
+                END
+            ) AS "FreteEsperado"
+        FROM "RDR3" d
+        WHERE d."ExpnsCode" = 1
+          AND d."DocEntry" = :list_of_cols_val_tab_del
+        GROUP BY d."DocEntry"
+    ) frete ON frete."DocEntry" = cab."DocEntry"
+    WHERE cab."DocEntry" = :list_of_cols_val_tab_del
+      AND cab."BPLId" IN (2, 4, 11, 17, 18)
+      AND COALESCE(usg."FreeChrgBP", 'N') = 'N'
+      AND NOT EXISTS (
+          SELECT 1 FROM "OBPL" filial_cliente
+          WHERE filial_cliente."DflCust" = cab."CardCode"
+            AND COALESCE(filial_cliente."Disabled", 'N') = 'N'
+      )
+      AND COALESCE(cab."U_pedido_update", '0') <> '1'
+      AND EXISTS (
+          SELECT 1 FROM "RDR1" linha_negociada
+          WHERE linha_negociada."DocEntry" = cab."DocEntry"
+            AND COALESCE(linha_negociada."U_preco_negociado", 0) > 0
+      );
 
     IF valorNegociado IS NOT NULL
-       AND ABS(
-           ROUND(valorNegociado, 2)
-           - ROUND(totalDocumento, 2)
-       ) > :toleranciaResiduo
+       AND ABS(ROUND(valorNegociado, 2) - ROUND(totalDocumento, 2)) > :toleranciaResiduo
+    THEN
+        error := 88;
+        error_message :=
+              'O total do documento diverge do valor negociado. Esperado '
+            || TO_NVARCHAR(valorNegociado)
+            || ', encontrado '
+            || TO_NVARCHAR(totalDocumento)
+            || ' (tolerancia '
+            || TO_NVARCHAR(ROUND(:toleranciaResiduo, 2))
+            || ')';
+    END IF;
+
+END IF;
+
+-- Nota fiscal de saida
+IF :object_type = '13' AND :transaction_type IN ('A','U') THEN
+
+    SELECT
+        ROUND(
+            SUM(
+                CASE
+                    WHEN COALESCE(linha."U_preco_negociado", 0) > 0
+                        THEN ROUND(linha."U_preco_negociado" * linha."Quantity", 2)
+                    ELSE ROUND(COALESCE(linha."LineTotal", 0), 2)
+                END
+            )
+            + MAX(
+                COALESCE(cab."TotalExpns", 0)
+                - COALESCE(frete."FreteLancado", 0)
+                + COALESCE(frete."FreteEsperado", 0)
+            ),
+            2
+        ),
+        ROUND(MAX(cab."DocTotal"), 2),
+        "Tolerancia_Arredondamento_Desonerado"(
+            SUM(COALESCE(linha."Quantity", 0)), COUNT(1))
+    INTO
+        valorNegociado,
+        totalDocumento,
+        toleranciaResiduo
+    FROM "OINV" cab
+    INNER JOIN "INV1" linha ON linha."DocEntry" = cab."DocEntry"
+    INNER JOIN "OUSG" usg ON usg."ID" = linha."Usage"
+    LEFT JOIN (
+        SELECT d."DocEntry",
+            SUM(COALESCE(d."LineTotal", 0)) AS "FreteLancado",
+            SUM(
+                CASE
+                    WHEN COALESCE(d."U_frete_negociado", 0) > 0 THEN d."U_frete_negociado"
+                    ELSE COALESCE(d."LineTotal", 0)
+                END
+            ) AS "FreteEsperado"
+        FROM "INV3" d
+        WHERE d."ExpnsCode" = 1
+          AND d."DocEntry" = :list_of_cols_val_tab_del
+        GROUP BY d."DocEntry"
+    ) frete ON frete."DocEntry" = cab."DocEntry"
+    WHERE cab."DocEntry" = :list_of_cols_val_tab_del
+      AND cab."BPLId" IN (2, 4, 11, 17, 18)
+      AND COALESCE(usg."FreeChrgBP", 'N') = 'N'
+      AND NOT EXISTS (
+          SELECT 1 FROM "OBPL" filial_cliente
+          WHERE filial_cliente."DflCust" = cab."CardCode"
+            AND COALESCE(filial_cliente."Disabled", 'N') = 'N'
+      )
+      AND COALESCE(cab."U_pedido_update", '0') <> '1'
+      AND EXISTS (
+          SELECT 1 FROM "INV1" linha_negociada
+          WHERE linha_negociada."DocEntry" = cab."DocEntry"
+            AND COALESCE(linha_negociada."U_preco_negociado", 0) > 0
+      );
+
+    IF valorNegociado IS NOT NULL
+       AND ABS(ROUND(valorNegociado, 2) - ROUND(totalDocumento, 2)) > :toleranciaResiduo
     THEN
         error := 88;
         error_message :=

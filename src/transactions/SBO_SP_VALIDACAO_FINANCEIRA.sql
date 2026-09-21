@@ -16,13 +16,36 @@ BEGIN
 
 IF :object_type IN ('17') AND :transaction_type IN ('A','U') THEN
 
-    IF EXISTS (
+--    IF EXISTS (
+--        SELECT
+--            1
+--        FROM
+--            ORDR
+--        WHERE
+--             ORDR."BPLId" IN (2,4,11,17, 18)
+--            AND ORDR."DocEntry" = :list_of_cols_val_tab_del
+--            AND EXISTS (
+--                SELECT
+--                    1
+--                FROM
+--                    CLIENTEINADIMPLENTES CI
+--                WHERE
+--                    CI."CardCode" = ORDR."CardCode"
+--            )
+--    ) THEN
+--
+--        error := 7;
+--        error_message := 'Não é permitido realizar venda para cliente com titulo vencido';
+--
+--    END IF;
+ 	IF EXISTS (
         SELECT
             1
         FROM
             ORDR
         WHERE
-             ORDR."BPLId" IN (2,4,11,17, 18)
+            ORDR."GroupNum" NOT IN (-1,86,85,84,83,82,81,80,79,78,77,76,75)
+            AND ORDR."BPLId" IN (17, 18)
             AND ORDR."DocEntry" = :list_of_cols_val_tab_del
             AND EXISTS (
                 SELECT
@@ -34,7 +57,7 @@ IF :object_type IN ('17') AND :transaction_type IN ('A','U') THEN
             )
     ) THEN
 
-        error := 7;
+        error := 17;
         error_message := 'Não é permitido realizar venda para cliente com titulo vencido';
 
     END IF;
