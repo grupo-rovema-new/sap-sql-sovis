@@ -11,5 +11,5 @@ CREATE OR REPLACE VIEW ClienteInadimplentes AS
 	WHERE
 	    NS."DocStatus" = 'O'
 	    AND P."InsTotal" <> '0'
-	    AND P."DueDate" <= ADD_DAYS(NOW(),2)
+	    AND P."DueDate" <= ADD_DAYS(NOW(),-1)
 	    AND (CR."DocNum" IS NULL AND (OCR."Canceled" = 'N' OR OCR."Canceled" IS NULL))

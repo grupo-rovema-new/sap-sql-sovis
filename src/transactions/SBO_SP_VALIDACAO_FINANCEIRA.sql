@@ -44,9 +44,7 @@ IF :object_type IN ('17') AND :transaction_type IN ('A','U') THEN
         FROM
             ORDR
         WHERE
-            ORDR."GroupNum" NOT IN (-1,86,85,84,83,82,81,80,79,78,77,76,75)
-            AND ORDR."BPLId" IN (17, 18)
-            AND ORDR."DocEntry" = :list_of_cols_val_tab_del
+            ORDR."DocEntry" = :list_of_cols_val_tab_del
             AND EXISTS (
                 SELECT
                     1
@@ -55,6 +53,7 @@ IF :object_type IN ('17') AND :transaction_type IN ('A','U') THEN
                 WHERE
                     CI."CardCode" = ORDR."CardCode"
             )
+            AND fnValidaOtpBypass('INADIMPLENCIA', ORDR."U_otp_liberacao") = 0
     ) THEN
 
         error := 17;
