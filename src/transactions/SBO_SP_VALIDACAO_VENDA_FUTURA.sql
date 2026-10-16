@@ -434,4 +434,47 @@ IF :object_type = '13' AND :transaction_type IN ('A','U') THEN
 			'Retire a forma de pagamento de boleto — a cobrança já foi feita nos boletos do contrato.';
 	END IF;
 END IF;
+
+-- Reclassificação de entrega de venda futura duplicada ----------------------------------------
+-- O sap-rovema lança um VFET por nota de entrega (ReclassificacaoEntregaVendaFuturaSchedule) e,
+-- quando a apropriação do adiantamento concilia, o código muda para VFEC. A checagem de
+-- idempotência do serviço procurava só VFET pela referência, então quando a nota voltava a aparecer
+-- aberta o schedule lançava um segundo VFET da mesma entrega, e a conciliação seguinte apropriava
+-- adiantamento do contrato de novo sobre mercadoria já paga.
+-- Caso real: contrato 585, NF 73782 - VFEC 1502448 (25/09) e 1516918 (15/10); o segundo consumiu
+-- os R$ 160 do adiantamento de devolução 6087. Também contrato 342, NF 72733 (1491666/1491668).
+--
+-- Mesma entrega = mesmo "Ref1" (DocNum da nota) e mesmo "Memo", que o serviço monta com o número
+-- do contrato e da nota (memoReclassificacao em ReclassificacaoEntregaVendaFuturaSchedule - mudar
+-- o texto lá exige mudar aqui). Lançamento estornado (o original com estorno apontando para ele, ou o
+-- próprio estorno) não conta, para a sanitização poder refazer a reclassificação.
+IF :object_type = '30' AND :transaction_type = 'A' THEN
+	DECLARE reclassificacaoAnterior int = NULL;
+
+	SELECT
+		MAX(ANT."TransId")
+	INTO
+		reclassificacaoAnterior
+	FROM
+		"OJDT" NOVO
+		INNER JOIN "OJDT" ANT
+			ON  ANT."Ref1" = NOVO."Ref1"
+			AND ANT."Memo" = NOVO."Memo"
+			AND ANT."TransId" <> NOVO."TransId"
+	WHERE
+		NOVO."TransId" = :list_of_cols_val_tab_del
+		AND NOVO."TransCode" = 'VFET'
+		AND NOVO."StornoToTr" IS NULL
+		AND ANT."TransCode" IN ('VFET', 'VFEC')
+		AND ANT."StornoToTr" IS NULL
+		AND NOT EXISTS (
+			SELECT 1 FROM "OJDT" EST WHERE EST."StornoToTr" = ANT."TransId"
+		);
+
+	IF :reclassificacaoAnterior IS NOT NULL THEN
+		error := 7;
+		error_message := 'Entrega de venda futura já reclassificada no lançamento ' ||
+			:reclassificacaoAnterior || '. Estorne-o antes de reclassificar de novo.';
+	END IF;
+END IF;
 END;
