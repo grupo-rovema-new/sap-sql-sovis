@@ -477,4 +477,53 @@ IF :object_type = '30' AND :transaction_type = 'A' THEN
 			:reclassificacaoAnterior || '. Estorne-o antes de reclassificar de novo.';
 	END IF;
 END IF;
+-- Apropriação de adiantamento acima do valor da entrega -----------------------------------------
+-- A apropriação (nota com INV9 que aponta para a entrega em "U_TX_DocEntryRef") é uma por entrega e
+-- nunca passa do total da nota - a baixa com spread apropria a menos, nunca a mais. O
+-- ConciliacaoVendaFuturaSchedule do sap-rovema apropriava uma vez para cada VFET da mesma nota,
+-- então reclassificação duplicada (duas instâncias rodando o schedule ao mesmo tempo) virava
+-- adiantamento do cliente consumido em dobro.
+-- Casos reais: contrato 342, NF 72733 (R$ 19.714,37 apropriados duas vezes, 72736 e 72737); contrato
+-- 585, NF 73782 (R$ 160, 73871 e 74682); contrato 22, NF 53787 (três apropriações de R$ 3.780).
+-- Conta as apropriações não canceladas, inclusive esta; cancelada ('Y') e documento de cancelamento
+-- ('C') ficam de fora, para a sanitização poder cancelar e refazer.
+IF :object_type = '13' AND :transaction_type = 'A' THEN
+	DECLARE notaEntrega    int    = NULL;
+	DECLARE totalEntrega   number = 0;
+	DECLARE totalApropriado number = 0;
+
+	SELECT
+		MAX(ENTREGA."DocEntry"),
+		MAX(ENTREGA."DocTotal")
+	INTO
+		notaEntrega, totalEntrega
+	FROM
+		"OINV" NOVA
+		INNER JOIN "OINV" ENTREGA ON ENTREGA."DocEntry" = NOVA."U_TX_DocEntryRef"
+	WHERE
+		NOVA."DocEntry" = :list_of_cols_val_tab_del
+		AND NOVA."CANCELED" = 'N'
+		AND IFNULL(TRIM(NOVA."U_venda_futura"), '') <> ''
+		AND EXISTS (SELECT 1 FROM "INV9" WHERE "INV9"."DocEntry" = NOVA."DocEntry");
+
+	IF :notaEntrega IS NOT NULL THEN
+		SELECT
+			COALESCE(SUM(APROP."DrawnSum"), 0)
+		INTO
+			totalApropriado
+		FROM
+			"OINV" APROPRIACAO
+			INNER JOIN "INV9" APROP ON APROP."DocEntry" = APROPRIACAO."DocEntry"
+		WHERE
+			APROPRIACAO."U_TX_DocEntryRef" = :notaEntrega
+			AND APROPRIACAO."CANCELED" = 'N';
+
+		IF :totalApropriado > :totalEntrega + 0.01 THEN
+			error := 7;
+			error_message := 'A entrega de venda futura já foi apropriada. Apropriado ' || :totalApropriado ||
+				' para nota de ' || :totalEntrega || '.';
+		END IF;
+	END IF;
+END IF;
+
 END;
