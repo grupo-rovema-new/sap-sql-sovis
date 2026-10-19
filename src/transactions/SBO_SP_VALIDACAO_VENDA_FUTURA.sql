@@ -434,4 +434,96 @@ IF :object_type = '13' AND :transaction_type IN ('A','U') THEN
 			'Retire a forma de pagamento de boleto — a cobrança já foi feita nos boletos do contrato.';
 	END IF;
 END IF;
+
+-- Reclassificação de entrega de venda futura duplicada ----------------------------------------
+-- O sap-rovema lança um VFET por nota de entrega (ReclassificacaoEntregaVendaFuturaSchedule) e,
+-- quando a apropriação do adiantamento concilia, o código muda para VFEC. A checagem de
+-- idempotência do serviço procurava só VFET pela referência, então quando a nota voltava a aparecer
+-- aberta o schedule lançava um segundo VFET da mesma entrega, e a conciliação seguinte apropriava
+-- adiantamento do contrato de novo sobre mercadoria já paga.
+-- Caso real: contrato 585, NF 73782 - VFEC 1502448 (25/09) e 1516918 (15/10); o segundo consumiu
+-- os R$ 160 do adiantamento de devolução 6087. Também contrato 342, NF 72733 (1491666/1491668).
+--
+-- Mesma entrega = mesmo "Ref1" (DocNum da nota) e mesmo "Memo", que o serviço monta com o número
+-- do contrato e da nota (memoReclassificacao em ReclassificacaoEntregaVendaFuturaSchedule - mudar
+-- o texto lá exige mudar aqui). Lançamento estornado (o original com estorno apontando para ele, ou o
+-- próprio estorno) não conta, para a sanitização poder refazer a reclassificação.
+IF :object_type = '30' AND :transaction_type = 'A' THEN
+	DECLARE reclassificacaoAnterior int = NULL;
+
+	SELECT
+		MAX(ANT."TransId")
+	INTO
+		reclassificacaoAnterior
+	FROM
+		"OJDT" NOVO
+		INNER JOIN "OJDT" ANT
+			ON  ANT."Ref1" = NOVO."Ref1"
+			AND ANT."Memo" = NOVO."Memo"
+			AND ANT."TransId" <> NOVO."TransId"
+	WHERE
+		NOVO."TransId" = :list_of_cols_val_tab_del
+		AND NOVO."TransCode" = 'VFET'
+		AND NOVO."StornoToTr" IS NULL
+		AND ANT."TransCode" IN ('VFET', 'VFEC')
+		AND ANT."StornoToTr" IS NULL
+		AND NOT EXISTS (
+			SELECT 1 FROM "OJDT" EST WHERE EST."StornoToTr" = ANT."TransId"
+		);
+
+	IF :reclassificacaoAnterior IS NOT NULL THEN
+		error := 7;
+		error_message := 'Entrega de venda futura já reclassificada no lançamento ' ||
+			:reclassificacaoAnterior || '. Estorne-o antes de reclassificar de novo.';
+	END IF;
+END IF;
+-- Apropriação de adiantamento acima do valor da entrega -----------------------------------------
+-- A apropriação (nota com INV9 que aponta para a entrega em "U_TX_DocEntryRef") é uma por entrega e
+-- nunca passa do total da nota - a baixa com spread apropria a menos, nunca a mais. O
+-- ConciliacaoVendaFuturaSchedule do sap-rovema apropriava uma vez para cada VFET da mesma nota,
+-- então reclassificação duplicada (duas instâncias rodando o schedule ao mesmo tempo) virava
+-- adiantamento do cliente consumido em dobro.
+-- Casos reais: contrato 342, NF 72733 (R$ 19.714,37 apropriados duas vezes, 72736 e 72737); contrato
+-- 585, NF 73782 (R$ 160, 73871 e 74682); contrato 22, NF 53787 (três apropriações de R$ 3.780).
+-- Conta as apropriações não canceladas, inclusive esta; cancelada ('Y') e documento de cancelamento
+-- ('C') ficam de fora, para a sanitização poder cancelar e refazer.
+IF :object_type = '13' AND :transaction_type = 'A' THEN
+	DECLARE notaEntrega    int    = NULL;
+	DECLARE totalEntrega   number = 0;
+	DECLARE totalApropriado number = 0;
+
+	SELECT
+		MAX(ENTREGA."DocEntry"),
+		MAX(ENTREGA."DocTotal")
+	INTO
+		notaEntrega, totalEntrega
+	FROM
+		"OINV" NOVA
+		INNER JOIN "OINV" ENTREGA ON ENTREGA."DocEntry" = NOVA."U_TX_DocEntryRef"
+	WHERE
+		NOVA."DocEntry" = :list_of_cols_val_tab_del
+		AND NOVA."CANCELED" = 'N'
+		AND IFNULL(TRIM(NOVA."U_venda_futura"), '') <> ''
+		AND EXISTS (SELECT 1 FROM "INV9" WHERE "INV9"."DocEntry" = NOVA."DocEntry");
+
+	IF :notaEntrega IS NOT NULL THEN
+		SELECT
+			COALESCE(SUM(APROP."DrawnSum"), 0)
+		INTO
+			totalApropriado
+		FROM
+			"OINV" APROPRIACAO
+			INNER JOIN "INV9" APROP ON APROP."DocEntry" = APROPRIACAO."DocEntry"
+		WHERE
+			APROPRIACAO."U_TX_DocEntryRef" = :notaEntrega
+			AND APROPRIACAO."CANCELED" = 'N';
+
+		IF :totalApropriado > :totalEntrega + 0.01 THEN
+			error := 7;
+			error_message := 'A entrega de venda futura já foi apropriada. Apropriado ' || :totalApropriado ||
+				' para nota de ' || :totalEntrega || '.';
+		END IF;
+	END IF;
+END IF;
+
 END;
