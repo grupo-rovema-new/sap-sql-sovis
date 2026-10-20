@@ -12,7 +12,7 @@ BEGIN
     DECLARE v_otp0   NVARCHAR(6);
     DECLARE v_otp1   NVARCHAR(6);
 
-    v_secret := 'a784d572aaa3a2826f54fe43de238aaf3f73684bde0ca88535a7a230156ec336';
+    v_secret := 'COLOQUE_O_SEGREDO_AQUI';
 
     liberado := 0;
 
@@ -25,7 +25,7 @@ BEGIN
             SECONDS_BETWEEN(
                 TO_TIMESTAMP('1970-01-01 00:00:00'),
                 CURRENT_UTCTIMESTAMP
-            ) / 120
+            ) / 300
         );
 
         v_otp0 := SUBSTRING(BINTOHEX(HASH_SHA256(TO_BINARY(
