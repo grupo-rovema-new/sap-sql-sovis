@@ -435,6 +435,42 @@ IF :object_type = '13' AND :transaction_type IN ('A','U') THEN
 	END IF;
 END IF;
 
+-- Faturamento de retirada sem boleto do contrato ----------------------------------------------
+-- O pedido de retirada pode ser lançado antes de os boletos do contrato existirem (o sap-rovema
+-- deixou de exigir na retirada), mas a nota não: a entrega é paga pelos adiantamentos do contrato,
+-- e faturar sem eles entrega a mercadoria sem cobrança nenhuma - a nota de entrega também não pode
+-- ter boleto próprio (ver "Cobrança em entrega de venda futura").
+-- Boleto = adiantamento (ODPI) do contrato não cancelado; pago ou não, basta existir. Documento de
+-- cancelamento ('C') fica de fora, para a nota poder ser cancelada.
+IF :object_type = '13' AND :transaction_type = 'A' THEN
+	DECLARE contratoSemBoleto nvarchar(50) = '';
+
+	SELECT
+		MAX(IFNULL(TRIM(NOTA."U_venda_futura"), ''))
+	INTO
+		contratoSemBoleto
+	FROM
+		"OINV" NOTA
+	WHERE
+		NOTA."DocEntry" = :list_of_cols_val_tab_del
+		AND NOTA."CANCELED" = 'N'
+		AND IFNULL(TRIM(NOTA."U_venda_futura"), '') <> ''
+		AND IFNULL(NOTA."U_entrega_vf", '0') = '1'                                  -- é a nota de entrega/retirada
+		AND NOT EXISTS (
+			SELECT 1
+			FROM "ODPI" ADT
+			WHERE
+				IFNULL(TRIM(ADT."U_venda_futura"), '') = IFNULL(TRIM(NOTA."U_venda_futura"), '')
+				AND ADT."CANCELED" = 'N'
+		);
+
+	IF IFNULL(contratoSemBoleto, '') <> '' THEN
+		error := 7;
+		error_message := 'Contrato de venda futura ' || contratoSemBoleto ||
+			' sem boletos emitidos. Emita os boletos do contrato antes de faturar a retirada.';
+	END IF;
+END IF;
+
 -- Reclassificação de entrega de venda futura duplicada ----------------------------------------
 -- O sap-rovema lança um VFET por nota de entrega (ReclassificacaoEntregaVendaFuturaSchedule) e,
 -- quando a apropriação do adiantamento concilia, o código muda para VFEC. A checagem de
