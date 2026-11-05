@@ -178,4 +178,30 @@ IF :object_type = '13' AND :transaction_type IN ('A','U') THEN
 
 END IF;
 
+-- Devolucao de saida na sequencia 1 (Cancelado, modelo 0, sem NF-e)
+-- Essa sequencia e so para devolucao de adiantamento: todas as linhas tem que ter base no
+-- adiantamento (RIN1."BaseType" = 203, ODPI). O sap-service usa ela em
+-- DownPaymentService.estornarPorDevolucao. Devolucao de nota, sem base ou com base mista tem
+-- que sair em sequencia que emite NF-e. O documento de cancelamento (CANCELED = 'C') fica de
+-- fora, senao nao daria para cancelar uma devolucao de adiantamento.
+IF :object_type = '14' AND :transaction_type = 'A' THEN
+
+    IF EXISTS (
+        SELECT 1
+        FROM "ORIN" cab
+        INNER JOIN "RIN1" linha ON linha."DocEntry" = cab."DocEntry"
+        WHERE cab."DocEntry" = :list_of_cols_val_tab_del
+            AND cab."SeqCode" = 1
+            AND cab."CANCELED" = 'N'
+            AND COALESCE(linha."BaseType", -1) <> 203
+    )
+    THEN
+        error := 7;
+        error_message :=
+            'A sequencia Cancelado so pode ser usada em devolucao de adiantamento. '
+            || 'Para devolucao de nota, use uma sequencia que emite NF-e.';
+    END IF;
+
+END IF;
+
 END;
