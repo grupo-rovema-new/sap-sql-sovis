@@ -38,6 +38,7 @@ IF EXISTS (
        AND NF."CANCELED"  = 'N'
     WHERE O."DocEntry" = :list_of_cols_val_tab_del
     AND i."BaseType" = 18
+    AND i."ItemCode" NOT LIKE 'ALM%'
 ),
 CTE_MAX AS (
     SELECT
@@ -224,7 +225,7 @@ IF :object_type = '18' and (:transaction_type = 'A' OR :transaction_type = 'U') 
 	    AND NOTA."Model" = 45
 	    AND NOTA."CANCELED" = 'N'
 	    AND LINHA."ItemCode" = 'USO0000017'
-	    AND NOTA."DocEntry" = :list_of_cols_val_tab_del
+	    AND NOTA."DocEntry" = :list_of_cols_val_tab_del 
 	    AND NOT EXISTS (
 	        SELECT
 	            1

@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE SBO_SP_TransactionNotification_Rovema
+CREATE OR replace PROCEDURE SBO_SP_TransactionNotification_Rovema
 
 (
 	in object_type nvarchar(30), 				-- SBO Object Type
@@ -60,7 +60,7 @@ erroAdiantamento := 0;
 
 
 
---------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------F-------------------------------------------------
 -- Nota Fiscal de Saida -- Andrew Ramires May 06/03/2023
 IF :object_type = '13' and (:transaction_type = 'A'or :transaction_type = 'U') then 
 	SELECT
@@ -309,15 +309,25 @@ IF :object_type = '15' and ( :transaction_type = 'A') then
 	
 END IF;
 
+  -- Mesma folga do pedido e da nota: a entrega e copiada do pedido, entao carrega junto o
+  -- residuo de arredondamento do desonerado. Deixar essa em 0,05 fixo enquanto as outras duas
+  -- escalam recria o vao onde o DocNum 65419 caiu - passava numa trava e barrava na outra.
   IF EXISTS(
 	SELECT 
 		1
 		FROM ODLN T0
-		INNER JOIN DLN1 T1 ON T0."DocEntry" = T1."DocEntry"
  		WHERE 
- 		T1."Usage" <> 17 AND
- 		NOT T0."DiscSumSy" BETWEEN -0.05 AND 0.05 AND 
- 		T0."CANCELED" = 'N'
+ 		EXISTS (
+ 			SELECT 1 FROM DLN1 L
+ 			WHERE L."DocEntry" = T0."DocEntry" AND L."Usage" <> 17
+ 		)
+ 		AND ABS(COALESCE(T0."DiscSumSy", 0)) > (
+ 			SELECT "Tolerancia_Arredondamento_Desonerado"(
+ 					SUM(COALESCE(L."Quantity", 0)),
+ 					COUNT(1))
+ 			FROM DLN1 L WHERE L."DocEntry" = T0."DocEntry"
+ 		)
+ 		AND T0."CANCELED" = 'N'
  		AND T0."DocEntry" = :list_of_cols_val_tab_del
    )
    THEN 
@@ -496,7 +506,7 @@ if  :object_type = '14' and (:transaction_type = 'A'or :transaction_type = 'U') 
 		T0."BPLId" = 2	 AND
 		T0."Model" = 39 AND
 		T0."CANCELED" = 'N' AND 
-		T1."Usage" NOT in(100,16,54,67) AND  
+		T1."Usage" NOT in(100,16,54,67) AND
 		T0."DocEntry" = :list_of_cols_val_tab_del
 		)
 		THEN
@@ -704,6 +714,45 @@ END IF;
 		    	error_message := 'Não pode devolução com modelo NFC-E';
 	 END IF;     
 END if;
+
+--------------------------------------------------------------------------------------------------
+-- Nota Fiscal de Saída: custo da linha divergente do custo de estoque (Usage 93) -----------------
+-- Bloqueia a inclusão da nota de saída (OINV) quando o custo da linha (INV1."StockPrice") diverge
+-- do custo médio do item no depósito (OITW."AvgPrice"), somente nas linhas com Usage = 93.
+IF :object_type = '13' AND :transaction_type = 'A' THEN
+	IF EXISTS (
+		SELECT 1
+		FROM OINV D
+		INNER JOIN INV1 DL ON D."DocEntry" = DL."DocEntry"
+		INNER JOIN OITM ITEM ON DL."ItemCode" = ITEM."ItemCode" AND ITEM."InvntItem" = 'Y'
+		INNER JOIN OITW ESTOQUE ON ESTOQUE."ItemCode" = DL."ItemCode" AND ESTOQUE."WhsCode" = DL."WhsCode"
+		WHERE
+			D."DocEntry" = :list_of_cols_val_tab_del
+			AND D."CANCELED" = 'N'
+			AND DL."Usage" = 93
+			AND ROUND(DL."StockPrice", 4) <> ROUND(ESTOQUE."AvgPrice", 4)
+	)
+	THEN
+		SELECT
+			DL."ItemCode",
+			ESTOQUE."AvgPrice"
+		INTO itemCode, v_expected_cost
+		FROM OINV D
+		INNER JOIN INV1 DL ON D."DocEntry" = DL."DocEntry"
+		INNER JOIN OITW ESTOQUE ON ESTOQUE."ItemCode" = DL."ItemCode" AND ESTOQUE."WhsCode" = DL."WhsCode"
+		WHERE
+			D."DocEntry" = :list_of_cols_val_tab_del
+			AND D."CANCELED" = 'N'
+			AND DL."Usage" = 93
+			AND ROUND(DL."StockPrice", 4) <> ROUND(ESTOQUE."AvgPrice", 4)
+		LIMIT 1;
+
+		error := 7;
+		error_message :=
+			'Custo diferente do estoque. Item: ' || :itemCode ||
+			' | Custo esperado: ' || TO_NVARCHAR(ROUND(:v_expected_cost, 4));
+	END IF;
+END IF;
 
 ---------------------------------------------------------------------------------------
 if  :object_type = '19' and (:transaction_type = 'A') THEN
@@ -1360,6 +1409,34 @@ AND P."CSTfCOFINS" <> IMPOSTO."CstCodeIn"
 			error := 7;
          	error_message := 'O CST do COFINS não corresponde ao código do imposto.';  
 	End If;
+IF EXISTS (
+
+    SELECT 1
+    FROM OPCH NOTA
+
+    INNER JOIN PCH1 P
+        ON NOTA."DocEntry" = P."DocEntry"
+
+    INNER JOIN STC1 IMPOSTO
+        ON IMPOSTO."STCCode" = P."TaxCode"
+        AND IMPOSTO."STAType" = 10
+
+    WHERE
+        P."DocEntry" = :list_of_cols_val_tab_del
+
+        AND NOTA."CANCELED" = 'N'
+
+        AND NOTA."Model" NOT IN (37, 38)
+
+        AND IMPOSTO."CstSuffix" <> REPLACE(P."CSTCode", '0.', '')
+
+) THEN
+
+    error := 7;
+
+    error_message := 'O CST do ICMS não corresponde ao código do imposto.';
+
+END IF;
 
 
 -----------------------------------------------------------------------------------------------
@@ -1682,6 +1759,7 @@ CUSTO_NOTA AS (
         AND PDN1."Usage" = 19
         AND OPDN."Model" = 39
         AND PDN1."ItemCode" NOT IN ('INS0000136')
+        AND fnValidaOtpBypass('CUSTO', OPDN."U_otp_liberacao") = 0
     GROUP BY
         OPDN."DocEntry",
         PDN1."ItemCode",
@@ -1781,17 +1859,17 @@ IF :object_type = '24' and (:transaction_type = 'A' or :transaction_type = 'U') 
 END IF;
 
 
-IF :object_type = '24' OR :object_type = '13' and (:transaction_type = 'U') THEN
+IF (:object_type = '24' OR :object_type = '13') and (:transaction_type = 'U') THEN
 	IF EXISTS(
 	SELECT
 		1
-	FROM 
+	FROM
 		ORCT AS py
 		LEFT JOIN RCT2 p2 ON (py."DocEntry" = p2."DocNum")
-		LEFT JOIN INV6 inst on(inst."DocEntry" = p2."DocEntry")
+		LEFT JOIN INV6 inst on(inst."DocEntry" = p2."DocEntry" AND inst."InstlmntID" = p2."InstId")
 	WHERE
-		py."U_pix_reference" <> inst."U_pix_reference" 
-		AND py."Canceled" = 'N' AND (py."DocEntry" = :list_of_cols_val_tab_del OR inst."DocEntry" = :list_of_cols_val_tab_del)				
+		py."U_pix_reference" <> inst."U_pix_reference"
+		AND py."Canceled" = 'N' AND (py."DocEntry" = :list_of_cols_val_tab_del OR inst."DocEntry" = :list_of_cols_val_tab_del)
 	) 
        	 Then       
 			error := 88;
@@ -1925,16 +2003,26 @@ IF  :object_type = '17' and (:transaction_type = 'A' OR :transaction_type = 'U')
 		error := 7;
 		error_message:= 'Não permitido desconto divergente do valor do impoto desonerado';
 	END IF;
+  -- O limite nao e mais fixo em 0,05: o desonerado deixa um residuo de arredondamento que cresce
+  -- com a quantidade e nao e desconto de verdade. Mesma folga da trava de valor negociado em
+  -- SBO_SP_VALIDACAO_VENDA - ver "Tolerancia_Arredondamento_Desonerado".
   IF EXISTS(
 	SELECT 
 		1
 		FROM ORDR T0
-		INNER JOIN RDR1 T1 ON T0."DocEntry" = T1."DocEntry"
  		WHERE 
  		T0."U_venda_futura" IS null
- 		AND T1."Usage" <> 16 AND
- 		NOT T0."DiscSumSy" BETWEEN -0.05 AND 0.05 AND  
- 		T0."CANCELED" = 'N'
+ 		AND EXISTS (
+ 			SELECT 1 FROM RDR1 L
+ 			WHERE L."DocEntry" = T0."DocEntry" AND L."Usage" <> 16
+ 		)
+ 		AND ABS(COALESCE(T0."DiscSumSy", 0)) > (
+ 			SELECT "Tolerancia_Arredondamento_Desonerado"(
+ 					SUM(COALESCE(L."Quantity", 0)),
+ 					COUNT(1))
+ 			FROM RDR1 L WHERE L."DocEntry" = T0."DocEntry"
+ 		)
+ 		AND T0."CANCELED" = 'N'
  		AND T0."DocEntry" = :list_of_cols_val_tab_del
  		
    )
@@ -2001,16 +2089,25 @@ END IF;
 	END IF;
 END IF;
 IF :object_type = '13' and (:transaction_type = 'A') then 
+  -- Mesma folga da trava do pedido acima: e o mesmo residuo de arredondamento do desonerado,
+  -- que segue do pedido para a nota.
   IF EXISTS(
 	SELECT 
 		1
 		FROM OINV T0
-		INNER JOIN INV1 T1 ON T0."DocEntry" = T1."DocEntry"
  		WHERE 
  		T0."U_venda_futura" IS null
- 		AND T1."Usage" <> 16 AND
- 	    NOT T0."DiscSumSy" BETWEEN -0.05 AND 0.05 AND  
- 		T0."CANCELED" = 'N'
+ 		AND EXISTS (
+ 			SELECT 1 FROM INV1 L
+ 			WHERE L."DocEntry" = T0."DocEntry" AND L."Usage" <> 16
+ 		)
+ 		AND ABS(COALESCE(T0."DiscSumSy", 0)) > (
+ 			SELECT "Tolerancia_Arredondamento_Desonerado"(
+ 					SUM(COALESCE(L."Quantity", 0)),
+ 					COUNT(1))
+ 			FROM INV1 L WHERE L."DocEntry" = T0."DocEntry"
+ 		)
+ 		AND T0."CANCELED" = 'N'
  		AND T0."DocEntry" = :list_of_cols_val_tab_del
  		
    )
@@ -2816,6 +2913,7 @@ CUSTO_NOTA AS (
         AND PCH1."Usage" = 15
         AND OPCH."Model" = 39
         AND PCH1."ItemCode" NOT IN ('INS0000136')
+        AND fnValidaOtpBypass('CUSTO', OPCH."U_otp_liberacao") = 0
     GROUP BY
         OPCH."DocEntry",
         PCH1."ItemCode",

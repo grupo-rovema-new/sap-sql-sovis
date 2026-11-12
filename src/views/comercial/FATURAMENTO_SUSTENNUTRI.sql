@@ -85,7 +85,16 @@ CASE
             REPLACE_REGEXPR('[[:space:]]+' IN i."CityS" WITH ' ' OCCURRENCE ALL)
         )
     )
-END AS "CidadeNorm"
+END AS "CidadeNorm",
+	IFNULL(pgto."ValorPago", 0) AS "ValorPago",
+	IFNULL(pgto."SaldoAberto", 0) AS "SaldoAberto",
+	CAST(CASE
+		WHEN IFNULL(pgto."SaldoAberto", 0) <= 0 THEN 'Pago'
+		WHEN IFNULL(pgto."ValorPago", 0) > 0 THEN 'Pago Parcial'
+		WHEN IFNULL(pgto."TemVencido", 0) = 1 THEN 'Vencido'
+		ELSE 'Nao Pago'
+	END AS NVARCHAR(20)) AS "StatusPagamento",
+	pgto."ProximoVencimento" AS "ProximoVencimento"
 FROM
 	"OINV" T0
 INNER JOIN "INV1" T1 ON
@@ -114,6 +123,22 @@ LEFT JOIN INV12 i ON T0."DocEntry" = i."DocEntry"
 LEFT JOIN GRUPOPRODUTO g ON T9."U_grupo_sustennutri" = g.IDGRUPOPRODUTOERP
 LEFT JOIN LINHAPRODUTO l ON T9."U_linha_sustennutri" = l.IDLINHAPRODUTOERP
 LEFT JOIN CATEGORIA a ON T9."U_categoria" = a.IDCATEGORIAERP
+LEFT JOIN (
+	SELECT
+		P."DocEntry",
+		SUM(IFNULL(P."PaidToDate", 0)) AS "ValorPago",
+		SUM(CASE WHEN P."Status" = 'O'
+			 THEN P."InsTotal" - IFNULL(P."PaidToDate", 0) - IFNULL(P."TotalBlck", 0)
+			 ELSE 0 END) AS "SaldoAberto",
+		MAX(CASE WHEN P."Status" = 'O' AND P."DueDate" < CURRENT_DATE
+			  AND P."InsTotal" - IFNULL(P."PaidToDate", 0) - IFNULL(P."TotalBlck", 0) > 0
+			 THEN 1 ELSE 0 END) AS "TemVencido",
+		MIN(CASE WHEN P."Status" = 'O'
+			  AND P."InsTotal" - IFNULL(P."PaidToDate", 0) - IFNULL(P."TotalBlck", 0) > 0
+			 THEN P."DueDate" END) AS "ProximoVencimento"
+	FROM INV6 P
+	GROUP BY P."DocEntry"
+) pgto ON pgto."DocEntry" = T0."DocEntry"
 WHERE
 	T5."RefDocNum" IS NULL
 	AND T0."CANCELED" = 'N'
@@ -210,7 +235,16 @@ CASE
             REPLACE_REGEXPR('[[:space:]]+' IN i."CityS" WITH ' ' OCCURRENCE ALL)
         )
     )
-END AS "CidadeNorm"
+END AS "CidadeNorm",
+	IFNULL(pgto."ValorPago", 0) AS "ValorPago",
+	IFNULL(pgto."SaldoAberto", 0) AS "SaldoAberto",
+	CAST(CASE
+		WHEN IFNULL(pgto."SaldoAberto", 0) <= 0 THEN 'Pago'
+		WHEN IFNULL(pgto."ValorPago", 0) > 0 THEN 'Pago Parcial'
+		WHEN IFNULL(pgto."TemVencido", 0) = 1 THEN 'Vencido'
+		ELSE 'Nao Pago'
+	END AS NVARCHAR(20)) AS "StatusPagamento",
+	pgto."ProximoVencimento" AS "ProximoVencimento"
 FROM
 	"OINV" T0
 INNER JOIN "INV1" T1 ON
@@ -239,6 +273,22 @@ LEFT JOIN INV12 i ON T0."DocEntry" = i."DocEntry"
 LEFT JOIN GRUPOPRODUTO g ON T9."U_grupo_sustennutri" = g.IDGRUPOPRODUTOERP
 LEFT JOIN LINHAPRODUTO l ON T9."U_linha_sustennutri" = l.IDLINHAPRODUTOERP
 LEFT JOIN CATEGORIA a ON T9."U_categoria" = a.IDCATEGORIAERP
+LEFT JOIN (
+	SELECT
+		P."DocEntry",
+		SUM(IFNULL(P."PaidToDate", 0)) AS "ValorPago",
+		SUM(CASE WHEN P."Status" = 'O'
+			 THEN P."InsTotal" - IFNULL(P."PaidToDate", 0) - IFNULL(P."TotalBlck", 0)
+			 ELSE 0 END) AS "SaldoAberto",
+		MAX(CASE WHEN P."Status" = 'O' AND P."DueDate" < CURRENT_DATE
+			  AND P."InsTotal" - IFNULL(P."PaidToDate", 0) - IFNULL(P."TotalBlck", 0) > 0
+			 THEN 1 ELSE 0 END) AS "TemVencido",
+		MIN(CASE WHEN P."Status" = 'O'
+			  AND P."InsTotal" - IFNULL(P."PaidToDate", 0) - IFNULL(P."TotalBlck", 0) > 0
+			 THEN P."DueDate" END) AS "ProximoVencimento"
+	FROM INV6 P
+	GROUP BY P."DocEntry"
+) pgto ON pgto."DocEntry" = T0."DocEntry"
 WHERE
 	T5."RefDocNum" IS NULL
 	AND T0."CANCELED" = 'N'
@@ -334,7 +384,19 @@ SELECT
             REPLACE_REGEXPR('[[:space:]]+' IN i."CityS" WITH ' ' OCCURRENCE ALL)
         )
     )
-END AS "CidadeNorm"
+END AS "CidadeNorm",
+	IFNULL(adto."ValorPago", 0) AS "ValorPago",
+	CASE WHEN adto."Contrato" IS NULL
+		 THEN T0."DocTotal" + IFNULL(T0."DpmAmnt", 0)
+		 ELSE IFNULL(adto."SaldoAberto", 0) END AS "SaldoAberto",
+	CAST(CASE
+		WHEN adto."Contrato" IS NULL THEN 'Nao Pago'
+		WHEN IFNULL(adto."SaldoAberto", 0) <= 0 THEN 'Pago'
+		WHEN IFNULL(adto."ValorPago", 0) > 0 THEN 'Pago Parcial'
+		WHEN IFNULL(adto."TemVencido", 0) = 1 THEN 'Vencido'
+		ELSE 'Nao Pago'
+	END AS NVARCHAR(20)) AS "StatusPagamento",
+	adto."ProximoVencimento" AS "ProximoVencimento"
 FROM
 	ORDR T0
 LEFT JOIN RDR1 T1 ON
@@ -361,6 +423,32 @@ LEFT JOIN RDR12 i ON T0."DocEntry" = i."DocEntry"
 LEFT JOIN GRUPOPRODUTO g ON T9."U_grupo_sustennutri" = g.IDGRUPOPRODUTOERP
 LEFT JOIN LINHAPRODUTO l ON T9."U_linha_sustennutri" = l.IDLINHAPRODUTOERP
 LEFT JOIN CATEGORIA a ON T9."U_categoria" = a.IDCATEGORIAERP
+LEFT JOIN (
+	SELECT
+		O."U_venda_futura" AS "Contrato",
+		SUM(IFNULL(PA."PaidToDate", 0)) AS "ValorPago",
+		SUM(CASE WHEN PA."Status" = 'O'
+			 THEN PA."InsTotal" - IFNULL(PA."PaidToDate", 0) - IFNULL(PA."TotalBlck", 0)
+			 ELSE 0 END) AS "SaldoAberto",
+		MAX(CASE WHEN PA."Status" = 'O' AND PA."DueDate" < CURRENT_DATE
+			  AND PA."InsTotal" - IFNULL(PA."PaidToDate", 0) - IFNULL(PA."TotalBlck", 0) > 0
+			 THEN 1 ELSE 0 END) AS "TemVencido",
+		MIN(CASE WHEN PA."Status" = 'O'
+			  AND PA."InsTotal" - IFNULL(PA."PaidToDate", 0) - IFNULL(PA."TotalBlck", 0) > 0
+			 THEN PA."DueDate" END) AS "ProximoVencimento"
+	FROM ODPI O
+	INNER JOIN DPI6 PA ON PA."DocEntry" = O."DocEntry"
+	WHERE O."CANCELED" = 'N'
+	  AND NOT EXISTS (
+			SELECT 1
+			FROM RIN1 RL
+			INNER JOIN ORIN R2 ON R2."DocEntry" = RL."DocEntry"
+			WHERE RL."BaseEntry" = O."DocEntry"
+			  AND RL."BaseType" = 203
+			  AND R2."CANCELED" = 'N'
+	  )
+	GROUP BY O."U_venda_futura"
+) adto ON TO_NVARCHAR(adto."Contrato") = TO_NVARCHAR(ACF."DocEntry")
 WHERE
 	T5."RefDocNum" IS NULL
 	AND T0."CANCELED" = 'N'
