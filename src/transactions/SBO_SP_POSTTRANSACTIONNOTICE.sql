@@ -79,6 +79,19 @@ UPDATE OPCH SET "U_TX_IndNatFrete" = 9 WHERE OPCH."DocEntry" = :list_of_cols_val
 END IF;
 END IF;
 
+------------------NOTA DE DÉBITO DE PERDA EM ESTOQUE PELA UTILIZAÇÃO 35 (BAIXA/PERDA) - NF SAÍDA-----------------
+IF :object_type = '13' AND (:transaction_type = 'A' OR :transaction_type = 'U') THEN
+IF EXISTS (SELECT 1 FROM INV1 WHERE "Usage" = 35 AND "DocEntry" = :list_of_cols_val_tab_del) THEN
+UPDATE OINV SET "U_TX_finNFe" = '6', "U_TX_tpNFDebito" = '07' WHERE OINV."DocEntry" = :list_of_cols_val_tab_del AND OINV."CANCELED" = 'N';
+END IF;
+END IF;
+
+-------------------INFORMAR ALÍQUOTA ISS NACIONAL EM NFS-e (MODELO 46) - NF SAÍDA---------------------------------
+IF :object_type = '13' AND (:transaction_type = 'A' OR :transaction_type = 'U') THEN
+IF EXISTS (SELECT 1 FROM OINV WHERE "Model" = '46' AND "SeqCode" NOT IN (-1, -2) AND "DocEntry" = :list_of_cols_val_tab_del) THEN
+UPDATE OINV SET "U_TX_InfAliqIssDoc" = '1' WHERE OINV."DocEntry" = :list_of_cols_val_tab_del AND OINV."CANCELED" = 'N';
+END IF;
+END IF;
 --------------------------------------------------------------------------------------------------------------------------------
 
 
