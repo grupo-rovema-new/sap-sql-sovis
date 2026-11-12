@@ -3166,6 +3166,22 @@ WHERE
 	error_message := 'O campo de Desconto na linha está com valor negativo!';
 END IF;
 END IF;
+
+-------------------FILIAL DIFERENTE DO DF-e - NF ENTRADA-------------------------------------
+IF :object_type = '18' AND (:transaction_type = 'A' OR :transaction_type = 'U') THEN
+IF EXISTS (
+SELECT 1 FROM OPCH T0 
+INNER JOIN "DocReceived" T1 ON T1."KeyNfe" = T0."U_ChaveAcesso" 
+INNER JOIN "Entidade" T2 ON T2."ID" = T1."CompanyId" 
+WHERE T0."DocEntry" = :list_of_cols_val_tab_del 
+AND (T0."Model" = '39' OR (T0."Model" = '46' AND LENGTH(T1."XmlFileNfse") > 0)
+) 
+GROUP BY T0."DocEntry" 
+HAVING MAX(CASE WHEN T2."BusinessPlaceId" = T0."BPLId" THEN 1 ELSE 0 END) = 0) THEN
+error := 3;
+error_message := 'Filial da NF Entrada diferente da filial do DF-e! Verifique a filial do documento.';
+END IF;
+END IF;
 -----------------------------------------------------------------------------------------------
 IF :object_type in('23') and  (:transaction_type = 'A' or :transaction_type = 'U') AND 1=2 THEN 
 	SELECT 
