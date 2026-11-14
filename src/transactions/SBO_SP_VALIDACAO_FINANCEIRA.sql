@@ -145,7 +145,7 @@ IF :object_type = '13' AND :transaction_type = 'A' THEN
         error := 7;
         error_message :=
             'Pedido com PIX pago: a nota tem que usar o adiantamento ' || TO_NVARCHAR(:pixDocNum) ||
-            ' no valor total do saldo (R$ ' || TO_NVARCHAR(ROUND(:pixSaldo, 2)) || ').';
+            ' no valor total do saldo (R$ ' || REPLACE(TO_NVARCHAR(CAST(ROUND(:pixSaldo, 2) AS DECIMAL(19,2))), '.', ',') || ').';
 
     END IF;
 
