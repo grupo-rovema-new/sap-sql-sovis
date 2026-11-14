@@ -226,6 +226,13 @@ IF :object_type IN('13') AND :transaction_type IN('A') then
 			WHERE
 				devolucao."U_venda_futura" = :contratoVf
 				AND devolucao."CANCELED" = 'N'
+				-- devolução que estorna adiantamento (base 203) fica de fora: a linha dele tem
+				-- quantidade = valor, e somada como itens devolvidos zerava o frete (contrato 699).
+				-- Mesmo filtro de PedidoRetirada.freteResidual no sap-service.
+				AND NOT EXISTS (
+					SELECT 1 FROM "RIN1" adto
+					WHERE adto."DocEntry" = devolucao."DocEntry" AND adto."BaseType" = 203
+				)
 		) faturado;
 
 		SELECT
