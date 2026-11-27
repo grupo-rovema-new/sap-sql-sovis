@@ -1154,7 +1154,7 @@ SELECT
 		INNER JOIN PCH1 T1 ON T0."DocEntry" = T1."DocEntry"
 		Where 
 			T0."DocType" <> 'S' AND 
-			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136,152) AND 
+			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136,152,161) AND 
 			T0."Model" <> 39 AND 
 			T0."CANCELED" = 'N' and
 			T0."DocEntry" = :list_of_cols_val_tab_del
@@ -1172,7 +1172,7 @@ SELECT
 		From "OPCH" T0	
 		INNER JOIN PCH1 T1 ON T0."DocEntry" = T1."DocEntry"
 		Where 
-			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136,152) AND 
+			T1."Usage" NOT IN(14,34,24,33,73,74,36,13,72,65,122,64,69,67,39,136,152,161) AND 
 			T0."Model" = 39 AND 
 			T0."SeqCode" = '-2' AND
 			T0."CANCELED" = 'N' AND
@@ -3164,6 +3164,22 @@ WHERE
 ) THEN 
 	error := 3;
 	error_message := 'O campo de Desconto na linha está com valor negativo!';
+END IF;
+END IF;
+
+-------------------FILIAL DIFERENTE DO DF-e - NF ENTRADA-------------------------------------
+IF :object_type = '18' AND (:transaction_type = 'A' OR :transaction_type = 'U') THEN
+IF EXISTS (
+SELECT 1 FROM OPCH T0 
+INNER JOIN "DocReceived" T1 ON T1."KeyNfe" = T0."U_ChaveAcesso" 
+INNER JOIN "Entidade" T2 ON T2."ID" = T1."CompanyId" 
+WHERE T0."DocEntry" = :list_of_cols_val_tab_del 
+AND (T0."Model" = '39' OR (T0."Model" = '46' AND LENGTH(T1."XmlFileNfse") > 0)
+) 
+GROUP BY T0."DocEntry" 
+HAVING MAX(CASE WHEN T2."BusinessPlaceId" = T0."BPLId" THEN 1 ELSE 0 END) = 0) THEN
+error := 3;
+error_message := 'Filial da NF Entrada diferente da filial do DF-e! Verifique a filial do documento.';
 END IF;
 END IF;
 -----------------------------------------------------------------------------------------------
