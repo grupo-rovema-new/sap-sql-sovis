@@ -10,7 +10,7 @@ CREATE OR REPLACE VIEW ClienteInadimplentes AS
 	    LEFT  JOIN ORCT OCR ON CR."DocEntry" = OCR."DocEntry"
 	WHERE
 	    NS."DocStatus" = 'O'
-	    AND P."InsTotal" <> '0'
+	    AND P."InsTotal" - P."PaidToDate" > 0
 	    AND P."DueDate" < ADD_DAYS(CURRENT_DATE,-2)
 	    AND (CR."DocNum" IS NULL AND (OCR."Canceled" = 'N' OR OCR."Canceled" IS NULL))
 	    AND NS."CardCode" NOT IN (SELECT "DflCust" FROM OBPL WHERE "DflCust" IS NOT NULL)

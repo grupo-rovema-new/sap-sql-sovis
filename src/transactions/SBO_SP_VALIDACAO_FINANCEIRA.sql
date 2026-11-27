@@ -58,6 +58,46 @@ IF :object_type IN ('17') AND :transaction_type IN ('A','U') THEN
                     CI."CardCode" = ORDR."CardCode"
             )
             AND fnValidaOtpBypass('INADIMPLENCIA', ORDR."U_otp_liberacao") = 0
+            -- Retirada de contrato de venda futura quitado nao bloqueia: todo adiantamento
+            -- (ODPI do cliente, nao cancelado e sem devolucao) do contrato existente esta pago, sem parcela em aberto.
+            AND NOT (
+                EXISTS (
+                    SELECT 1 FROM "@AR_CONTRATO_FUTURO" ACF
+                    WHERE TO_NVARCHAR(ACF."DocEntry") = TRIM(TO_NVARCHAR(ORDR."U_venda_futura"))
+                )
+                AND EXISTS (
+                    SELECT 1
+                    FROM ODPI AD
+                    WHERE TO_NVARCHAR(AD."U_venda_futura") = TRIM(TO_NVARCHAR(ORDR."U_venda_futura"))
+                        AND AD."CardCode" = ORDR."CardCode"
+                        AND AD."CANCELED" = 'N'
+                        AND NOT EXISTS (
+                            SELECT 1
+                            FROM RIN1 RL
+                                INNER JOIN ORIN R2 ON R2."DocEntry" = RL."DocEntry"
+                            WHERE RL."BaseEntry" = AD."DocEntry"
+                                AND RL."BaseType" = 203
+                                AND R2."CANCELED" = 'N'
+                        )
+                )
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM ODPI AD
+                        INNER JOIN DPI6 PA ON PA."DocEntry" = AD."DocEntry"
+                    WHERE TO_NVARCHAR(AD."U_venda_futura") = TRIM(TO_NVARCHAR(ORDR."U_venda_futura"))
+                        AND AD."CardCode" = ORDR."CardCode"
+                        AND AD."CANCELED" = 'N'
+                        AND PA."InsTotal" - IFNULL(PA."PaidToDate", 0) - IFNULL(PA."TotalBlck", 0) > 0
+                        AND NOT EXISTS (
+                            SELECT 1
+                            FROM RIN1 RL
+                                INNER JOIN ORIN R2 ON R2."DocEntry" = RL."DocEntry"
+                            WHERE RL."BaseEntry" = AD."DocEntry"
+                                AND RL."BaseType" = 203
+                                AND R2."CANCELED" = 'N'
+                        )
+                )
+            )
     ) THEN
 
         error := 17;
